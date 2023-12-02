@@ -19,15 +19,32 @@ namespace FerPROJ.DBHelper.Base
             SetTables();
             _conn = NewConnection();
         }
+        protected BaseDB(DBHelper useConn)
+        {
+            SetTables();
+            _conn = UseConnection(useConn);
+        }
         private DBHelper NewConnection() 
         {
             return (DBHelper)conn;
+        }
+        private DBHelper UseConnection(DBHelper useConn)
+        {
+            return useConn;
         }
         protected abstract void SetTables();
 
         public void Dispose()
         {           
             _conn.CloseConnection();
+        }
+        public string _selectStatement(string sWhere = null)
+        {
+            return $"SELECT * FROM {_tableName} {sWhere}";
+        }
+        public string _selectStatementDetails(string sWhere = null)
+        {
+            return $"SELECT * FROM {_tableDetailsName} {sWhere}";
         }
     }
   

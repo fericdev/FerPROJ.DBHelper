@@ -2,19 +2,17 @@
 using FerPROJ.Design.Controls;
 using MySql.Data.MySqlClient;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using static FerPROJ.Design.Class.CEnum;
 
-namespace FerPROJ.DBHelper.CRUD
-{
-    public class Conn
-    {
+namespace FerPROJ.DBHelper.CRUD {
+    public class Conn : IDisposable {
         private MySqlCommand commandResult;
         private MySqlCommand commandResult2;
         private MySqlConnection connectionResult = new MySqlConnection();
@@ -27,39 +25,29 @@ namespace FerPROJ.DBHelper.CRUD
         private int rowsAffected2;
         public AllowedOpenDB dbConnection = CEnum.AllowedOpenDB.One;
 
-        public Conn()
-        {
+        public Conn() {
             SetNewConnection();
         }
-        public void SetNewConnection()
-        {
+        public void SetNewConnection() {
             this.connectionString = CStaticVariable.connString1 != null ? CStaticVariable.connString1 : CStaticVariable.mainConnection;
             this.connectionString2 = CStaticVariable.connString2;
         }
-        public void CloseConnection()
-        {
-            if (dbConnection == AllowedOpenDB.One)
-            {
-                if (connectionResult.State == ConnectionState.Open)
-                {
+        public void CloseConnection() {
+            if (dbConnection == AllowedOpenDB.One) {
+                if (connectionResult.State == ConnectionState.Open) {
                     connectionResult.Close();
-                    beginTransaction.Dispose();
                     connectionResult.Dispose();
                     commandResult.Dispose();
                 }
-            }
-            else if (dbConnection == AllowedOpenDB.Two)
-            {
-                if (connectionResult.State == ConnectionState.Open)
-                {
+            } else if (dbConnection == AllowedOpenDB.Two) {
+                if (connectionResult.State == ConnectionState.Open) {
                     connectionResult.Close();
-                    beginTransaction.Dispose();
                     connectionResult.Dispose();
                     commandResult.Dispose();
+                    beginTransaction.Dispose();
                     CStaticVariable.connString1 = null;
                 }
-                if (connectionResult2.State == ConnectionState.Open)
-                {
+                if (connectionResult2.State == ConnectionState.Open) {
                     connectionResult2.Close();
                     beginTransaction2.Dispose();
                     connectionResult2.Dispose();
@@ -67,218 +55,176 @@ namespace FerPROJ.DBHelper.CRUD
                 }
             }
         }
-        public bool ExecuteQuery(string queryStatment)
-        {
-            try
-            {
-                if (connectionResult.State == ConnectionState.Closed)
-                {
+        public bool ExecuteQuery(string queryStatement) {
+            try {
+                if (connectionResult.State == ConnectionState.Closed) {
                     connectionResult = new MySqlConnection(connectionString);
                     connectionResult.Open();
                 }
-                beginTransaction = connectionResult.BeginTransaction();
                 //
-                commandResult = new MySqlCommand(queryStatment, connectionResult);
+                commandResult = new MySqlCommand(queryStatement, connectionResult);
                 rowsAffected = commandResult.ExecuteNonQuery();
-                beginTransaction.Commit();
                 return true;
-            }
-            catch (MySqlException ex)
-            {
+            } catch (MySqlException ex) {
                 CShowMessage.Warning(ex.Message, "Warning");
-                beginTransaction.Rollback();
                 CloseConnection();
                 return false;
             }
         }
-        public bool ExecuteQuery(List<string> queryStatment)
-        {
-            try
-            {
+        public bool ExecuteQuery(List<string> queryStatement) {
+            try {
                 DBConnect();
                 //
-                foreach (var sQuery in queryStatment)
-                {
+                foreach (var sQuery in queryStatement) {
                     ExecuteMultpleQuery(sQuery);
                 }
                 TransCommit();
                 return true;
-            }
-            catch (MySqlException ex)
-            {
+            } catch (MySqlException ex) {
                 CShowMessage.Warning(ex.Message, "Warning");
-                TransRollbacl();
+                TransRollback();
                 CloseConnection();
                 return false;
             }
 
-            void DBConnect()
-            {
-                if (dbConnection == AllowedOpenDB.One)
-                {
-                    if (connectionResult.State == ConnectionState.Closed)
-                    {
+            void DBConnect() {
+                if (dbConnection == AllowedOpenDB.One) {
+                    if (connectionResult.State == ConnectionState.Closed) {
                         connectionResult = new MySqlConnection(connectionString);
                         connectionResult.Open();
                     }
                     beginTransaction = connectionResult.BeginTransaction();
                 }
-                else if (dbConnection == AllowedOpenDB.Two)
-                {
-                    if (connectionResult.State == ConnectionState.Closed)
-                    {
+            }
+
+            void TransCommit() {
+                if (dbConnection == AllowedOpenDB.One) {
+                    beginTransaction.Commit();
+                }
+            }
+
+            void ExecuteMultpleQuery(string sQuery) {
+                if (dbConnection == AllowedOpenDB.One) {
+                    commandResult = new MySqlCommand(sQuery, connectionResult);
+                    rowsAffected += commandResult.ExecuteNonQuery();
+                }
+            }
+        }
+        public bool ExecuteQuery(List<string> queryStatement, List<string> queryStatement2) {
+            try {
+                DBConnect();
+                //
+                foreach (var sQuery in queryStatement) {
+                    ExecuteMultpleQuery(sQuery);
+                }
+                foreach (var sQuery in queryStatement2) {
+                    ExecuteMultpleQuery2(sQuery);
+                }
+                TransCommit();
+                return true;
+            } catch (MySqlException ex) {
+                CShowMessage.Warning(ex.Message, "Warning");
+                TransRollback();
+                CloseConnection();
+                return false;
+            }
+
+            void DBConnect() {
+                if (dbConnection == AllowedOpenDB.Two) {
+                    if (connectionResult.State == ConnectionState.Closed) {
                         connectionResult = new MySqlConnection(connectionString);
                         connectionResult.Open();
                     }
-                    if (connectionResult2.State == ConnectionState.Closed)
-                    {
+                    if (connectionResult2.State == ConnectionState.Closed) {
                         connectionResult2 = new MySqlConnection(connectionString2);
                         connectionResult2.Open();
                     }
                     beginTransaction = connectionResult.BeginTransaction();
-                    beginTransaction2 = connectionResult2.BeginTransaction();
+                    beginTransaction2 = connectionResult.BeginTransaction();
                 }
             }
 
-            void TransCommit()
-            {
-                if (dbConnection == AllowedOpenDB.One)
-                {
-                    beginTransaction.Commit();
-                }
-                else if (dbConnection == AllowedOpenDB.Two)
-                {
+            void TransCommit() {
+                if (dbConnection == AllowedOpenDB.Two) {
                     beginTransaction.Commit();
                     beginTransaction2.Commit();
                 }
             }
 
-            void ExecuteMultpleQuery(string sQuery)
-            {
-                if (dbConnection == AllowedOpenDB.One)
-                {
+            void ExecuteMultpleQuery(string sQuery) {
+                if (dbConnection == AllowedOpenDB.Two) {
                     commandResult = new MySqlCommand(sQuery, connectionResult);
                     rowsAffected = commandResult.ExecuteNonQuery();
                 }
-                else if (dbConnection == AllowedOpenDB.Two)
-                {
-                    commandResult = new MySqlCommand(sQuery, connectionResult);
-                    rowsAffected = commandResult.ExecuteNonQuery();
+            }
+            void ExecuteMultpleQuery2(string sQuery) {
+                if (dbConnection == AllowedOpenDB.Two) {
                     commandResult2 = new MySqlCommand(sQuery, connectionResult2);
                     rowsAffected2 = commandResult2.ExecuteNonQuery();
                 }
             }
         }
 
-        private void TransRollbacl()
-        {
+        private void TransRollback() {
 
-            if (dbConnection == AllowedOpenDB.One)
-            {
+            if (dbConnection == AllowedOpenDB.One) {
                 beginTransaction.Rollback();
-            }
-            else if (dbConnection == AllowedOpenDB.Two)
-            {
+            } else if (dbConnection == AllowedOpenDB.Two) {
                 beginTransaction.Rollback();
                 beginTransaction2.Rollback();
             }
 
         }
+        public TClass GetMethodFromColumn<TClass>(string Method, string Table, string Column = "*", string Where = "") where TClass : new() {
+            string selectQuery = $"SELECT {Method}({Column}) as result FROM {Table} {Where}";
 
-        public int GetMethodIntFromColumn(string Method, string Column, string Table, string Where = "")
-        {
-            string selectQuery = $"SELECT {Method}({Column}) as ID FROM {Table} {Where}";
-            if (ExecuteQuery(selectQuery))
-            {
-                using (MySqlDataReader reader = commandResult.ExecuteReader())
-                {
-                    if (reader.Read())
-                    {
-                        int idIndex = reader.GetOrdinal("ID"); // Get the column index for "ID"
+            if (ExecuteQuery(selectQuery)) {
+                using (MySqlDataReader reader = commandResult.ExecuteReader()) {
+                    if (reader.Read()) {
+                        int idIndex = reader.GetOrdinal("result"); // Get the column index for "ID"
 
-                        if (!reader.IsDBNull(idIndex))
-                        {
-                            return reader.GetInt32(idIndex);
-                        }
-                        else
-                        {
-                            return 0; // or another appropriate default value for DBNull
+                        if (!reader.IsDBNull(idIndex)) {
+                            // Use Convert.ChangeType to convert the value to TClass
+                            return (TClass)Convert.ChangeType(reader.GetValue(idIndex), typeof(TClass));
+                        } else {
+                            return default(TClass); // or another appropriate default value for DBNull
                         }
                     }
                 }
-                return 0;
             }
-            return 0;
-        }
-        public string GetMethodStringFromColumn(string Method, string Column, string Table, string Where = "")
-        {
-            string selectQuery = $"SELECT {Method}({Column}) AS Result FROM {Table} {Where}";
-            if (ExecuteQuery(selectQuery))
-            {
-                using (MySqlDataReader reader = commandResult.ExecuteReader())
-                {
-                    if (reader.Read())
-                    {
-                        int idIndex = reader.GetOrdinal("Result"); // Get the column index for "ID"
 
-                        if (!reader.IsDBNull(idIndex))
-                        {
-                            return reader.GetString(idIndex);
-                        }
-                        else
-                        {
-                            return ""; // or another appropriate default value for DBNull
-                        }
-                    }
-                }
-                return "";
-            }
-            return "";
+            return default(TClass);
         }
-        public string GetStringFromColumn(string columnName, string tableName, string whereStatment = "")
-        {
-            string selectQuery = $"SELECT {columnName} as ID FROM {tableName} {whereStatment}";
-            if (ExecuteQuery(selectQuery))
-            {
-                using (MySqlDataReader reader = commandResult.ExecuteReader())
-                {
-                    if (reader.Read())
-                    {
-                        int idIndex = reader.GetOrdinal("ID"); // Get the column index for "ID"
-
-                        if (!reader.IsDBNull(idIndex))
-                        {
-                            return reader.GetString(idIndex);
-                        }
-                        else
-                        {
-                            return null; // or another appropriate default value for DBNull
-                        }
-                    }
-                }
-                return null;
-            }
-            return null;
-        }
-        public void FillDGV(DataGridView dgv, string queryStatement)
-        {
-            if (ExecuteQuery(queryStatement))
-            {
+        public void FillDGV(DataGridView dgv, string queryStatement) {
+            if (ExecuteQuery(queryStatement)) {
                 MySqlDataAdapter adapter = new MySqlDataAdapter(commandResult);
                 DataTable data = new DataTable();
                 adapter.Fill(data);
                 dgv.DataSource = data;
             }
         }
-        public void FillComboBox(ComboBox cmb, string cmbSelectedText, string cmbSelectedValue, string queryStatement)
-        {
-            if (ExecuteQuery(queryStatement))
-            {
-                using (MySqlDataReader reader = commandResult.ExecuteReader())
-                {
+        public void FillComboBox(ComboBox cmb, string cmbSelectedText, string cmbSelectedValue, string queryStatement) {
+            if (ExecuteQuery(queryStatement)) {
+                using (MySqlDataReader reader = commandResult.ExecuteReader()) {
                     Dictionary<string, string> items = new Dictionary<string, string>();
-                    while (reader.Read())
-                    {
+                    while (reader.Read()) {
+                        string cmbName = reader[cmbSelectedText].ToString();
+                        string cmbValue = reader[cmbSelectedValue].ToString();
+                        if (!items.ContainsKey(cmbName) && !items.ContainsValue(cmbValue)) {
+                            items.Add(cmbName, cmbValue);
+                        }
+                    }
+                    cmb.DisplayMember = "Key"; // This corresponds to cmbName
+                    cmb.ValueMember = "Value"; // This corresponds to cmbValue
+                    cmb.DataSource = new BindingSource(items, null);
+                }
+            }
+        }
+        public void FillComboBox(CComboBox cmb, string cmbSelectedText, string cmbSelectedValue, string queryStatement) {
+            if (ExecuteQuery(queryStatement)) {
+                using (MySqlDataReader reader = commandResult.ExecuteReader()) {
+                    Dictionary<string, string> items = new Dictionary<string, string>();
+                    while (reader.Read()) {
                         string cmbName = reader[cmbSelectedText].ToString();
                         string cmbValue = reader[cmbSelectedValue].ToString();
                         items.Add(cmbName, cmbValue);
@@ -289,45 +235,41 @@ namespace FerPROJ.DBHelper.CRUD
                 }
             }
         }
-        public DataTable GetDataTable(string queryStatement)
-        {
+        public DataTable GetDataTable(string queryStatement) {
             DataTable dataTable = new DataTable();
 
-            if (ExecuteQuery(queryStatement))
-            {
+            if (ExecuteQuery(queryStatement)) {
                 MySqlDataAdapter adapter = new MySqlDataAdapter(commandResult);
                 adapter.Fill(dataTable);
             }
             return dataTable;
         }
-        private void GetColumnValue<DTO>(DTO sDTO, out string[] columnList, out string[] valueList, string[] fieldsToExclude = null)
-        {
-            if (fieldsToExclude == null) fieldsToExclude = new string[0];
-            Type dtoType = typeof(DTO);
+        private void GetColumnValue<DTO>(DTO sDTO, out string[] columnList, out string[] valueList, string[] fieldsToExclude = null) {
+            if (fieldsToExclude == null)
+                fieldsToExclude = new string[0];
+            var dtoType = typeof(DTO);
             PropertyInfo[] properties = dtoType.GetProperties();
-            List<string> excludedProperties = new List<string> { "IdTrack", "Details", "Item", "Error", "IsValid", "DataValidation" };
+            List<string> excludedProperties = new List<string> { "List", "tableName", "IdTrack", "Details", "Item", "Error", "IsValid", "DataValidation" };
             List<string> columns = new List<string>();
             List<string> values = new List<string>();
 
-            foreach (PropertyInfo property in properties)
-            {
-                if (!excludedProperties.Any(c => property.Name.Contains(c)) && !fieldsToExclude.Contains(property.Name))
-                {
+            foreach (PropertyInfo property in properties) {
+                if (!excludedProperties.Any(c => property.Name.Contains(c)) && !fieldsToExclude.Contains(property.Name)) {
                     if (property.PropertyType == typeof(bool) || property.PropertyType == typeof(int) ||
-                        property.PropertyType == typeof(decimal))
-                    {
+                        property.PropertyType == typeof(decimal)) {
                         columns.Add(property.Name);
                         values.Add($"{property.GetValue(sDTO)}");
-                    }
-                    else if (property.PropertyType == typeof(byte[]))
-                    {
+                    } else if (property.PropertyType == typeof(byte[])) {
                         byte[] imageBytes = (byte[])property.GetValue(sDTO);
                         string hexValue = BitConverter.ToString(imageBytes).Replace("-", "");
                         columns.Add(property.Name);
                         values.Add($"0x{hexValue}");
-                    }
-                    else
-                    {
+                    } else if (property.PropertyType == typeof(DateTime)) {
+                        DateTime dt = Convert.ToDateTime(property.GetValue(sDTO));
+                        string cdt = dt.ToString("yyyy-MM-dd hh:mm:ss");
+                        columns.Add(property.Name);
+                        values.Add($"'{cdt}'");
+                    } else {
                         columns.Add(property.Name);
                         values.Add($"'{property.GetValue(sDTO)}'");
                     }
@@ -338,36 +280,68 @@ namespace FerPROJ.DBHelper.CRUD
             columnList = columns.ToArray();
             valueList = values.ToArray();
         }
-        private void GetColumnValueUpdate<DTO>(DTO sDTO, out string[] columnValueList, string[] fieldsToExclude = null)
-        {
-            if (fieldsToExclude == null) fieldsToExclude = new string[0];
+        private void GetColumnValueForList<DTO>(DTO sDTO, out string[] columnList, out string[] valueList, string[] fieldsToExclude = null) {
+            if (fieldsToExclude == null)
+                fieldsToExclude = new string[0];
+            var dtoType = sDTO.GetType();
+            PropertyInfo[] properties = dtoType.GetProperties();
+            List<string> excludedProperties = new List<string> { "List", "tableName", "IdTrack", "Details", "Item", "Error", "IsValid", "DataValidation" };
+            List<string> columns = new List<string>();
+            List<string> values = new List<string>();
+
+            foreach (PropertyInfo property in properties) {
+                if (!excludedProperties.Any(c => property.Name.Contains(c)) && !fieldsToExclude.Contains(property.Name)) {
+                    if (property.PropertyType == typeof(bool) || property.PropertyType == typeof(int) ||
+                        property.PropertyType == typeof(decimal)) {
+                        columns.Add(property.Name);
+                        values.Add($"{property.GetValue(sDTO)}");
+                    } else if (property.PropertyType == typeof(byte[])) {
+                        byte[] imageBytes = (byte[])property.GetValue(sDTO);
+                        string hexValue = BitConverter.ToString(imageBytes).Replace("-", "");
+                        columns.Add(property.Name);
+                        values.Add($"0x{hexValue}");
+                    } else if (property.PropertyType == typeof(DateTime)) {
+                        DateTime dt = Convert.ToDateTime(property.GetValue(sDTO));
+                        string cdt = dt.ToString("yyyy-MM-dd hh:mm:ss");
+                        columns.Add(property.Name);
+                        values.Add($"'{cdt}'");
+                    } else {
+                        columns.Add(property.Name);
+                        values.Add($"'{property.GetValue(sDTO)}'");
+                    }
+                }
+
+            }
+
+            columnList = columns.ToArray();
+            valueList = values.ToArray();
+        }
+        private void GetColumnValueUpdate<DTO>(DTO sDTO, out string[] columnValueList, string[] fieldsToExclude = null) {
+            if (fieldsToExclude == null)
+                fieldsToExclude = new string[0];
             Type dtoType = typeof(DTO);
             PropertyInfo[] properties = dtoType.GetProperties();
 
-            List<string> excludedProperties = new List<string> { "IdTrack", "Details", "Item", "Error", "IsValid", "DataValidation" };
+            List<string> excludedProperties = new List<string> { "List", "tableName", "IdTrack", "Details", "Item", "Error", "IsValid", "DataValidation" };
             List<string> columnValue = new List<string>();
 
-            foreach (PropertyInfo property in properties)
-            {
-                if (!excludedProperties.Any(c => property.Name.Contains(c)) && !fieldsToExclude.Contains(property.Name))
-                {
+            foreach (PropertyInfo property in properties) {
+                if (!excludedProperties.Any(c => property.Name.Contains(c)) && !fieldsToExclude.Contains(property.Name)) {
                     object propertyValue = property.GetValue(sDTO);
 
-                    if (propertyValue.ToString() != "")
-                    {
+                    if (propertyValue.ToString() != "") {
                         if (property.PropertyType == typeof(bool) || property.PropertyType == typeof(int) ||
-                            property.PropertyType == typeof(decimal))
-                        {
+                            property.PropertyType == typeof(decimal)) {
                             columnValue.Add($"{property.Name} = {property.GetValue(sDTO)}");
-                        }
-                        else if (property.PropertyType == typeof(byte[]))
-                        {
+                        } else if (property.PropertyType == typeof(byte[])) {
                             byte[] imageBytes = (byte[])property.GetValue(sDTO);
                             string hexValue = BitConverter.ToString(imageBytes).Replace("-", "");
                             columnValue.Add($"{property.Name} = 0x{hexValue}");
-                        }
-                        else
-                        {
+                        } else if (property.PropertyType == typeof(DateTime)) {
+                            DateTime dt = Convert.ToDateTime(property.GetValue(sDTO));
+                            string cdt = dt.ToString("yyyy-MM-dd hh:mm:ss");
+                            columnValue.Add($"{property.Name} = '{cdt}'");
+                        } else {
                             columnValue.Add($"{property.Name} = '{property.GetValue(sDTO)}'");
                         }
                     }
@@ -376,33 +350,26 @@ namespace FerPROJ.DBHelper.CRUD
 
             columnValueList = columnValue.ToArray();
         }
-        public DTO GetData<DTO>(string sQuery, string[] fieldsToExclude = null) where DTO : new()
-        {
-            if (fieldsToExclude == null) fieldsToExclude = new string[0];
+        public DTO GetData<DTO>(string _tableName, string sWhere, string[] fieldsToExclude = null) where DTO : new() {
+            string sQuery = $"SELECT * FROM {_tableName} {sWhere}";
+            if (fieldsToExclude == null)
+                fieldsToExclude = new string[0];
             DTO result = default(DTO);
-            if (ExecuteQuery(sQuery))
-            {
-                using (MySqlDataReader reader = commandResult.ExecuteReader())
-                {
-                    if (reader.Read())
-                    {
+            if (ExecuteQuery(sQuery)) {
+                using (MySqlDataReader reader = commandResult.ExecuteReader()) {
+                    if (reader.Read()) {
                         result = new DTO();
 
-                        foreach (var property in typeof(DTO).GetProperties())
-                        {
-                            try
-                            {
-                                if (reader[property.Name] != DBNull.Value && property.CanWrite && !fieldsToExclude.Contains(property.Name))
-                                {
+                        foreach (var property in typeof(DTO).GetProperties()) {
+                            try {
+                                if (reader[property.Name] != DBNull.Value && property.CanWrite && !fieldsToExclude.Contains(property.Name)) {
                                     object dbValue = reader[property.Name];
                                     Type propertyType = property.PropertyType;
 
                                     var convertedValue = Convert.ChangeType(dbValue, propertyType);
                                     property.SetValue(result, convertedValue);
                                 }
-                            }
-                            catch (IndexOutOfRangeException ex)
-                            {
+                            } catch (IndexOutOfRangeException ex) {
                                 Console.WriteLine(ex);
                             }
                         }
@@ -411,39 +378,71 @@ namespace FerPROJ.DBHelper.CRUD
             }
             return result;
         }
-        public IQueryable<DTO> GetAll<DTO>(string tableName, string[] fieldsToExclude = null) where DTO : new()
-        {
-            string sQuery = $"SELECT * FROM {tableName}";
-            return GetListData<DTO>(sQuery, fieldsToExclude).AsQueryable();
-        }
-        public List<DTO> GetListData<DTO>(string sQuery, string[] fieldsToExclude = null) where DTO : new()
-        {
-            if (fieldsToExclude == null) fieldsToExclude = new string[0];
-            List<DTO> resultList = new List<DTO>();
+        public DTO GetData<DTO>(string _tableName, string _tableDetailsName, string sWhere, string[] fieldsToExclude = null) where DTO : new() {
+            string sQuery = $"SELECT * FROM {_tableName} {sWhere}";
+            if (fieldsToExclude == null)
+                fieldsToExclude = new string[0];
+            DTO result = default(DTO);
+            if (ExecuteQuery(sQuery)) {
+                using (MySqlDataReader reader = commandResult.ExecuteReader()) {
+                    if (reader.Read()) {
+                        result = new DTO();
 
-            if (ExecuteQuery(sQuery))
-            {
-                using (MySqlDataReader reader = commandResult.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        DTO result = new DTO();
-
-                        foreach (var property in typeof(DTO).GetProperties())
-                        {
-                            try
-                            {
-                                if (reader[property.Name] != DBNull.Value && property.CanWrite && !fieldsToExclude.Contains(property.Name))
-                                {
+                        foreach (var property in typeof(DTO).GetProperties()) {
+                            try {
+                                if (reader[property.Name] != DBNull.Value && property.CanWrite && !fieldsToExclude.Contains(property.Name)) {
                                     object dbValue = reader[property.Name];
                                     Type propertyType = property.PropertyType;
 
                                     var convertedValue = Convert.ChangeType(dbValue, propertyType);
                                     property.SetValue(result, convertedValue);
                                 }
+                            } catch (IndexOutOfRangeException ex) {
+                                Console.WriteLine(ex);
                             }
-                            catch (IndexOutOfRangeException ex)
-                            {
+                        }
+                        PropertyInfo detailsListProperty = (PropertyInfo)typeof(DTO).GetProperties().Where(c => c.PropertyType.IsGenericType && c.PropertyType.GetGenericTypeDefinition() == typeof(List<>)).FirstOrDefault();
+
+                        if (detailsListProperty != null) {
+                            Conn c = new Conn();
+                            Type innerType = detailsListProperty.PropertyType.GetGenericArguments()[0];
+                            MethodInfo getListDataMethod = typeof(Conn)
+                                                          .GetMethod("GetListData")
+                                                          .MakeGenericMethod(innerType);
+
+                            object detailsList = getListDataMethod.Invoke(c, new object[] { _tableDetailsName, sWhere, fieldsToExclude });
+                            //
+                            detailsListProperty.SetValue(result, detailsList);
+                        }
+                    }
+                }
+            }
+            return result;
+        }
+        public IQueryable<DTO> GetAll<DTO>(string _tableName, string[] fieldsToExclude = null) where DTO : new() {
+            return GetListData<DTO>(_tableName, null, fieldsToExclude).AsQueryable();
+        }
+        public List<DTO> GetListData<DTO>(string _tableDetailsName, string sWhere, string[] fieldsToExclude = null) where DTO : new() {
+            string sQuery = $"SELECT * FROM {_tableDetailsName} {sWhere}";
+            if (fieldsToExclude == null)
+                fieldsToExclude = new string[0];
+            List<DTO> resultList = new List<DTO>();
+
+            if (ExecuteQuery(sQuery)) {
+                using (MySqlDataReader reader = commandResult.ExecuteReader()) {
+                    while (reader.Read()) {
+                        DTO result = new DTO();
+
+                        foreach (var property in typeof(DTO).GetProperties()) {
+                            try {
+                                if (reader[property.Name] != DBNull.Value && property.CanWrite && !fieldsToExclude.Contains(property.Name)) {
+                                    object dbValue = reader[property.Name];
+                                    Type propertyType = property.PropertyType;
+
+                                    var convertedValue = Convert.ChangeType(dbValue, propertyType);
+                                    property.SetValue(result, convertedValue);
+                                }
+                            } catch (IndexOutOfRangeException ex) {
                                 Console.WriteLine(ex);
                             }
                         }
@@ -456,28 +455,21 @@ namespace FerPROJ.DBHelper.CRUD
 
             return resultList;
         }
-        public string GetNewStringID(string prefix, string tableName, string whereStatement = "")
-        {
-            return $"{prefix}-00{GetMethodStringFromColumn("MAX", "IdTrack", tableName, whereStatement)}";
+        public string GetNewStringID(string prefix, string tableName) {
+            return $"{prefix}-00{GetMethodFromColumn<int>("COUNT", tableName) + 1}";
         }
-        public bool SaveManual<sDTO>(string tableName, sDTO myDTO) where sDTO : CValidator
-        {
-            if (myDTO.DataValidation())
-            {
+        public bool SaveManual<sDTO>(string tableName, sDTO myDTO) where sDTO : CValidator {
+            if (myDTO.DataValidation()) {
                 string[] fieldsToExclude = null;
                 string message = null;
-                if (CShowMessage.Ask(message != null ? message : "Are you sure to save this data?", "Confirmation"))
-                {
+                if (CShowMessage.Ask(message != null ? message : "Are you sure to save this data?", "Confirmation")) {
                     string[] columnList;
                     string[] valueList;
 
 
-                    if (fieldsToExclude != null)
-                    {
+                    if (fieldsToExclude != null) {
                         GetColumnValue<sDTO>(myDTO, out columnList, out valueList, fieldsToExclude);
-                    }
-                    else
-                    {
+                    } else {
                         GetColumnValue<sDTO>(myDTO, out columnList, out valueList);
                     }
 
@@ -485,8 +477,7 @@ namespace FerPROJ.DBHelper.CRUD
                     string columns = string.Join(", ", columnList);
                     string values = string.Join(", ", valueList);
                     string insertQuery = $"INSERT INTO {tableName} ({columns}) VALUES ({values})";
-                    if (ExecuteQuery(insertQuery))
-                    {
+                    if (ExecuteQuery(insertQuery)) {
                         CShowMessage.Info("Saved Successfully.", "Success");
                         return true;
                     }
@@ -496,23 +487,17 @@ namespace FerPROJ.DBHelper.CRUD
             return false;
 
         }
-        public bool SaveManual<sDTO>(string tableName, sDTO myDTO, string[] fieldsToExclude = null) where sDTO : CValidator
-        {
-            if (myDTO.DataValidation())
-            {
+        public bool SaveManual<sDTO>(string tableName, sDTO myDTO, string[] fieldsToExclude = null) where sDTO : CValidator {
+            if (myDTO.DataValidation()) {
                 string message = null;
-                if (CShowMessage.Ask(message != null ? message : "Are you sure to save this data?", "Confirmation"))
-                {
+                if (CShowMessage.Ask(message != null ? message : "Are you sure to save this data?", "Confirmation")) {
                     string[] columnList;
                     string[] valueList;
 
 
-                    if (fieldsToExclude != null)
-                    {
+                    if (fieldsToExclude != null) {
                         GetColumnValue<sDTO>(myDTO, out columnList, out valueList, fieldsToExclude);
-                    }
-                    else
-                    {
+                    } else {
                         GetColumnValue<sDTO>(myDTO, out columnList, out valueList);
                     }
 
@@ -520,8 +505,7 @@ namespace FerPROJ.DBHelper.CRUD
                     string columns = string.Join(", ", columnList);
                     string values = string.Join(", ", valueList);
                     string insertQuery = $"INSERT INTO {tableName} ({columns}) VALUES ({values})";
-                    if (ExecuteQuery(insertQuery))
-                    {
+                    if (ExecuteQuery(insertQuery)) {
                         CShowMessage.Info("Saved Successfully.", "Success");
                         return true;
                     }
@@ -530,23 +514,17 @@ namespace FerPROJ.DBHelper.CRUD
             CShowMessage.Warning(myDTO.Error, "Warning");
             return false;
         }
-        public bool SaveManual<sDTO>(string tableName, sDTO myDTO, string message = null) where sDTO : CValidator
-        {
-            if (myDTO.DataValidation())
-            {
+        public bool SaveManual<sDTO>(string tableName, sDTO myDTO, string message = null) where sDTO : CValidator {
+            if (myDTO.DataValidation()) {
                 string[] fieldsToExclude = null;
-                if (CShowMessage.Ask(message != null ? message : "Are you sure to save this data?", "Confirmation"))
-                {
+                if (CShowMessage.Ask(message != null ? message : "Are you sure to save this data?", "Confirmation")) {
                     string[] columnList;
                     string[] valueList;
 
 
-                    if (fieldsToExclude != null)
-                    {
+                    if (fieldsToExclude != null) {
                         GetColumnValue<sDTO>(myDTO, out columnList, out valueList, fieldsToExclude);
-                    }
-                    else
-                    {
+                    } else {
                         GetColumnValue<sDTO>(myDTO, out columnList, out valueList);
                     }
 
@@ -554,8 +532,7 @@ namespace FerPROJ.DBHelper.CRUD
                     string columns = string.Join(", ", columnList);
                     string values = string.Join(", ", valueList);
                     string insertQuery = $"INSERT INTO {tableName} ({columns}) VALUES ({values})";
-                    if (ExecuteQuery(insertQuery))
-                    {
+                    if (ExecuteQuery(insertQuery)) {
                         CShowMessage.Info("Saved Successfully.", "Success");
                         return true;
                     }
@@ -564,82 +541,63 @@ namespace FerPROJ.DBHelper.CRUD
             CShowMessage.Warning(myDTO.Error, "Warning");
             return false;
         }
-        public bool SaveDetailsManual<mDTO>(string tableName, mDTO myDTO) where mDTO : CValidator
-        {
-            if (myDTO.DataValidation())
-            {
+        public void SaveDetailsManual<mDTO>(string tableName, mDTO myDTO) where mDTO : CValidator {
+            if (myDTO.DataValidation()) {
                 string[] fieldsToExclude = null;
                 string[] columnList;
                 string[] valueList;
 
-                if (fieldsToExclude != null)
-                {
+                if (fieldsToExclude != null) {
                     GetColumnValue<mDTO>(myDTO, out columnList, out valueList, fieldsToExclude);
-                }
-                else
-                {
+                } else {
                     GetColumnValue<mDTO>(myDTO, out columnList, out valueList);
                 }
                 string columns = string.Join(", ", columnList);
                 string values = string.Join(", ", valueList);
                 string insertQuery = $"INSERT INTO {tableName} ({columns}) VALUES ({values})";
-                if (ExecuteQuery(insertQuery))
-                {
-                    return true;
+                if (!ExecuteQuery(insertQuery)) {
+                    throw new ArgumentException("Database Error!");
                 }
+            } else {
+                throw new ArgumentException(myDTO.Error);
             }
-            CShowMessage.Warning(myDTO.Error, "Warning");
-            return false;
         }
-        public bool SaveDetailsManual<mDTO>(string tableName, mDTO myDTO, string[] fieldsToExclude = null) where mDTO : CValidator
-        {
-            if (myDTO.DataValidation())
-            {
+        public void SaveDetailsManual<mDTO>(string tableName, mDTO myDTO, string[] fieldsToExclude = null) where mDTO : CValidator {
+            if (myDTO.DataValidation()) {
                 string[] columnList;
                 string[] valueList;
 
-                if (fieldsToExclude != null)
-                {
+                if (fieldsToExclude != null) {
                     GetColumnValue<mDTO>(myDTO, out columnList, out valueList, fieldsToExclude);
-                }
-                else
-                {
+                } else {
                     GetColumnValue<mDTO>(myDTO, out columnList, out valueList);
                 }
                 string columns = string.Join(", ", columnList);
                 string values = string.Join(", ", valueList);
                 string insertQuery = $"INSERT INTO {tableName} ({columns}) VALUES ({values})";
-                if (ExecuteQuery(insertQuery))
-                {
-                    return true;
+                if (!ExecuteQuery(insertQuery)) {
+                    throw new ArgumentException("Database Error");
                 }
+            } else {
+                throw new ArgumentException(myDTO.Error);
             }
-            CShowMessage.Warning(myDTO.Error, "Warning");
-            return false;
         }
-        public bool UpdateManual<sDTO>(string tableName, string whereCondition, sDTO myDTO) where sDTO : CValidator
-        {
-            if (myDTO.DataValidation())
-            {
+        public bool UpdateManual<sDTO>(string tableName, string whereCondition, sDTO myDTO) where sDTO : CValidator {
+            if (myDTO.DataValidation()) {
                 string message = null;
                 string[] fieldsToExclude = null;
-                if (CShowMessage.Ask(message != null ? message : "Are you sure to update this data?", "Confirmation"))
-                {
+                if (CShowMessage.Ask(message != null ? message : "Are you sure to update this data?", "Confirmation")) {
                     string[] columnAndValueList;
 
-                    if (fieldsToExclude != null)
-                    {
+                    if (fieldsToExclude != null) {
                         GetColumnValueUpdate<sDTO>(myDTO, out columnAndValueList, fieldsToExclude);
-                    }
-                    else
-                    {
+                    } else {
                         GetColumnValueUpdate<sDTO>(myDTO, out columnAndValueList);
                     }
 
                     string columns = string.Join(", ", columnAndValueList);
                     string insertQuery = $"UPDATE {tableName} SET {columns} {whereCondition}";
-                    if (ExecuteQuery(insertQuery))
-                    {
+                    if (ExecuteQuery(insertQuery)) {
                         CShowMessage.Info("Updated Successfully.", "Success");
                         return true;
                     }
@@ -648,28 +606,21 @@ namespace FerPROJ.DBHelper.CRUD
             CShowMessage.Warning(myDTO.Error, "Warning");
             return false;
         }
-        public bool UpdateManual<sDTO>(string tableName, string whereCondition, sDTO myDTO, string message = null) where sDTO : CValidator
-        {
-            if (myDTO.DataValidation())
-            {
+        public bool UpdateManual<sDTO>(string tableName, string whereCondition, sDTO myDTO, string message = null) where sDTO : CValidator {
+            if (myDTO.DataValidation()) {
                 string[] fieldsToExclude = null;
-                if (CShowMessage.Ask(message != null ? message : "Are you sure to update this data?", "Confirmation"))
-                {
+                if (CShowMessage.Ask(message != null ? message : "Are you sure to update this data?", "Confirmation")) {
                     string[] columnAndValueList;
 
-                    if (fieldsToExclude != null)
-                    {
+                    if (fieldsToExclude != null) {
                         GetColumnValueUpdate<sDTO>(myDTO, out columnAndValueList, fieldsToExclude);
-                    }
-                    else
-                    {
+                    } else {
                         GetColumnValueUpdate<sDTO>(myDTO, out columnAndValueList);
                     }
 
                     string columns = string.Join(", ", columnAndValueList);
                     string insertQuery = $"UPDATE {tableName} SET {columns} {whereCondition}";
-                    if (ExecuteQuery(insertQuery))
-                    {
+                    if (ExecuteQuery(insertQuery)) {
                         CShowMessage.Info("Updated Successfully.", "Success");
                         return true;
                     }
@@ -678,28 +629,21 @@ namespace FerPROJ.DBHelper.CRUD
             CShowMessage.Warning(myDTO.Error, "Warning");
             return false;
         }
-        public bool UpdateManual<sDTO>(string tableName, string whereCondition, sDTO myDTO, string[] fieldsToExclude = null) where sDTO : CValidator
-        {
-            if (myDTO.DataValidation())
-            {
+        public bool UpdateManual<sDTO>(string tableName, string whereCondition, sDTO myDTO, string[] fieldsToExclude = null) where sDTO : CValidator {
+            if (myDTO.DataValidation()) {
                 string message = null;
-                if (CShowMessage.Ask(message != null ? message : "Are you sure to update this data?", "Confirmation"))
-                {
+                if (CShowMessage.Ask(message != null ? message : "Are you sure to update this data?", "Confirmation")) {
                     string[] columnAndValueList;
 
-                    if (fieldsToExclude != null)
-                    {
+                    if (fieldsToExclude != null) {
                         GetColumnValueUpdate<sDTO>(myDTO, out columnAndValueList, fieldsToExclude);
-                    }
-                    else
-                    {
+                    } else {
                         GetColumnValueUpdate<sDTO>(myDTO, out columnAndValueList);
                     }
 
                     string columns = string.Join(", ", columnAndValueList);
                     string insertQuery = $"UPDATE {tableName} SET {columns} {whereCondition}";
-                    if (ExecuteQuery(insertQuery))
-                    {
+                    if (ExecuteQuery(insertQuery)) {
                         CShowMessage.Info("Updated Successfully.", "Success");
                         return true;
                     }
@@ -708,27 +652,20 @@ namespace FerPROJ.DBHelper.CRUD
             CShowMessage.Warning(myDTO.Error, "Warning");
             return false;
         }
-        public bool UpdateManual<sDTO>(string tableName, string whereCondition, sDTO myDTO, string[] fieldsToExclude = null, string message = null) where sDTO : CValidator
-        {
-            if (myDTO.DataValidation())
-            {
-                if (CShowMessage.Ask(message != null ? message : "Are you sure to update this data?", "Confirmation"))
-                {
+        public bool UpdateManual<sDTO>(string tableName, string whereCondition, sDTO myDTO, string[] fieldsToExclude = null, string message = null) where sDTO : CValidator {
+            if (myDTO.DataValidation()) {
+                if (CShowMessage.Ask(message != null ? message : "Are you sure to update this data?", "Confirmation")) {
                     string[] columnAndValueList;
 
-                    if (fieldsToExclude != null)
-                    {
+                    if (fieldsToExclude != null) {
                         GetColumnValueUpdate<sDTO>(myDTO, out columnAndValueList, fieldsToExclude);
-                    }
-                    else
-                    {
+                    } else {
                         GetColumnValueUpdate<sDTO>(myDTO, out columnAndValueList);
                     }
 
                     string columns = string.Join(", ", columnAndValueList);
                     string insertQuery = $"UPDATE {tableName} SET {columns} {whereCondition}";
-                    if (ExecuteQuery(insertQuery))
-                    {
+                    if (ExecuteQuery(insertQuery)) {
                         CShowMessage.Info("Updated Successfully.", "Success");
                         return true;
                     }
@@ -737,109 +674,85 @@ namespace FerPROJ.DBHelper.CRUD
             CShowMessage.Warning(myDTO.Error, "Warning");
             return false;
         }
-        public bool UpdateDetailsManual<mDTO>(string tableName, string whereCondition, mDTO myDTO) where mDTO : CValidator
-        {
-            if (myDTO.DataValidation())
-            {
+        public bool UpdateDetailsManual<mDTO>(string tableName, string whereCondition, mDTO myDTO) where mDTO : CValidator {
+            if (myDTO.DataValidation()) {
                 string[] fieldsToExclude = null;
                 string[] columnAndValueList;
 
-                if (fieldsToExclude != null)
-                {
+                if (fieldsToExclude != null) {
                     GetColumnValueUpdate<mDTO>(myDTO, out columnAndValueList, fieldsToExclude);
-                }
-                else
-                {
+                } else {
                     GetColumnValueUpdate<mDTO>(myDTO, out columnAndValueList);
                 }
 
                 string columns = string.Join(", ", columnAndValueList);
                 string insertQuery = $"UPDATE {tableName} SET {columns} {whereCondition}";
-                if (ExecuteQuery(insertQuery))
-                {
+                if (ExecuteQuery(insertQuery)) {
+                    CShowMessage.Info("Updated Successfully.", "Success");
                     return true;
                 }
             }
             CShowMessage.Warning(myDTO.Error, "Warning");
             return false;
         }
-        public bool UpdateDetailsManual<mDTO>(string tableName, string whereCondition, mDTO myDTO, string[] fieldsToExclude = null) where mDTO : CValidator
-        {
-            if (myDTO.DataValidation())
-            {
+        public bool UpdateDetailsManual<mDTO>(string tableName, string whereCondition, mDTO myDTO, string[] fieldsToExclude = null) where mDTO : CValidator {
+            if (myDTO.DataValidation()) {
                 string[] columnAndValueList;
 
-                if (fieldsToExclude != null)
-                {
+                if (fieldsToExclude != null) {
                     GetColumnValueUpdate<mDTO>(myDTO, out columnAndValueList, fieldsToExclude);
-                }
-                else
-                {
+                } else {
                     GetColumnValueUpdate<mDTO>(myDTO, out columnAndValueList);
                 }
 
                 string columns = string.Join(", ", columnAndValueList);
                 string insertQuery = $"UPDATE {tableName} SET {columns} {whereCondition}";
-                if (ExecuteQuery(insertQuery))
-                {
+                if (ExecuteQuery(insertQuery)) {
+                    CShowMessage.Info("Updated Successfully.", "Success");
                     return true;
                 }
             }
             CShowMessage.Warning(myDTO.Error, "Warning");
             return false;
         }
-        public bool UpdateCustom(string queryStatement)
-        {
-            if (ExecuteQuery(queryStatement))
-            {
+        public bool UpdateCustom(string queryStatement) {
+            if (ExecuteQuery(queryStatement)) {
                 CShowMessage.Info("Updated Successfully.", "Info");
                 return true;
             }
             return false;
         }
-        public bool UpdateDetailsCustom(string queryStatement)
-        {
-            if (ExecuteQuery(queryStatement))
-            {
+        public bool UpdateDetailsCustom(string queryStatement) {
+            if (ExecuteQuery(queryStatement)) {
                 return true;
             }
             return false;
         }
-        public bool DeleteManual(string tableName, string whereCondition, string message = null)
-        {
-            if (CShowMessage.Ask(message != null ? message : "Are you sure to delete this data?", "Confirmation"))
-            {
+        public bool DeleteManual(string tableName, string whereCondition, string message = null) {
+            if (CShowMessage.Ask(message != null ? message : "Are you sure to delete this data?", "Confirmation")) {
                 string insertQuery = $"DELETE FROM {tableName} {whereCondition}";
-                if (ExecuteQuery(insertQuery))
-                {
+                if (ExecuteQuery(insertQuery)) {
                     CShowMessage.Info("Deleted Successfully.", "Success");
                     return true;
                 }
             }
             return false;
         }
-        public bool DeleteDetailsManual(string tableName, string whereCondition)
-        {
+        public bool DeleteDetailsManual(string tableName, string whereCondition) {
             string insertQuery = $"DELETE FROM {tableName} {whereCondition}";
-            if (ExecuteQuery(insertQuery))
-            {
+            if (ExecuteQuery(insertQuery)) {
                 return true;
             }
             return false;
         }
-        public string GetSaveManualQuery<sDTO>(string tableName, sDTO myDTO, string[] fieldsToExclude = null) where sDTO : CValidator
-        {
-            if (myDTO.DataValidation())
-            {
+        public string GetSaveManualQuery<sDTO>(string tableName, sDTO myDTO, string[] fieldsToExclude = null) where sDTO : CValidator {
+            if (myDTO.DataValidation()) {
                 string[] columnList;
                 string[] valueList;
 
-                if (fieldsToExclude != null)
-                {
+                if (fieldsToExclude != null) {
                     GetColumnValue<sDTO>(myDTO, out columnList, out valueList, fieldsToExclude);
-                }
-                else
-                {
+                } else {
                     GetColumnValue<sDTO>(myDTO, out columnList, out valueList);
                 }
 
@@ -851,18 +764,41 @@ namespace FerPROJ.DBHelper.CRUD
             }
             throw new ArgumentException(myDTO.Error);
         }
-        public string GetUpdateManualQuery<sDTO>(string tableName, string whereCondition, sDTO myDTO, string[] fieldsToExclude = null) where sDTO : CValidator
-        {
-            if (myDTO.DataValidation())
-            {
+        public string GetSaveDetailsManualQuery<sDTO>(string tableName, sDTO myDTO, string[] fieldsToExclude = null) {
+            string[] columnList;
+            string[] valueList;
+
+            if (fieldsToExclude != null) {
+                GetColumnValueForList<sDTO>(myDTO, out columnList, out valueList, fieldsToExclude);
+            } else {
+                GetColumnValueForList<sDTO>(myDTO, out columnList, out valueList);
+            }
+
+            string columns = string.Join(", ", columnList);
+            string values = string.Join(", ", valueList);
+            string insertQuery = $"INSERT INTO {tableName} ({columns}) VALUES ({values})";
+            return insertQuery;
+        }
+        public string GetUpdateDetailsManualQuery<sDTO>(string tableName, string whereCondition, sDTO myDTO, string[] fieldsToExclude = null) {
+            string[] columnAndValueList;
+
+            if (fieldsToExclude != null) {
+                GetColumnValueUpdate<sDTO>(myDTO, out columnAndValueList, fieldsToExclude);
+            } else {
+                GetColumnValueUpdate<sDTO>(myDTO, out columnAndValueList);
+            }
+
+            string columns = string.Join(", ", columnAndValueList);
+            string insertQuery = $"UPDATE {tableName} SET {columns} {whereCondition}";
+            return insertQuery;
+        }
+        public string GetUpdateManualQuery<sDTO>(string tableName, string whereCondition, sDTO myDTO, string[] fieldsToExclude = null) where sDTO : CValidator {
+            if (myDTO.DataValidation()) {
                 string[] columnAndValueList;
 
-                if (fieldsToExclude != null)
-                {
+                if (fieldsToExclude != null) {
                     GetColumnValueUpdate<sDTO>(myDTO, out columnAndValueList, fieldsToExclude);
-                }
-                else
-                {
+                } else {
                     GetColumnValueUpdate<sDTO>(myDTO, out columnAndValueList);
                 }
 
@@ -873,30 +809,191 @@ namespace FerPROJ.DBHelper.CRUD
             }
             throw new ArgumentException(myDTO.Error);
         }
-        public string GetDeleteManualQuery(string tableName, string whereCondition)
-        {
+        public string GetDeleteManualQuery(string tableName, string whereCondition) {
             return $"DELETE FROM {tableName} {whereCondition}";
         }
-        public string GetDeleteManualQuery(string tableName, int idTrack)
-        {
+        public string GetDeleteManualQuery(string tableName, int idTrack) {
             return $"DELETE FROM {tableName} WHERE IdTrack = {idTrack}";
         }
-        public void SaveMultipleQuery(List<string> queryStatement)
-        {
-            if (queryStatement.Count > 0)
-            {
-                if (CShowMessage.Ask("Execute Transaction?", "Confirmation"))
-                {
-                    if (ExecuteQuery(queryStatement))
-                    {
-                        CShowMessage.Info("Transaction has been successfully commited.", "Success");
+        public void SaveMultipleQuery(List<string> queryStatement, List<string> queryStatement2) {
+            if (dbConnection == AllowedOpenDB.Two) {
+                if (!string.IsNullOrEmpty(connectionString2)) {
+                    if (queryStatement.Count > 0 && queryStatement2.Count > 0) {
+                        if (CShowMessage.Ask("Execute Transaction?", "Confirmation")) {
+                            if (ExecuteQuery(queryStatement, queryStatement2)) {
+                                CShowMessage.Info("Transaction has been successfully commited.", "Success");
+                            } else {
+                                throw new ArgumentException("Error: Save!");
+                            }
+                        }
                     }
-                    else
-                    {
+                } else {
+                    throw new ArgumentException("Please set ConnectionString for second database!", "Warning");
+                }
+            } else {
+                throw new ArgumentException("Please set DB Connection allowed 2 databases!", "Warning");
+            }
+        }
+        public void SaveMultipleQuery(List<string> queryStatement) {
+            if (queryStatement.Count > 0) {
+                if (CShowMessage.Ask("Execute Transaction?", "Confirmation")) {
+                    if (ExecuteQuery(queryStatement)) {
+                        CShowMessage.Info($"Transaction has been successfully commited with {rowsAffected} rows affected.", "Success");
+                    } else {
                         throw new ArgumentException("Error: Save!");
                     }
                 }
             }
+        }
+        public void SaveTransaction<DTO>(DTO myDTO, string _tableName, string _tableDetailsName, List<string> queryToAdd = null) where DTO : CValidator {
+            var MultipleQuery = new List<string>();
+            //
+            if (queryToAdd != null) {
+                foreach (var item in queryToAdd) {
+                    MultipleQuery.Add(item);
+                }
+            }
+            //
+            MultipleQuery.Add(GetSaveManualQuery(_tableName, myDTO));
+            //
+            var listProperties = typeof(DTO).GetProperties()
+                .Where(c => c.PropertyType.IsGenericType && c.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+                .ToList();
+            //
+            foreach (var listItem in listProperties) {
+                var itemToAdd = (IEnumerable)listItem.GetValue(myDTO);
+                if (itemToAdd != null) {
+                    foreach (var item in itemToAdd) {
+                        ListValidation((CValidator)item);
+                        MultipleQuery.Add(GetSaveDetailsManualQuery(_tableDetailsName, item));
+                    }
+                }
+            }
+            //
+            SaveMultipleQuery(MultipleQuery);
+        }
+        public void SaveTransaction<DTO>(DTO myDTO, string _tableName, string _tableDetailsName) where DTO : CValidator {
+            var MultipleQuery = new List<string>();
+            //
+            MultipleQuery.Add(GetSaveManualQuery(_tableName, myDTO));
+            //
+            var listProperties = typeof(DTO).GetProperties()
+                .Where(c => c.PropertyType.IsGenericType && c.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+                .ToList();
+            //
+            foreach (var listItem in listProperties) {
+                var itemToAdd = (IEnumerable)listItem.GetValue(myDTO);
+                if (itemToAdd != null) {
+                    foreach (var item in itemToAdd) {
+                        ListValidation((CValidator)item);
+                        MultipleQuery.Add(GetSaveDetailsManualQuery(_tableDetailsName, item));
+                    }
+                }
+            }
+            //
+            SaveMultipleQuery(MultipleQuery);
+        }
+        public void SaveTransaction<DTO>(DTO myDTO, string _tableName, string _tableDetailsName, string[] fieldToExclude, string[] fieldToExcludeList) where DTO : CValidator {
+            var MultipleQuery = new List<string>();
+            //
+            MultipleQuery.Add(GetSaveManualQuery(_tableName, myDTO, fieldToExclude));
+            //
+            var listProperties = typeof(DTO).GetProperties()
+                .Where(c => c.PropertyType.IsGenericType && c.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+                .ToList();
+            //
+            foreach (var listItem in listProperties) {
+                var itemToAdd = (IEnumerable)listItem.GetValue(myDTO);
+                if (itemToAdd != null) {
+                    foreach (var item in itemToAdd) {
+                        ListValidation((CValidator)item);
+                        MultipleQuery.Add(GetSaveDetailsManualQuery(_tableDetailsName, item, fieldToExcludeList));
+                    }
+                }
+            }
+            //
+            SaveMultipleQuery(MultipleQuery);
+        }
+        public void UpdateTransaction<DTO>(DTO myDTO, string sWhere, string _tableName, string _tableDetailsName, List<string> queryToAdd = null) where DTO : CValidator {
+            var MultipleQuery = new List<string>();
+            //
+            if (queryToAdd != null) {
+                foreach (var item in queryToAdd) {
+                    MultipleQuery.Add(item);
+                }
+            }
+            //
+            MultipleQuery.Add(GetUpdateManualQuery(_tableName, sWhere, myDTO));
+            //
+            var listProperties = typeof(DTO).GetProperties()
+                .Where(c => c.PropertyType.IsGenericType && c.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+                .ToList();
+            //
+            foreach (var listItem in listProperties) {
+                var itemToAdd = (IEnumerable)listItem.GetValue(myDTO);
+                if (itemToAdd != null) {
+                    foreach (var item in itemToAdd) {
+                        ListValidation((CValidator)item);
+                        MultipleQuery.Add(GetUpdateDetailsManualQuery(_tableDetailsName, sWhere, item));
+                    }
+                }
+            }
+            //
+            SaveMultipleQuery(MultipleQuery);
+        }
+        public void UpdateTransaction<DTO>(DTO myDTO, string sWhere, string _tableName, string _tableDetailsName, string[] fieldToExclude, string[] fieldToExcludeDetails) where DTO : CValidator {
+            var MultipleQuery = new List<string>();
+            //
+            MultipleQuery.Add(GetUpdateManualQuery(_tableName, sWhere, myDTO, fieldToExclude));
+            //
+            var listProperties = typeof(DTO).GetProperties()
+                .Where(c => c.PropertyType.IsGenericType && c.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+                .ToList();
+            //
+            foreach (var listItem in listProperties) {
+                var itemToAdd = (IEnumerable)listItem.GetValue(myDTO);
+                if (itemToAdd != null) {
+                    foreach (var item in itemToAdd) {
+                        ListValidation((CValidator)item);
+                        MultipleQuery.Add(GetUpdateDetailsManualQuery(_tableDetailsName, sWhere, item, fieldToExcludeDetails));
+                    }
+                }
+            }
+            //
+            SaveMultipleQuery(MultipleQuery);
+        }
+        public void DeleteTransaction(string _tableName, string _tableDetailsName, string sWhere, List<string> queryToAdd = null) {
+            var MultipleQuery = new List<string>();
+            //
+            if (queryToAdd != null) {
+                foreach (var item in queryToAdd) {
+                    MultipleQuery.Add(item);
+                }
+            }
+            //
+            MultipleQuery.Add(GetDeleteManualQuery(_tableName, sWhere));
+            //
+            MultipleQuery.Add(GetDeleteManualQuery(_tableDetailsName, sWhere));
+            //
+            SaveMultipleQuery(MultipleQuery);
+        }
+        public void DeleteTransaction(string _tableName, string _tableDetailsName, int idTrack) {
+            var MultipleQuery = new List<string>();
+            //
+            MultipleQuery.Add(GetDeleteManualQuery(_tableName, idTrack));
+            //
+            MultipleQuery.Add(GetDeleteManualQuery(_tableDetailsName, idTrack));
+            //
+            SaveMultipleQuery(MultipleQuery);
+        }
+        private void ListValidation<DTO>(DTO myDTO) where DTO : CValidator {
+            if (!myDTO.DataValidation()) {
+                throw new ArgumentException(myDTO.Error);
+            }
+        }
+
+        public void Dispose() {
+            CloseConnection();
         }
 
     }
