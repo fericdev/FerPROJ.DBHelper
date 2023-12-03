@@ -203,6 +203,21 @@ namespace FerPROJ.DBHelper.CRUD {
                 dgv.DataSource = data;
             }
         }
+        public void FillComboBox(ComboBox cmb, string cmbSelectedText, string queryStatement) {
+            if (ExecuteQuery(queryStatement)) {
+                using (MySqlDataReader reader = commandResult.ExecuteReader()) {
+                    List<string> items = new List<string>();
+                    while (reader.Read()) {
+                        string cmbName = reader[cmbSelectedText].ToString();
+                        if (!items.Contains(cmbName)) {
+                            items.Add(cmbName);
+                        }
+                    }
+                    cmb.DisplayMember = "Key"; // This corresponds to cmbName
+                    cmb.DataSource = new BindingSource(items, null);
+                }
+            }
+        }
         public void FillComboBox(ComboBox cmb, string cmbSelectedText, string cmbSelectedValue, string queryStatement) {
             if (ExecuteQuery(queryStatement)) {
                 using (MySqlDataReader reader = commandResult.ExecuteReader()) {

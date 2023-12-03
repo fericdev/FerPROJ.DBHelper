@@ -22,6 +22,11 @@ namespace FerPROJ.DBHelper.Base
             _conn = NewConnectionDB();
             SetTables();
         }
+        protected BaseDBEntity(EntityContext ts, DBConn conn) {
+            _ts = UseConnection(ts);
+            _conn = UseConnectionDB(conn);
+            SetTables();
+        }
         protected BaseDBEntity(EntityContext ts) {
             _ts = UseConnection(ts);
             SetTables();
@@ -88,6 +93,10 @@ namespace FerPROJ.DBHelper.Base
         protected abstract void DeleteData(TType id);
         //
         public string SelectAll(string sWhere = null) {
+            return $"SELECT * FROM {_tableName} {sWhere}";
+        }
+        public string SelectAll(DateTime dtpFrom, DateTime dtpTo) {
+            string sWhere = $"WHERE DateReference > '{CConvert.GetDate(dtpFrom)}' AND DateReference < '{CConvert.GetDate(dtpTo)}'";
             return $"SELECT * FROM {_tableName} {sWhere}";
         }
         public string SelectAllDetails(string sWhere = null) {
