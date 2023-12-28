@@ -1,8 +1,11 @@
-﻿using FerPROJ.DBHelper.CRUD;
+﻿using FerPROJ.DBHelper.Class;
+using FerPROJ.DBHelper.CRUD;
+using FerPROJ.DBHelper.Query;
 using FerPROJ.Design.Class;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Dynamic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,6 +19,7 @@ namespace FerPROJ.DBHelper.Base
         public EntityContext _ts;
         public DBConn _conn;
         private Conn conn = new Conn();
+        private Conn entityConn;
 
         protected BaseDBEntity() {
             _ts = NewConnection();
@@ -29,6 +33,7 @@ namespace FerPROJ.DBHelper.Base
         }
         protected BaseDBEntity(EntityContext ts) {
             _ts = UseConnection(ts);
+            _conn = UseConnectionDBEntity(ts);
             SetTables();
         }
         protected BaseDBEntity(DBConn conn) {
@@ -46,6 +51,10 @@ namespace FerPROJ.DBHelper.Base
         }
         private DBConn UseConnectionDB(DBConn useConn) {
             return useConn;
+        }
+        private DBConn UseConnectionDBEntity(EntityContext useConn) {
+            entityConn = new Conn(useConn);
+            return (DBConn)entityConn;
         }
         public void Dispose() {
             _ts.Dispose();
@@ -92,15 +101,28 @@ namespace FerPROJ.DBHelper.Base
         }
         protected abstract void DeleteData(TType id);
         //
-        public string SelectAll(string sWhere = null) {
+        public string SelectAll<T>(string search) where T : new() {
+            var columnToSearch = CGet.GetMemberName<T>();
+            return $"SELECT * FROM {_tableName} WHERE {MySQLQueryHelper.GetMultipleSearchLIKE(search, columnToSearch)}";
+        }
+        public string SelectAll(){
+            return $"SELECT * FROM {_tableName}";
+        }
+        public string SelectAll(string sWhere) {
             return $"SELECT * FROM {_tableName} {sWhere}";
         }
         public string SelectAll(DateTime dtpFrom, DateTime dtpTo) {
-            string sWhere = $"WHERE DateReference > '{CConvert.GetDate(dtpFrom)}' AND DateReference < '{CConvert.GetDate(dtpTo)}'";
+            string sWhere = $"WHERE {MySQLQueryHelper.GetDateRange(dtpFrom, dtpTo)}";
             return $"SELECT * FROM {_tableName} {sWhere}";
         }
-        public string SelectAllDetails(string sWhere = null) {
-            return $"SELECT * FROM {_tableDetailsName} {sWhere}";
+        public string SelectAll<T>(DateTime dtpFrom, DateTime dtpTo, string search) where T : new() {
+            var columnToSearch = CGet.GetMemberName<T>();
+            string sWhere = $"WHERE {MySQLQueryHelper.GetDateRange(dtpFrom, dtpTo)} AND {MySQLQueryHelper.GetMultipleSearchLIKE(search, columnToSearch)}";
+            return $"SELECT * FROM {_tableName} {sWhere}";
+        }
+        public string SelectAllDetails<T>(string search) where T : new() {
+            var columnToSearch = CGet.GetMemberName<T>();
+            return $"SELECT * FROM {_tableDetailsName} WHERE {MySQLQueryHelper.GetMultipleSearchLIKE(search, columnToSearch)}";
         }
     }
 }

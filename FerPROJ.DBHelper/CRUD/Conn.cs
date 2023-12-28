@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
+using System.Data.Entity;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
@@ -27,6 +28,9 @@ namespace FerPROJ.DBHelper.CRUD {
 
         public Conn() {
             SetNewConnection();
+        }
+        public Conn(DbContext _ts) {
+            connectionResult = (MySqlConnection)_ts.Database.Connection;
         }
         public void SetNewConnection() {
             this.connectionString = CStaticVariable.connString1 != null ? CStaticVariable.connString1 : CStaticVariable.mainConnection;
@@ -257,6 +261,7 @@ namespace FerPROJ.DBHelper.CRUD {
                 MySqlDataAdapter adapter = new MySqlDataAdapter(commandResult);
                 adapter.Fill(dataTable);
             }
+            CloseConnection();
             return dataTable;
         }
         private void GetColumnValue<DTO>(DTO sDTO, out string[] columnList, out string[] valueList, string[] fieldsToExclude = null) {
@@ -264,7 +269,7 @@ namespace FerPROJ.DBHelper.CRUD {
                 fieldsToExclude = new string[0];
             var dtoType = typeof(DTO);
             PropertyInfo[] properties = dtoType.GetProperties();
-            List<string> excludedProperties = new List<string> { "List", "tableName", "IdTrack", "Details", "Item", "Error", "IsValid", "DataValidation" };
+            List<string> excludedProperties = new List<string> { "Success", "List", "tableName", "IdTrack", "Details", "Item", "Error", "IsValid", "DataValidation" };
             List<string> columns = new List<string>();
             List<string> values = new List<string>();
 
@@ -300,7 +305,7 @@ namespace FerPROJ.DBHelper.CRUD {
                 fieldsToExclude = new string[0];
             var dtoType = sDTO.GetType();
             PropertyInfo[] properties = dtoType.GetProperties();
-            List<string> excludedProperties = new List<string> { "List", "tableName", "IdTrack", "Details", "Item", "Error", "IsValid", "DataValidation" };
+            List<string> excludedProperties = new List<string> { "Success", "List", "tableName", "IdTrack", "Details", "Item", "Error", "IsValid", "DataValidation" };
             List<string> columns = new List<string>();
             List<string> values = new List<string>();
 
@@ -337,7 +342,7 @@ namespace FerPROJ.DBHelper.CRUD {
             Type dtoType = typeof(DTO);
             PropertyInfo[] properties = dtoType.GetProperties();
 
-            List<string> excludedProperties = new List<string> { "List", "tableName", "IdTrack", "Details", "Item", "Error", "IsValid", "DataValidation" };
+            List<string> excludedProperties = new List<string> { "Success", "List", "tableName", "IdTrack", "Details", "Item", "Error", "IsValid", "DataValidation" };
             List<string> columnValue = new List<string>();
 
             foreach (PropertyInfo property in properties) {
