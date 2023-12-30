@@ -31,6 +31,9 @@ namespace FerPROJ.DBHelper.CRUD {
         }
         public Conn(DbContext _ts) {
             connectionResult = (MySqlConnection)_ts.Database.Connection;
+            if (connectionResult.State == ConnectionState.Closed) {
+                connectionResult.Open();
+            }
         }
         public void SetNewConnection() {
             this.connectionString = CStaticVariable.connString1 != null ? CStaticVariable.connString1 : CStaticVariable.mainConnection;

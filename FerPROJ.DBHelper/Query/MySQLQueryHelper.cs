@@ -35,5 +35,27 @@ namespace FerPROJ.DBHelper.Query {
         public static string GetSearchLIKE(string Value, string ColumnName) {
             return $"{ColumnName} LIKE '%{Value}%'";
         }
+        public static string GetSelectAll(string TableName) {
+            return $"SELECT * FROM {TableName} ORDER BY DataReference ASC";
+        }
+        public static string GetSelectAll(string TableName, string Where) {
+            if (!Where.ToUpper().Contains("WHERE")) {
+                string oWhere = Where;
+                Where = $"WHERE {oWhere}";
+            }
+            return $"SELECT * FROM {TableName} {Where}";
+        }
+        public static string GetSelectINNERJOIN(string TableName1, string TableName2, string Id) {
+            return $"SELECT * FROM {TableName1} tbl1 INNER JOIN {TableName2} tbl2 ON tbl1.{Id} = tbl2.{Id}";
+        }
+        public static string GetSelectINNERJOIN(string TableName1, string TableName2, string Id, string Where) {
+            return $"SELECT * FROM {TableName1} tbl1 INNER JOIN {TableName2} tbl2 ON tbl1.{Id} = tbl2.{Id} {Where}";
+        }
+        public static string GetSelectJOIN(string JoinType,string TableName1, string TableName2, string Id, string Where) {
+            return $"SELECT * FROM {TableName1} tbl1 {JoinType} {TableName2} tbl2 ON tbl1.{Id} = tbl2.{Id} {Where}";
+        }
+        public static string GetSelectJOIN(string JoinType, string TableName1, string TableName2, string Id) {
+            return $"SELECT * FROM {TableName1} tbl1 {JoinType} {TableName2} tbl2 ON tbl1.{Id} = tbl2.{Id}";
+        }
     }
 }

@@ -23,12 +23,7 @@ namespace FerPROJ.DBHelper.Base
 
         protected BaseDBEntity() {
             _ts = NewConnection();
-            _conn = NewConnectionDB();
-            SetTables();
-        }
-        protected BaseDBEntity(EntityContext ts, DBConn conn) {
-            _ts = UseConnection(ts);
-            _conn = UseConnectionDB(conn);
+            _conn = UseConnectionDBEntity(_ts);
             SetTables();
         }
         protected BaseDBEntity(EntityContext ts) {
@@ -39,9 +34,6 @@ namespace FerPROJ.DBHelper.Base
         protected BaseDBEntity(DBConn conn) {
             _conn = UseConnectionDB(conn);
             SetTables();
-        }
-        private DBConn NewConnectionDB() {
-            return (DBConn)conn;
         }
         private EntityContext NewConnection() {
             return Activator.CreateInstance<EntityContext>();
