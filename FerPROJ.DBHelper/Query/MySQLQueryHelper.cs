@@ -32,7 +32,7 @@ namespace FerPROJ.DBHelper.Query {
 
             return i;
         }
-        public static string GetMultipleSearchLIKE(string Value, string ColumnName) {
+        public static string GetSearchLIKE(string Value, string ColumnName) {
             return $"{ColumnName} LIKE '%{Value}%'";
         }
     }

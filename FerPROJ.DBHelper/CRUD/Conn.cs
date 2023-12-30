@@ -179,7 +179,7 @@ namespace FerPROJ.DBHelper.CRUD {
             }
 
         }
-        public TClass GetMethodFromColumn<TClass>(string Method, string Table, string Column = "*", string Where = "") where TClass : new() {
+        public TClass GetValueFromColumn<TClass>(string Method, string Table, string Column = "*", string Where = "") where TClass : new() {
             string selectQuery = $"SELECT {Method}({Column}) as result FROM {Table} {Where}";
 
             if (ExecuteQuery(selectQuery)) {
@@ -476,7 +476,7 @@ namespace FerPROJ.DBHelper.CRUD {
             return resultList;
         }
         public string GetNewStringID(string prefix, string tableName) {
-            return $"{prefix}-00{GetMethodFromColumn<int>("COUNT", tableName) + 1}";
+            return $"{prefix}-00{GetValueFromColumn<int>("COUNT", tableName) + 1}";
         }
         public bool SaveManual<sDTO>(string tableName, sDTO myDTO) where sDTO : CValidator {
             if (myDTO.DataValidation()) {
