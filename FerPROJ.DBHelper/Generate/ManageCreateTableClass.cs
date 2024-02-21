@@ -38,7 +38,7 @@ namespace FerPROJ.DBHelper.Generate
         }
         protected override bool OnSaveData()
         {
-            if(CDGVSetting.GetSelectedValue(listOfDBCDatagridview1, DatabaseName.Index, out string sout))
+            if(listOfDBCDatagridview1.GetSelectedValue(DatabaseName.Index, out string sout))
             {
                 generateClass.GenerateClass(sout);
                 return true;
@@ -47,7 +47,7 @@ namespace FerPROJ.DBHelper.Generate
         }
         protected override bool OnSaveNewData()
         {
-            if (CDGVSetting.GetSelectedValue(listOfDBCDatagridview1, DatabaseName.Index, out string sout))
+            if (listOfDBCDatagridview1.GetSelectedValue(DatabaseName.Index, out string sout))
             {
                 generateClass.GenerateClass(sout);
                 return true;
