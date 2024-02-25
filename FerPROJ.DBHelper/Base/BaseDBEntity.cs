@@ -9,10 +9,11 @@ using System.Dynamic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static FerPROJ.Design.Class.CEnum;
 
 namespace FerPROJ.DBHelper.Base
 {
-    public abstract class BaseDBEntity<EntityContext, DBConn, TSource, TType> : IDisposable where DBConn : Conn where EntityContext : DbContext where TSource : CValidator where TType : class
+    public abstract class BaseDBEntity<EntityContext, DBConn, TSource, TType> : IDisposable where DBConn : Conn where EntityContext : DbContext where TSource : CValidator
     {
         public string _tableName { get; set; }
         public string _tableDetailsName { get; set; }
@@ -115,6 +116,9 @@ namespace FerPROJ.DBHelper.Base
         public string SelectAllDetails<T>(string search) where T : new() {
             var columnToSearch = CGet.GetMemberName<T>();
             return $"SELECT * FROM {_tableDetailsName} WHERE {MySQLQueryHelper.GetMultipleSearchLIKE(search, columnToSearch)}";
+        }
+        public string OrderBy(string columnName = "DateReference", Sort sort = Sort.DESC) {
+            return $" ORDER BY {columnName} {sort}";
         }
     }
 }
