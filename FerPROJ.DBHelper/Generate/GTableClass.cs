@@ -36,7 +36,7 @@ namespace FerPROJ.DBHelper.Generate
                     openFileDialog.Title = "Select Directory to Save Generated Files";
                     openFileDialog.Filter = "Folders|*.folder";
                     openFileDialog.CheckFileExists = false;
-                    openFileDialog.FileName = "GeneratedFiles";
+                    openFileDialog.FileName = dbName;
                     openFileDialog.InitialDirectory = "Model";
 
                     if (openFileDialog.ShowDialog() == DialogResult.OK) {
@@ -84,12 +84,11 @@ namespace FerPROJ.DBHelper.Generate
                     //
                     string dataType = row["DATA_TYPE"].ToString();
                     string csharpType = MapMySqlTypeToCSharp(dataType);
-                    sw.WriteLine($"    public string tableName => {className};");
                     sw.WriteLine($"    public {csharpType} {columnName} {{ get; set; }}");
                     Added.Add(columnName);
 
                 }
-
+                sw.WriteLine($"    public string TableName => {className};");
                 sw.WriteLine("}");
             }
         }
