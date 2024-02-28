@@ -110,7 +110,7 @@ namespace FerPROJ.DBHelper.Base
         }
         public string SelectAll<T>(DateTime dtpFrom, DateTime dtpTo, string search) where T : new() {
             var columnToSearch = CGet.GetMemberName<T>();
-            string sWhere = $"WHERE {MySQLQueryHelper.GetDateRange(dtpFrom, dtpTo)} AND {MySQLQueryHelper.GetMultipleSearchLIKE(search, columnToSearch)}";
+            string sWhere = $"WHERE {MySQLQueryHelper.GetDateRange(dtpFrom, dtpTo)} AND {MySQLQueryHelper.GetMultipleSearchLIKE(search, columnToSearch)} ";
             return $"SELECT * FROM {_tableName} {sWhere}";
         }
         public string SelectAllDetails<T>(string search) where T : new() {
@@ -119,6 +119,12 @@ namespace FerPROJ.DBHelper.Base
         }
         public string OrderBy(string columnName = "DateReference", Sort sort = Sort.DESC) {
             return $" ORDER BY {columnName} {sort}";
+        }
+        public string Status(Status status = CEnum.Status.ACTIVE) {
+            return $" AND Status = '{status}' ";
+        }
+        public string StatusWhere(Status status = CEnum.Status.ACTIVE) {
+            return $" WHERE Status = '{status}' ";
         }
     }
 }

@@ -21,13 +21,16 @@ namespace FerPROJ.DBHelper.Query {
         }
         public static string GetMultipleSearchLIKE(string Value, List<string> ColumnsName) {
             string i = string.Empty;
-
+            if(Value == null || Value == "") {
+                Value = "%";
+            }
             if (ColumnsName.Count > 0) {
-                i = $"{ColumnsName[0]} LIKE '%{Value}%'";
+                i = $"({ColumnsName[0]} LIKE '%{Value}%'";
 
                 for (int j = 1; j < ColumnsName.Count; j++) {
                     i += $" OR {ColumnsName[j]} LIKE '%{Value}%'";
                 }
+                i += ")";
             }
 
             return i;
