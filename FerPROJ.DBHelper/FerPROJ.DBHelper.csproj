@@ -62,9 +62,7 @@
     <Compile Include="Base\BaseDBEntity.cs" />
     <Compile Include="CRUD\Conn.cs" />
     <Compile Include="Generate\GTableClass.cs" />
-    <Compile Include="Generate\ManageCreateTableClass.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="Generate\ManageCreateTableClass.cs" />
     <Compile Include="Generate\ManageCreateTableClass.Designer.cs">
       <DependentUpon>ManageCreateTableClass.cs</DependentUpon>
     </Compile>
@@ -73,12 +71,6 @@
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\FerPROJ.Design\FerPROJ.Design\FerPROJ.Design.csproj">
-      <Project>{3379010b-3fec-4afc-8db5-8ed0fcbd69bc}</Project>
-      <Name>FerPROJ.Design</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Generate\ManageCreateTableClass.resx">
