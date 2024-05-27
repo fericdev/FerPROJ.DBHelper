@@ -11,10 +11,8 @@ using System.Text;
 using System.Threading.Tasks;
 using static FerPROJ.Design.Class.CEnum;
 
-namespace FerPROJ.DBHelper.Base
-{
-    public abstract class BaseDBEntity<EntityContext, DBConn, TSource, TType> : IDisposable where DBConn : Conn where EntityContext : DbContext where TSource : CValidator
-    {
+namespace FerPROJ.DBHelper.Base {
+    public abstract class BaseDBEntity<EntityContext, DBConn, TSource, TType> : IDisposable where DBConn : Conn where EntityContext : DbContext where TSource : CValidator {
         public string _tableName { get; set; }
         public string _tableDetailsName { get; set; }
         public EntityContext _ts;
@@ -54,7 +52,7 @@ namespace FerPROJ.DBHelper.Base
             _conn.CloseConnection();
         }
         protected abstract void SetTables();
-        public void SaveDTO(TSource myDTO, bool EnableValidation = false) {
+        public void SaveDTO(TSource myDTO, bool EnableValidation = false, bool IsWeb = false) {
             if (EnableValidation) {
                 if (!myDTO.DataValidation()) {
                     throw new ArgumentException("Failed!");
@@ -63,14 +61,19 @@ namespace FerPROJ.DBHelper.Base
             if (!myDTO.Success) {
                 throw new ArgumentException(myDTO.Error);
             }
-            if (CShowMessage.Ask("Are you sure to save this data?", "Confirmation")) {
+            if (!IsWeb) {
+                if (CShowMessage.Ask("Are you sure to save this data?", "Confirmation")) {
+                    SaveData(myDTO);
+                    CShowMessage.Info("Saved Successfully!", "Success");
+                }
+            }
+            else {
                 SaveData(myDTO);
-                CShowMessage.Info("Saved Successfully!", "Success");
             }
         }
         protected abstract void SaveData(TSource myDTO);
         //
-        public void UpdateDTO(TSource myDTO, bool EnableValidation = false) {
+        public void UpdateDTO(TSource myDTO, bool EnableValidation = false, bool isWeb = false) {
             if (EnableValidation) {
                 if (!myDTO.DataValidation()) {
                     throw new ArgumentException("Failed!");
@@ -79,17 +82,27 @@ namespace FerPROJ.DBHelper.Base
             if (!myDTO.Success) {
                 throw new ArgumentException(myDTO.Error);
             }
-            if (CShowMessage.Ask("Are you sure to update this data?", "Confirmation")) {
+            if (!isWeb) {
+                if (CShowMessage.Ask("Are you sure to update this data?", "Confirmation")) {
+                    UpdateData(myDTO);
+                    CShowMessage.Info("Updated Successfully!", "Success");
+                }
+            }
+            else {
                 UpdateData(myDTO);
-                CShowMessage.Info("Updated Successfully!", "Success");
             }
         }
         protected abstract void UpdateData(TSource myDTO);
         //
-        public void Delete(TType id) {
-            if (CShowMessage.Ask("Are you sure to delete this data?", "Confirmation")) {
+        public void Delete(TType id, bool isWeb = false) {
+            if (!isWeb) {
+                if (CShowMessage.Ask("Are you sure to delete this data?", "Confirmation")) {
+                    DeleteData(id);
+                    CShowMessage.Info("Deleted Successfully!", "Success");
+                }
+            }
+            else {
                 DeleteData(id);
-                CShowMessage.Info("Deleted Successfully!", "Success");
             }
         }
         protected abstract void DeleteData(TType id);
@@ -98,7 +111,7 @@ namespace FerPROJ.DBHelper.Base
             var columnToSearch = CGet.GetMemberName<T>();
             return $"SELECT * FROM {_tableName} WHERE {MySQLQueryHelper.GetMultipleSearchLIKE(search, columnToSearch)}";
         }
-        public string SelectAll(){
+        public string SelectAll() {
             return $"SELECT * FROM {_tableName}";
         }
         public string SelectAll(string sWhere) {
