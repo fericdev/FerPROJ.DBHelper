@@ -52,7 +52,7 @@ namespace FerPROJ.DBHelper.Base {
             _conn.CloseConnection();
         }
         protected abstract void SetTables();
-        public void SaveDTO(TSource myDTO, bool EnableValidation = false, bool IsWeb = false) {
+        public async void SaveDTO(TSource myDTO, bool EnableValidation = false) {
             if (EnableValidation) {
                 if (!myDTO.DataValidation()) {
                     throw new ArgumentException("Failed!");
@@ -61,19 +61,16 @@ namespace FerPROJ.DBHelper.Base {
             if (!myDTO.Success) {
                 throw new ArgumentException(myDTO.Error);
             }
-            if (!IsWeb) {
-                if (CShowMessage.Ask("Are you sure to save this data?", "Confirmation")) {
-                    SaveData(myDTO);
-                    CShowMessage.Info("Saved Successfully!", "Success");
-                }
-            }
-            else {
+
+            if (CShowMessage.Ask("Are you sure to save this data?", "Confirmation")) {
                 SaveData(myDTO);
+                CShowMessage.Info("Saved Successfully!", "Success");
             }
+            await Task.CompletedTask;
         }
         protected abstract void SaveData(TSource myDTO);
         //
-        public void UpdateDTO(TSource myDTO, bool EnableValidation = false, bool isWeb = false) {
+        public async void UpdateDTO(TSource myDTO, bool EnableValidation = false) {
             if (EnableValidation) {
                 if (!myDTO.DataValidation()) {
                     throw new ArgumentException("Failed!");
@@ -82,28 +79,21 @@ namespace FerPROJ.DBHelper.Base {
             if (!myDTO.Success) {
                 throw new ArgumentException(myDTO.Error);
             }
-            if (!isWeb) {
-                if (CShowMessage.Ask("Are you sure to update this data?", "Confirmation")) {
-                    UpdateData(myDTO);
-                    CShowMessage.Info("Updated Successfully!", "Success");
-                }
-            }
-            else {
+            if (CShowMessage.Ask("Are you sure to update this data?", "Confirmation")) {
                 UpdateData(myDTO);
+                CShowMessage.Info("Updated Successfully!", "Success");
             }
+
+            await Task.CompletedTask;
         }
         protected abstract void UpdateData(TSource myDTO);
         //
-        public void Delete(TType id, bool isWeb = false) {
-            if (!isWeb) {
-                if (CShowMessage.Ask("Are you sure to delete this data?", "Confirmation")) {
-                    DeleteData(id);
-                    CShowMessage.Info("Deleted Successfully!", "Success");
-                }
-            }
-            else {
+        public async void Delete(TType id) {
+            if (CShowMessage.Ask("Are you sure to delete this data?", "Confirmation")) {
                 DeleteData(id);
+                CShowMessage.Info("Deleted Successfully!", "Success");
             }
+            await Task.CompletedTask;
         }
         protected abstract void DeleteData(TType id);
         //
