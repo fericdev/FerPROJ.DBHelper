@@ -78,7 +78,7 @@ namespace FerPROJ.DBHelper.Base {
         protected async virtual Task DeleteDataAsync(TType id) {
             await Task.CompletedTask;
         }
-        public async void DeleteByIdAsync(TType id) {
+        public async Task DeleteByIdAsync(TType id) {
             if (CShowMessage.Ask("Are you sure to delete this data?", "Confirmation")) {
                 await DeleteDataAsync(id);
                 CShowMessage.Info("Deleted Successfully!", "Success");
