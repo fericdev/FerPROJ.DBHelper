@@ -59,6 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Base\BaseDB.cs" />
+    <Compile Include="Base\BaseDBEntityAsync.cs" />
     <Compile Include="Base\BaseDBEntity.cs" />
     <Compile Include="CRUD\Conn.cs" />
     <Compile Include="Generate\GTableClass.cs" />
