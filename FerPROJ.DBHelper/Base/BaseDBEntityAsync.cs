@@ -60,7 +60,7 @@ namespace FerPROJ.DBHelper.Base {
         protected async virtual Task UpdateDataAsync(TSource myDTO) {
             await Task.CompletedTask;
         }
-        public async void UpdateDTOAsync(TSource myDTO, bool EnableValidation = false) {
+        public async Task UpdateDTOAsync(TSource myDTO, bool EnableValidation = false) {
             if (EnableValidation) {
                 if (!myDTO.DataValidation()) {
                     throw new ArgumentException("Failed!");
