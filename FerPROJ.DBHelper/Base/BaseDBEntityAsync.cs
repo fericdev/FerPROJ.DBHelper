@@ -5,10 +5,13 @@ using FerPROJ.Design.Class;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Migrations;
 using System.Dynamic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using static FerPROJ.Design.Class.CEnum;
 
 namespace FerPROJ.DBHelper.Base {
