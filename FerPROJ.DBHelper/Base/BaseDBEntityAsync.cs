@@ -40,23 +40,28 @@ namespace FerPROJ.DBHelper.Base {
             await Task.CompletedTask;
         }
         public async Task SaveDTOAsync(TSource myDTO, bool EnableValidation = false, bool confirmation = true) {
-            if (EnableValidation) {
-                if (!myDTO.DataValidation()) {
-                    throw new ArgumentException("Failed!");
+            try {
+                if (EnableValidation) {
+                    if (!myDTO.DataValidation()) {
+                        throw new ArgumentException(myDTO.Error);
+                    }
                 }
-            }
-            if (!myDTO.Success) {
-                throw new ArgumentException(myDTO.Error);
-            }
-            if (confirmation) {
-                if (CShowMessage.Ask("Are you sure to save this data?", "Confirmation")) {
+                if (!myDTO.Success) {
+                    throw new ArgumentException(myDTO.Error);
+                }
+                if (confirmation) {
+                    if (CShowMessage.Ask("Are you sure to save this data?", "Confirmation")) {
+                        await SaveDataAsync(myDTO);
+                        CShowMessage.Info("Saved Successfully!", "Success");
+                    }
+                }
+                else {
                     await SaveDataAsync(myDTO);
                     CShowMessage.Info("Saved Successfully!", "Success");
                 }
             }
-            else {
-                await SaveDataAsync(myDTO);
-                CShowMessage.Info("Saved Successfully!", "Success");
+            catch (Exception ex) {
+                throw ex;
             }
         }
         //
@@ -64,17 +69,22 @@ namespace FerPROJ.DBHelper.Base {
             await Task.CompletedTask;
         }
         public async Task UpdateDTOAsync(TSource myDTO, bool EnableValidation = false) {
-            if (EnableValidation) {
-                if (!myDTO.DataValidation()) {
-                    throw new ArgumentException("Failed!");
+            try {
+                if (EnableValidation) {
+                    if (!myDTO.DataValidation()) {
+                        throw new ArgumentException("Failed!");
+                    }
+                }
+                if (!myDTO.Success) {
+                    throw new ArgumentException(myDTO.Error);
+                }
+                if (CShowMessage.Ask("Are you sure to update this data?", "Confirmation")) {
+                    await UpdateDataAsync(myDTO);
+                    CShowMessage.Info("Updated Successfully!", "Success");
                 }
             }
-            if (!myDTO.Success) {
-                throw new ArgumentException(myDTO.Error);
-            }
-            if (CShowMessage.Ask("Are you sure to update this data?", "Confirmation")) {
-                await UpdateDataAsync(myDTO);
-                CShowMessage.Info("Updated Successfully!", "Success");
+            catch (Exception ex) {
+                throw ex;
             }
         }
         //
@@ -82,11 +92,46 @@ namespace FerPROJ.DBHelper.Base {
             await Task.CompletedTask;
         }
         public async Task DeleteByIdAsync(TType id) {
-            if (CShowMessage.Ask("Are you sure to delete this data?", "Confirmation")) {
-                await DeleteDataAsync(id);
-                CShowMessage.Info("Deleted Successfully!", "Success");
+            try {
+                if (CShowMessage.Ask("Are you sure to delete this data?", "Confirmation")) {
+                    await DeleteDataAsync(id);
+                    CShowMessage.Info("Deleted Successfully!", "Success");
+                }
+            }
+            catch (Exception ex) {
+                throw ex;
             }
         }
         //
+        protected async virtual Task DeleteMultipleDataAsync(TType id) {
+            await Task.CompletedTask;
+        }
+        public async Task DeleteMultipleDataByIdsAsync(List<TType> ids) {
+            if (ids.Count > 0) {
+                //
+                var sb = new StringBuilder();
+                var askMessage = ids.Count > 1 ? "Are you sure to delete these data's?" : "Are you sure to delete this data?";
+                var resultMessage = ids.Count > 1 ? "All the data's selected has been deleted successfully!" : "Deleted Successfully!";
+                //
+                if (CShowMessage.Ask(askMessage, "Confirmation")) {
+                    foreach (var id in ids) {
+                        try {
+                            await DeleteMultipleDataAsync(id);
+                        }
+                        catch (Exception) {
+                            //
+                            sb.AppendLine(id.ToString());
+                            continue;
+                        }
+                    }
+                    if (sb.Length <= 0) {
+                        CShowMessage.Info(resultMessage);
+                    }
+                    else {
+                        CShowMessage.Warning($"The following id's has not been deleted:\n{sb.ToString()}");
+                    }
+                }
+            }
+        }
     }
 }
