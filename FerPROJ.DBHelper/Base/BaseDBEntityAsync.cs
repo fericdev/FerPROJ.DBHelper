@@ -2,9 +2,11 @@
 using FerPROJ.DBHelper.CRUD;
 using FerPROJ.DBHelper.Query;
 using FerPROJ.Design.Class;
+using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Migrations;
 using System.Data.Entity.Validation;
 using System.Dynamic;
@@ -46,46 +48,80 @@ namespace FerPROJ.DBHelper.Base {
             }
             //
             try {
-                using (var trans = _ts.Database.BeginTransaction()) {
-                    try {
-                        if (EnableValidation) {
-                            if (!myDTO.DataValidation()) {
+                try {
+                    using (var trans = _ts.Database.BeginTransaction()) {
+                        try {
+                            if (EnableValidation) {
+                                if (!myDTO.DataValidation()) {
+                                    throw new ArgumentException(myDTO.Error);
+                                }
+                            }
+                            if (!myDTO.Success) {
                                 throw new ArgumentException(myDTO.Error);
                             }
-                        }
-                        if (!myDTO.Success) {
-                            throw new ArgumentException(myDTO.Error);
-                        }
-                        if (confirmation) {
-                            if (CShowMessage.Ask("Are you sure to save this data?", "Confirmation")) {
+                            if (confirmation) {
+                                if (CShowMessage.Ask("Are you sure to save this data?", "Confirmation")) {
+                                    await SaveDataAsync(myDTO);
+                                    trans.Commit();
+                                    CShowMessage.Info("Saved Successfully!", "Success");
+                                }
+                            }
+                            else {
                                 await SaveDataAsync(myDTO);
-                                trans.Commit();
                                 CShowMessage.Info("Saved Successfully!", "Success");
                             }
                         }
-                        else {
-                            await SaveDataAsync(myDTO);
-                            CShowMessage.Info("Saved Successfully!", "Success");
-                        }
-                    }
-                    catch (DbEntityValidationException ex) {
-                        trans.Rollback();
-                        //
-                        var sb = new StringBuilder();
+                        catch (DbEntityValidationException ex) {
+                            trans.Rollback();
+                            //
+                            var sb = new StringBuilder();
 
-                        if (ex.EntityValidationErrors.Count() == 1) {
-                            var validationResult = ex.EntityValidationErrors.FirstOrDefault();
+                            if (ex.EntityValidationErrors.Count() == 1) {
+                                var validationResult = ex.EntityValidationErrors.FirstOrDefault();
 
-                            if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
-                                // Loop through the ValidationErrors and build the error message
-                                foreach (var validationError in validationResult.ValidationErrors) {
-                                    //sb.AppendLine($"Field: {validationError.PropertyName}, Error: {validationError.ErrorMessage}\n");
-                                    sb.AppendLine($"{validationError.ErrorMessage}\n");
+                                if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
+                                    // Loop through the ValidationErrors and build the error message
+                                    foreach (var validationError in validationResult.ValidationErrors) {
+                                        //sb.AppendLine($"Field: {validationError.PropertyName}, Error: {validationError.ErrorMessage}\n");
+                                        sb.AppendLine($"{validationError.ErrorMessage}\n");
+                                    }
                                 }
                             }
+                            throw new ArgumentException(sb.ToString());
                         }
-                        throw new ArgumentException(sb.ToString());
                     }
+                }
+                catch (DbUpdateException ex) {
+                    var sb = new StringBuilder();
+                    // Check for inner exceptions (usually this is where the real database error lies)
+                    var innerEx = ex.InnerException;
+                    int innerLevel = 1;
+
+                    while (innerEx != null) {
+                        sb.AppendLine($"Inner Exception Level {innerLevel}: {innerEx.Message}\n");
+
+                        // If it's a SqlException (or MySqlException), get more detailed information
+                        if (innerEx is MySqlException mySqlEx) {
+                            sb.AppendLine($"SQL Error Code: {mySqlEx.Number}\n");
+                        }
+                        else if (innerEx is System.Data.SqlClient.SqlException sqlEx) {
+                            sb.AppendLine($"SQL Error Code: {sqlEx.Number}\n");
+                        }
+
+                        // Move to the next inner exception
+                        innerEx = innerEx.InnerException;
+                        innerLevel++;
+                    }
+
+                    // Optionally include information about the entities involved in the update exception
+                    if (ex.Entries != null && ex.Entries.Count() > 0) {
+                        sb.AppendLine("\nEntities involved in the exception:");
+                        foreach (var entry in ex.Entries) {
+                            sb.AppendLine($"TableName: {entry.Entity.GetType().Name}, Operation: {entry.State}");
+                        }
+                    }
+
+                    throw new ArgumentException(sb.ToString());
                 }
             }
             catch (Exception ex) {
@@ -105,41 +141,75 @@ namespace FerPROJ.DBHelper.Base {
             }
             //
             try {
-                using (var trans = _ts.Database.BeginTransaction()) {
-                    try {
-                        if (EnableValidation) {
-                            if (!myDTO.DataValidation()) {
-                                throw new ArgumentException("Failed!");
-                            }
-                        }
-                        if (!myDTO.Success) {
-                            throw new ArgumentException(myDTO.Error);
-                        }
-                        if (CShowMessage.Ask("Are you sure to update this data?", "Confirmation")) {
-                            await UpdateDataAsync(myDTO);
-                            trans.Commit();
-                            CShowMessage.Info("Updated Successfully!", "Success");
-                        }
-                    }
-                    catch (DbEntityValidationException ex) {
-                        trans.Rollback();
-                        //
-                        var sb = new StringBuilder();
-
-                        if (ex.EntityValidationErrors.Count() == 1) {
-                            var validationResult = ex.EntityValidationErrors.FirstOrDefault();
-
-                            if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
-                                // Loop through the ValidationErrors and build the error message
-                                foreach (var validationError in validationResult.ValidationErrors) {
-                                    //sb.AppendLine($"Field: {validationError.PropertyName}, Error: {validationError.ErrorMessage}\n");
-                                    sb.AppendLine($"{validationError.ErrorMessage}\n");
+                try {
+                    using (var trans = _ts.Database.BeginTransaction()) {
+                        try {
+                            if (EnableValidation) {
+                                if (!myDTO.DataValidation()) {
+                                    throw new ArgumentException("Failed!");
                                 }
                             }
+                            if (!myDTO.Success) {
+                                throw new ArgumentException(myDTO.Error);
+                            }
+                            if (CShowMessage.Ask("Are you sure to update this data?", "Confirmation")) {
+                                await UpdateDataAsync(myDTO);
+                                trans.Commit();
+                                CShowMessage.Info("Updated Successfully!", "Success");
+                            }
+                        }
+                        catch (DbEntityValidationException ex) {
+                            trans.Rollback();
+                            //
+                            var sb = new StringBuilder();
+
+                            if (ex.EntityValidationErrors.Count() == 1) {
+                                var validationResult = ex.EntityValidationErrors.FirstOrDefault();
+
+                                if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
+                                    // Loop through the ValidationErrors and build the error message
+                                    foreach (var validationError in validationResult.ValidationErrors) {
+                                        //sb.AppendLine($"Field: {validationError.PropertyName}, Error: {validationError.ErrorMessage}\n");
+                                        sb.AppendLine($"{validationError.ErrorMessage}\n");
+                                    }
+                                }
+                            }
+
+                            throw new ArgumentException(sb.ToString());
+                        }
+                    }
+                }
+                catch (DbUpdateException ex) {
+                    var sb = new StringBuilder();
+                    // Check for inner exceptions (usually this is where the real database error lies)
+                    var innerEx = ex.InnerException;
+                    int innerLevel = 1;
+
+                    while (innerEx != null) {
+                        sb.AppendLine($"Error Level {innerLevel}: {innerEx.Message}\n");
+
+                        // If it's a SqlException (or MySqlException), get more detailed information
+                        if (innerEx is MySqlException mySqlEx) {
+                            sb.AppendLine($"SQL Error Code: {mySqlEx.Number}\n");
+                        }
+                        else if (innerEx is System.Data.SqlClient.SqlException sqlEx) {
+                            sb.AppendLine($"SQL Error Code: {sqlEx.Number}\n");
                         }
 
-                        throw new ArgumentException(sb.ToString());
+                        // Move to the next inner exception
+                        innerEx = innerEx.InnerException;
+                        innerLevel++;
                     }
+
+                    // Optionally include information about the entities involved in the update exception
+                    if (ex.Entries != null && ex.Entries.Count() > 0) {
+                        sb.AppendLine("Tables involved in the exception:");
+                        foreach (var entry in ex.Entries) {
+                            sb.AppendLine($"TableName: {entry.Entity.GetType().Name}\nOperation: {entry.State}");
+                        }
+                    }
+
+                    throw new ArgumentException(sb.ToString());
                 }
             }
             catch (Exception ex) {
@@ -212,8 +282,8 @@ namespace FerPROJ.DBHelper.Base {
                         trans.Rollback();
                         throw ex;
                     }
-                    finally { 
-                        _ts.Dispose(); 
+                    finally {
+                        _ts.Dispose();
                     }
                 }
             }
