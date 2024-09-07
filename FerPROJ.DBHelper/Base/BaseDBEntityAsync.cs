@@ -46,41 +46,46 @@ namespace FerPROJ.DBHelper.Base {
             }
             //
             try {
-                try {
-                    if (EnableValidation) {
-                        if (!myDTO.DataValidation()) {
+                using (var trans = _ts.Database.BeginTransaction()) {
+                    try {
+                        if (EnableValidation) {
+                            if (!myDTO.DataValidation()) {
+                                throw new ArgumentException(myDTO.Error);
+                            }
+                        }
+                        if (!myDTO.Success) {
                             throw new ArgumentException(myDTO.Error);
                         }
-                    }
-                    if (!myDTO.Success) {
-                        throw new ArgumentException(myDTO.Error);
-                    }
-                    if (confirmation) {
-                        if (CShowMessage.Ask("Are you sure to save this data?", "Confirmation")) {
+                        if (confirmation) {
+                            if (CShowMessage.Ask("Are you sure to save this data?", "Confirmation")) {
+                                await SaveDataAsync(myDTO);
+                                trans.Commit();
+                                CShowMessage.Info("Saved Successfully!", "Success");
+                            }
+                        }
+                        else {
                             await SaveDataAsync(myDTO);
                             CShowMessage.Info("Saved Successfully!", "Success");
                         }
                     }
-                    else {
-                        await SaveDataAsync(myDTO);
-                        CShowMessage.Info("Saved Successfully!", "Success");
-                    }
-                }
-                catch (DbEntityValidationException ex) {
-                    var sb = new StringBuilder();
+                    catch (DbEntityValidationException ex) {
+                        trans.Rollback();
+                        //
+                        var sb = new StringBuilder();
 
-                    if (ex.EntityValidationErrors.Count() == 1) {
-                        var validationResult = ex.EntityValidationErrors.FirstOrDefault();
+                        if (ex.EntityValidationErrors.Count() == 1) {
+                            var validationResult = ex.EntityValidationErrors.FirstOrDefault();
 
-                        if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
-                            // Loop through the ValidationErrors and build the error message
-                            foreach (var validationError in validationResult.ValidationErrors) {
-                                sb.AppendLine($"Field: {validationError.PropertyName}, Error: {validationError.ErrorMessage}\n");
+                            if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
+                                // Loop through the ValidationErrors and build the error message
+                                foreach (var validationError in validationResult.ValidationErrors) {
+                                    //sb.AppendLine($"Field: {validationError.PropertyName}, Error: {validationError.ErrorMessage}\n");
+                                    sb.AppendLine($"{validationError.ErrorMessage}\n");
+                                }
                             }
                         }
+                        throw new ArgumentException(sb.ToString());
                     }
-
-                    throw new ArgumentException(sb.ToString());
                 }
             }
             catch (Exception ex) {
@@ -100,35 +105,41 @@ namespace FerPROJ.DBHelper.Base {
             }
             //
             try {
-                try {
-                    if (EnableValidation) {
-                        if (!myDTO.DataValidation()) {
-                            throw new ArgumentException("Failed!");
-                        }
-                    }
-                    if (!myDTO.Success) {
-                        throw new ArgumentException(myDTO.Error);
-                    }
-                    if (CShowMessage.Ask("Are you sure to update this data?", "Confirmation")) {
-                        await UpdateDataAsync(myDTO);
-                        CShowMessage.Info("Updated Successfully!", "Success");
-                    }
-                }
-                catch (DbEntityValidationException ex) {
-                    var sb = new StringBuilder();
-
-                    if (ex.EntityValidationErrors.Count() == 1) {
-                        var validationResult = ex.EntityValidationErrors.FirstOrDefault();
-
-                        if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
-                            // Loop through the ValidationErrors and build the error message
-                            foreach (var validationError in validationResult.ValidationErrors) {
-                                sb.AppendLine($"Field: {validationError.PropertyName}, Error: {validationError.ErrorMessage}\n");
+                using (var trans = _ts.Database.BeginTransaction()) {
+                    try {
+                        if (EnableValidation) {
+                            if (!myDTO.DataValidation()) {
+                                throw new ArgumentException("Failed!");
                             }
                         }
+                        if (!myDTO.Success) {
+                            throw new ArgumentException(myDTO.Error);
+                        }
+                        if (CShowMessage.Ask("Are you sure to update this data?", "Confirmation")) {
+                            await UpdateDataAsync(myDTO);
+                            trans.Commit();
+                            CShowMessage.Info("Updated Successfully!", "Success");
+                        }
                     }
+                    catch (DbEntityValidationException ex) {
+                        trans.Rollback();
+                        //
+                        var sb = new StringBuilder();
 
-                    throw new ArgumentException(sb.ToString());
+                        if (ex.EntityValidationErrors.Count() == 1) {
+                            var validationResult = ex.EntityValidationErrors.FirstOrDefault();
+
+                            if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
+                                // Loop through the ValidationErrors and build the error message
+                                foreach (var validationError in validationResult.ValidationErrors) {
+                                    //sb.AppendLine($"Field: {validationError.PropertyName}, Error: {validationError.ErrorMessage}\n");
+                                    sb.AppendLine($"{validationError.ErrorMessage}\n");
+                                }
+                            }
+                        }
+
+                        throw new ArgumentException(sb.ToString());
+                    }
                 }
             }
             catch (Exception ex) {
@@ -147,17 +158,21 @@ namespace FerPROJ.DBHelper.Base {
                 throw new ArgumentException($"{nameof(id)} is null!");
             }
             //
-            try {
-                if (CShowMessage.Ask("Are you sure to delete this data?", "Confirmation")) {
-                    await DeleteDataAsync(id);
-                    CShowMessage.Info("Deleted Successfully!", "Success");
+            using (var trans = _ts.Database.BeginTransaction()) {
+                try {
+                    if (CShowMessage.Ask("Are you sure to delete this data?", "Confirmation")) {
+                        await DeleteDataAsync(id);
+                        trans.Commit();
+                        CShowMessage.Info("Deleted Successfully!", "Success");
+                    }
                 }
-            }
-            catch (Exception ex) {
-                throw ex;
-            }
-            finally {
-                _ts.Dispose();
+                catch (Exception ex) {
+                    trans.Rollback();
+                    throw ex;
+                }
+                finally {
+                    _ts.Dispose();
+                }
             }
         }
         //
@@ -166,27 +181,39 @@ namespace FerPROJ.DBHelper.Base {
         }
         public async Task DeleteMultipleDataByIdsAsync(List<TType> ids) {
             if (ids.Count > 0) {
-                //
-                var sb = new StringBuilder();
-                var askMessage = ids.Count > 1 ? "Are you sure to delete these data's?" : "Are you sure to delete this data?";
-                var resultMessage = ids.Count > 1 ? "All the data's selected has been deleted successfully!" : "Deleted Successfully!";
-                //
-                if (CShowMessage.Ask(askMessage, "Confirmation")) {
-                    foreach (var id in ids) {
-                        try {
-                            await DeleteMultipleDataAsync(id);
-                        }
-                        catch (Exception) {
-                            //
-                            sb.AppendLine(id.ToString());
-                            continue;
+                using (var trans = _ts.Database.BeginTransaction()) {
+                    try {
+                        //
+                        var sb = new StringBuilder();
+                        var askMessage = ids.Count > 1 ? "Are you sure to delete these data's?" : "Are you sure to delete this data?";
+                        var resultMessage = ids.Count > 1 ? "All the data's selected has been deleted successfully!" : "Deleted Successfully!";
+                        //
+                        if (CShowMessage.Ask(askMessage, "Confirmation")) {
+                            foreach (var id in ids) {
+                                try {
+                                    await DeleteMultipleDataAsync(id);
+                                }
+                                catch (Exception) {
+                                    //
+                                    sb.AppendLine(id.ToString());
+                                    continue;
+                                }
+                            }
+                            trans.Commit();
+                            if (sb.Length <= 0) {
+                                CShowMessage.Info(resultMessage);
+                            }
+                            else {
+                                CShowMessage.Warning($"The following id's has not been deleted:\n{sb.ToString()}");
+                            }
                         }
                     }
-                    if (sb.Length <= 0) {
-                        CShowMessage.Info(resultMessage);
+                    catch (Exception ex) {
+                        trans.Rollback();
+                        throw ex;
                     }
-                    else {
-                        CShowMessage.Warning($"The following id's has not been deleted:\n{sb.ToString()}");
+                    finally { 
+                        _ts.Dispose(); 
                     }
                 }
             }
