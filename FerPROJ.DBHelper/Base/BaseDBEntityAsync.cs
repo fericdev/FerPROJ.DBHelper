@@ -245,52 +245,46 @@ namespace FerPROJ.DBHelper.Base {
                 }
             }
         }
-        //
-        protected async virtual Task DeleteMultipleDataAsync(TType id) {
-            await Task.CompletedTask;
-        }
         public async Task DeleteMultipleDataByIdsAsync(List<TType> ids) {
-            if (ids.Count > 0) {
-                using (var trans = _ts.Database.BeginTransaction()) {
-                    try {
-                        //
-                        var sb = new StringBuilder();
-                        var askMessage = ids.Count > 1 ? "Are you sure to delete these data's?" : "Are you sure to delete this data?";
-                        var resultMessage = ids.Count > 1 ? "All the data's selected has been deleted successfully!" : "Deleted Successfully!";
-                        //
-                        if (CShowMessage.Ask(askMessage, "Confirmation")) {
-                            foreach (var id in ids) {
-                                try {
-                                    await DeleteMultipleDataAsync(id);
-                                }
-                                catch (Exception) {
-                                    //
-                                    sb.AppendLine(id.ToString());
-                                    continue;
-                                }
-                            }
-                            trans.Commit();
-                            if (sb.Length <= 0) {
-                                CShowMessage.Info(resultMessage);
-                            }
-                            else {
-                                CShowMessage.Warning($"The following id's has not been deleted:\n{sb.ToString()}");
-                            }
-                        }
-                    }
-                    catch (Exception ex) {
-                        trans.Rollback();
-                        throw ex;
-                    }
-                    finally {
-                        _ts.Dispose();
-                    }
-                }
-            }
-            else {
+            if (ids.Count <= 0) {
                 throw new ArgumentException($"{nameof(ids)} is null!");
             }
-
+            //
+            using (var trans = _ts.Database.BeginTransaction()) {
+                try {
+                    //
+                    var sb = new StringBuilder();
+                    var askMessage = ids.Count > 1 ? "Are you sure to delete these data's?" : "Are you sure to delete this data?";
+                    var resultMessage = ids.Count > 1 ? "All the data's selected has been deleted successfully!" : "Deleted Successfully!";
+                    //
+                    if (CShowMessage.Ask(askMessage, "Confirmation")) {
+                        foreach (var id in ids) {
+                            try {
+                                await DeleteDataAsync(id);
+                            }
+                            catch (Exception) {
+                                //
+                                sb.AppendLine(id.ToString());
+                                continue;
+                            }
+                        }
+                        trans.Commit();
+                        if (sb.Length <= 0) {
+                            CShowMessage.Info(resultMessage);
+                        }
+                        else {
+                            CShowMessage.Warning($"The following id's has not been deleted:\n{sb.ToString()}");
+                        }
+                    }
+                }
+                catch (Exception ex) {
+                    trans.Rollback();
+                    throw ex;
+                }
+                finally {
+                    _ts.Dispose();
+                }
+            }
         }
     }
 }
