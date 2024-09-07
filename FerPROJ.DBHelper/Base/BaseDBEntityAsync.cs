@@ -83,7 +83,7 @@ namespace FerPROJ.DBHelper.Base {
                                     // Loop through the ValidationErrors and build the error message
                                     foreach (var validationError in validationResult.ValidationErrors) {
                                         //sb.AppendLine($"Field: {validationError.PropertyName}, Error: {validationError.ErrorMessage}\n");
-                                        sb.AppendLine($"{validationError.ErrorMessage}\n");
+                                        sb.AppendLine($"{validationError.ErrorMessage}");
                                     }
                                 }
                             }
@@ -170,7 +170,7 @@ namespace FerPROJ.DBHelper.Base {
                                     // Loop through the ValidationErrors and build the error message
                                     foreach (var validationError in validationResult.ValidationErrors) {
                                         //sb.AppendLine($"Field: {validationError.PropertyName}, Error: {validationError.ErrorMessage}\n");
-                                        sb.AppendLine($"{validationError.ErrorMessage}\n");
+                                        sb.AppendLine($"{validationError.ErrorMessage}");
                                     }
                                 }
                             }
