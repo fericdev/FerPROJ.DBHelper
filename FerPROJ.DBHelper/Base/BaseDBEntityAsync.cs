@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Migrations;
+using System.Data.Entity.Validation;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
@@ -45,23 +46,41 @@ namespace FerPROJ.DBHelper.Base {
             }
             //
             try {
-                if (EnableValidation) {
-                    if (!myDTO.DataValidation()) {
+                try {
+                    if (EnableValidation) {
+                        if (!myDTO.DataValidation()) {
+                            throw new ArgumentException(myDTO.Error);
+                        }
+                    }
+                    if (!myDTO.Success) {
                         throw new ArgumentException(myDTO.Error);
                     }
-                }
-                if (!myDTO.Success) {
-                    throw new ArgumentException(myDTO.Error);
-                }
-                if (confirmation) {
-                    if (CShowMessage.Ask("Are you sure to save this data?", "Confirmation")) {
+                    if (confirmation) {
+                        if (CShowMessage.Ask("Are you sure to save this data?", "Confirmation")) {
+                            await SaveDataAsync(myDTO);
+                            CShowMessage.Info("Saved Successfully!", "Success");
+                        }
+                    }
+                    else {
                         await SaveDataAsync(myDTO);
                         CShowMessage.Info("Saved Successfully!", "Success");
                     }
                 }
-                else {
-                    await SaveDataAsync(myDTO);
-                    CShowMessage.Info("Saved Successfully!", "Success");
+                catch (DbEntityValidationException ex) {
+                    var sb = new StringBuilder();
+
+                    if (ex.EntityValidationErrors.Count() == 1) {
+                        var validationResult = ex.EntityValidationErrors.FirstOrDefault();
+
+                        if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
+                            // Loop through the ValidationErrors and build the error message
+                            foreach (var validationError in validationResult.ValidationErrors) {
+                                sb.AppendLine($"Field: {validationError.PropertyName}, Error: {validationError.ErrorMessage}\n");
+                            }
+                        }
+                    }
+
+                    throw new ArgumentException(sb.ToString());
                 }
             }
             catch (Exception ex) {
@@ -81,17 +100,35 @@ namespace FerPROJ.DBHelper.Base {
             }
             //
             try {
-                if (EnableValidation) {
-                    if (!myDTO.DataValidation()) {
-                        throw new ArgumentException("Failed!");
+                try {
+                    if (EnableValidation) {
+                        if (!myDTO.DataValidation()) {
+                            throw new ArgumentException("Failed!");
+                        }
+                    }
+                    if (!myDTO.Success) {
+                        throw new ArgumentException(myDTO.Error);
+                    }
+                    if (CShowMessage.Ask("Are you sure to update this data?", "Confirmation")) {
+                        await UpdateDataAsync(myDTO);
+                        CShowMessage.Info("Updated Successfully!", "Success");
                     }
                 }
-                if (!myDTO.Success) {
-                    throw new ArgumentException(myDTO.Error);
-                }
-                if (CShowMessage.Ask("Are you sure to update this data?", "Confirmation")) {
-                    await UpdateDataAsync(myDTO);
-                    CShowMessage.Info("Updated Successfully!", "Success");
+                catch (DbEntityValidationException ex) {
+                    var sb = new StringBuilder();
+
+                    if (ex.EntityValidationErrors.Count() == 1) {
+                        var validationResult = ex.EntityValidationErrors.FirstOrDefault();
+
+                        if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
+                            // Loop through the ValidationErrors and build the error message
+                            foreach (var validationError in validationResult.ValidationErrors) {
+                                sb.AppendLine($"Field: {validationError.PropertyName}, Error: {validationError.ErrorMessage}\n");
+                            }
+                        }
+                    }
+
+                    throw new ArgumentException(sb.ToString());
                 }
             }
             catch (Exception ex) {
@@ -106,7 +143,7 @@ namespace FerPROJ.DBHelper.Base {
             await Task.CompletedTask;
         }
         public async Task DeleteByIdAsync(TType id) {
-            if (id == null) { 
+            if (id == null) {
                 throw new ArgumentException($"{nameof(id)} is null!");
             }
             //
