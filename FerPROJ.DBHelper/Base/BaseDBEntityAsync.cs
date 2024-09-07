@@ -40,6 +40,10 @@ namespace FerPROJ.DBHelper.Base {
             await Task.CompletedTask;
         }
         public async Task SaveDTOAsync(TSource myDTO, bool EnableValidation = false, bool confirmation = true) {
+            if (myDTO == null) {
+                throw new ArgumentNullException($"{nameof(myDTO)} is null!");
+            }
+            //
             try {
                 if (EnableValidation) {
                     if (!myDTO.DataValidation()) {
@@ -63,12 +67,19 @@ namespace FerPROJ.DBHelper.Base {
             catch (Exception ex) {
                 throw ex;
             }
+            finally {
+                _ts.Dispose();
+            }
         }
         //
         protected async virtual Task UpdateDataAsync(TSource myDTO) {
             await Task.CompletedTask;
         }
         public async Task UpdateDTOAsync(TSource myDTO, bool EnableValidation = false) {
+            if (myDTO == null) {
+                throw new ArgumentNullException($"{nameof(myDTO)} is null!");
+            }
+            //
             try {
                 if (EnableValidation) {
                     if (!myDTO.DataValidation()) {
@@ -86,12 +97,19 @@ namespace FerPROJ.DBHelper.Base {
             catch (Exception ex) {
                 throw ex;
             }
+            finally {
+                _ts.Dispose();
+            }
         }
         //
         protected async virtual Task DeleteDataAsync(TType id) {
             await Task.CompletedTask;
         }
         public async Task DeleteByIdAsync(TType id) {
+            if (id == null) { 
+                throw new ArgumentException($"{nameof(id)} is null!");
+            }
+            //
             try {
                 if (CShowMessage.Ask("Are you sure to delete this data?", "Confirmation")) {
                     await DeleteDataAsync(id);
@@ -100,6 +118,9 @@ namespace FerPROJ.DBHelper.Base {
             }
             catch (Exception ex) {
                 throw ex;
+            }
+            finally {
+                _ts.Dispose();
             }
         }
         //
@@ -132,6 +153,10 @@ namespace FerPROJ.DBHelper.Base {
                     }
                 }
             }
+            else {
+                throw new ArgumentException($"{nameof(ids)} is null!");
+            }
+
         }
     }
 }
