@@ -42,7 +42,7 @@ namespace FerPROJ.DBHelper.Base {
         protected async virtual Task SaveDataAsync(TSource myDTO) {
             await Task.CompletedTask;
         }
-        public async Task SaveDTOAsync(TSource myDTO, bool EnableValidation = false, bool confirmation = true) {
+        public async Task<bool> SaveDTOAsync(TSource myDTO, bool EnableValidation = false, bool confirmation = true) {
             if (myDTO == null) {
                 throw new ArgumentNullException($"{nameof(myDTO)} is null!");
             }
@@ -76,11 +76,13 @@ namespace FerPROJ.DBHelper.Base {
                                     await SaveDataAsync(myDTO);
                                     trans.Commit();
                                     CShowMessage.Info("Saved Successfully!", "Success");
+                                    return true;
                                 }
                             }
                             else {
                                 await SaveDataAsync(myDTO);
                                 CShowMessage.Info("Saved Successfully!", "Success");
+                                return true;
                             }
                         }
                         catch (DbEntityValidationException ex) {
@@ -142,12 +144,13 @@ namespace FerPROJ.DBHelper.Base {
             finally {
                 _ts.Dispose();
             }
+            return false;
         }
         //
         protected async virtual Task UpdateDataAsync(TSource myDTO) {
             await Task.CompletedTask;
         }
-        public async Task UpdateDTOAsync(TSource myDTO, bool EnableValidation = false) {
+        public async Task<bool> UpdateDTOAsync(TSource myDTO, bool EnableValidation = false) {
             if (myDTO == null) {
                 throw new ArgumentNullException($"{nameof(myDTO)} is null!");
             }
@@ -180,6 +183,7 @@ namespace FerPROJ.DBHelper.Base {
                                 await UpdateDataAsync(myDTO);
                                 trans.Commit();
                                 CShowMessage.Info("Updated Successfully!", "Success");
+                                return true;
                             }
                         }
                         catch (DbEntityValidationException ex) {
@@ -242,6 +246,7 @@ namespace FerPROJ.DBHelper.Base {
             finally {
                 _ts.Dispose();
             }
+            return false;
         }
         //
         protected async virtual Task DeleteDataAsync(TType id) {
