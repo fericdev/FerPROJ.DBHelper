@@ -42,7 +42,7 @@ namespace FerPROJ.DBHelper.Base {
         protected async virtual Task SaveDataAsync(TSource myDTO) {
             await Task.CompletedTask;
         }
-        public async Task<bool> SaveDTOAsync(TSource myDTO, bool EnableValidation = false, bool confirmation = true) {
+        public async Task<bool> SaveDTOAsync(TSource myDTO, bool EnableValidation = false, bool confirmation = true, bool returnResult = true) {
             if (myDTO == null) {
                 throw new ArgumentNullException($"{nameof(myDTO)} is null!");
             }
@@ -69,40 +69,38 @@ namespace FerPROJ.DBHelper.Base {
             //
             try {
                 try {
-                    using (var trans = _ts.Database.BeginTransaction()) {
-                        try {
-                            if (confirmation) {
-                                if (CShowMessage.Ask("Are you sure to save this data?", "Confirmation")) {
-                                    await SaveDataAsync(myDTO);
-                                    trans.Commit();
-                                    CShowMessage.Info("Saved Successfully!", "Success");
-                                    return true;
-                                }
-                            }
-                            else {
+
+                    try {
+                        if (confirmation) {
+                            if (CShowMessage.Ask("Are you sure to save this data?", "Confirmation")) {
                                 await SaveDataAsync(myDTO);
                                 CShowMessage.Info("Saved Successfully!", "Success");
                                 return true;
                             }
                         }
-                        catch (DbEntityValidationException ex) {
-                            trans.Rollback();
-                            //
-                            var sb = new StringBuilder();
+                        else {
+                            await SaveDataAsync(myDTO);
+                            if (returnResult) {
+                                CShowMessage.Info("Saved Successfully!", "Success");
+                            }
+                            return true;
+                        }
+                    }
+                    catch (DbEntityValidationException ex) {
+                        var sb = new StringBuilder();
 
-                            if (ex.EntityValidationErrors.Count() == 1) {
-                                var validationResult = ex.EntityValidationErrors.FirstOrDefault();
+                        if (ex.EntityValidationErrors.Count() == 1) {
+                            var validationResult = ex.EntityValidationErrors.FirstOrDefault();
 
-                                if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
-                                    // Loop through the ValidationErrors and build the error message
-                                    foreach (var validationError in validationResult.ValidationErrors) {
-                                        //sb.AppendLine($"Field: {validationError.PropertyName}, Error: {validationError.ErrorMessage}\n");
-                                        sb.AppendLine($"{validationError.ErrorMessage}");
-                                    }
+                            if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
+                                // Loop through the ValidationErrors and build the error message
+                                foreach (var validationError in validationResult.ValidationErrors) {
+                                    //sb.AppendLine($"Field: {validationError.PropertyName}, Error: {validationError.ErrorMessage}\n");
+                                    sb.AppendLine($"{validationError.ErrorMessage}");
                                 }
                             }
-                            throw new ArgumentException(sb.ToString());
                         }
+                        throw new ArgumentException(sb.ToString());
                     }
                 }
                 catch (DbUpdateException ex) {
@@ -141,16 +139,13 @@ namespace FerPROJ.DBHelper.Base {
             catch (Exception ex) {
                 throw ex;
             }
-            finally {
-                _ts.Dispose();
-            }
             return false;
         }
         //
         protected async virtual Task UpdateDataAsync(TSource myDTO) {
             await Task.CompletedTask;
         }
-        public async Task<bool> UpdateDTOAsync(TSource myDTO, bool EnableValidation = false) {
+        public async Task<bool> UpdateDTOAsync(TSource myDTO, bool EnableValidation = false, bool confirmation = true, bool returnResult = true) {
             if (myDTO == null) {
                 throw new ArgumentNullException($"{nameof(myDTO)} is null!");
             }
@@ -177,34 +172,39 @@ namespace FerPROJ.DBHelper.Base {
             //
             try {
                 try {
-                    using (var trans = _ts.Database.BeginTransaction()) {
-                        try {
+                    try {
+                        if (confirmation) {
                             if (CShowMessage.Ask("Are you sure to update this data?", "Confirmation")) {
                                 await UpdateDataAsync(myDTO);
-                                trans.Commit();
                                 CShowMessage.Info("Updated Successfully!", "Success");
                                 return true;
                             }
                         }
-                        catch (DbEntityValidationException ex) {
-                            trans.Rollback();
-                            //
-                            var sb = new StringBuilder();
+                        else {
+                            await UpdateDataAsync(myDTO);
+                            if (returnResult) {
+                                CShowMessage.Info("Updated Successfully!", "Success");
+                            }
+                            return true;
+                        }
+                    }
+                    catch (DbEntityValidationException ex) {
+                        //
+                        var sb = new StringBuilder();
 
-                            if (ex.EntityValidationErrors.Count() == 1) {
-                                var validationResult = ex.EntityValidationErrors.FirstOrDefault();
+                        if (ex.EntityValidationErrors.Count() == 1) {
+                            var validationResult = ex.EntityValidationErrors.FirstOrDefault();
 
-                                if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
-                                    // Loop through the ValidationErrors and build the error message
-                                    foreach (var validationError in validationResult.ValidationErrors) {
-                                        //sb.AppendLine($"Field: {validationError.PropertyName}, Error: {validationError.ErrorMessage}\n");
-                                        sb.AppendLine($"{validationError.ErrorMessage}");
-                                    }
+                            if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
+                                // Loop through the ValidationErrors and build the error message
+                                foreach (var validationError in validationResult.ValidationErrors) {
+                                    //sb.AppendLine($"Field: {validationError.PropertyName}, Error: {validationError.ErrorMessage}\n");
+                                    sb.AppendLine($"{validationError.ErrorMessage}");
                                 }
                             }
-
-                            throw new ArgumentException(sb.ToString());
                         }
+
+                        throw new ArgumentException(sb.ToString());
                     }
                 }
                 catch (DbUpdateException ex) {
@@ -242,9 +242,6 @@ namespace FerPROJ.DBHelper.Base {
             }
             catch (Exception ex) {
                 throw ex;
-            }
-            finally {
-                _ts.Dispose();
             }
             return false;
         }
