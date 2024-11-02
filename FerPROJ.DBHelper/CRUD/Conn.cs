@@ -36,8 +36,8 @@ namespace FerPROJ.DBHelper.CRUD {
             }
         }
         public void SetNewConnection() {
-            this.connectionString = CStaticVariable.connString1 != null ? CStaticVariable.connString1 : CStaticVariable.mainConnection;
-            this.connectionString2 = CStaticVariable.connString2;
+            this.connectionString = CStaticVariable.CONN_STRING_1 != null ? CStaticVariable.CONN_STRING_1 : CStaticVariable.ENTITY_CONNECTION_STRING;
+            this.connectionString2 = CStaticVariable.CONN_STRING_2;
         }
         public void CloseConnection() {
             if (dbConnection == AllowedOpenDB.One) {
@@ -52,7 +52,7 @@ namespace FerPROJ.DBHelper.CRUD {
                     connectionResult.Dispose();
                     commandResult.Dispose();
                     beginTransaction.Dispose();
-                    CStaticVariable.connString1 = null;
+                    CStaticVariable.CONN_STRING_1 = null;
                 }
                 if (connectionResult2.State == ConnectionState.Open) {
                     connectionResult2.Close();
