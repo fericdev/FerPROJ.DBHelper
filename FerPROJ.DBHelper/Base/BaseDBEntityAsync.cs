@@ -9,9 +9,12 @@ using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Migrations;
 using System.Data.Entity.Validation;
+using System.Drawing;
 using System.Dynamic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -37,6 +40,38 @@ namespace FerPROJ.DBHelper.Base {
         }
         public void Dispose() {
             _ts.Dispose();
+        }
+        //
+        protected async Task<string> GetGeneratedIDAsync<T>(string prefix = null) where T : class {
+            // Use the first 3 letters of the class name as default prefix if none is provided
+            if (prefix == null) {
+                prefix = typeof(T).Name.Substring(2, 3).ToUpper();
+            }
+
+            // Get the current count and increment by 1
+            var count = await _ts.Set<T>().CountAsync() + 1;
+
+            // Return the new ID with the format "<prefix>-00<count>"
+            return $"{prefix}-00{count}";
+        }
+        protected async Task<string> GetGeneratedIDAsync<T>(string prefix = null, Expression<Func<T, bool>> whereCondition = null) where T : class {
+            // Use the first 3 letters of the class name as default prefix if none is provided
+            if (prefix == null) {
+                prefix = typeof(T).Name.Substring(2, 3).ToUpper();
+            }
+
+            // Apply the where condition if provided
+            var query = _ts.Set<T>().AsQueryable();
+
+            if (whereCondition != null) {
+                query = query.Where(whereCondition);
+            }
+
+            // Get the count with the where condition, then increment by 1
+            var count = await query.CountAsync() + 1;
+
+            // Return the new ID with the format "<prefix>-00<count>"
+            return $"{prefix}-00{count}";
         }
         //
         protected async virtual Task SaveDataAsync(TSource myDTO) {
