@@ -62,6 +62,7 @@
     <Compile Include="Base\BaseDBEntityAsync.cs" />
     <Compile Include="Base\BaseDBEntity.cs" />
     <Compile Include="CRUD\Conn.cs" />
+    <Compile Include="DBExtensions\IQueryableExtensions.cs" />
     <Compile Include="Generate\GTableClass.cs" />
     <Compile Include="Generate\ManageCreateTableClass.cs">
       <SubType>Form</SubType>
