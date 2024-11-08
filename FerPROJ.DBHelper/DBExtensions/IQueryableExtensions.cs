@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Migrations;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -9,6 +10,48 @@ using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.DBExtensions {
     public static class IQueryableExtensions {
+        public static async Task UpdateAndCommitAsync<TEntity, TRelatedEntity>(
+            this DbContext context,
+            TEntity entity,
+            ICollection<TRelatedEntity> relatedItems,
+            Func<TEntity, ICollection<TRelatedEntity>> getRelatedEntities,
+            Action<TRelatedEntity, string> setForeignKeyForRelatedEntity,
+            string foreignKeyValue)
+            where TEntity : class
+            where TRelatedEntity : class {
+            // Start by ensuring the main entity is tracked by the context
+            context.Set<TEntity>().AddOrUpdate(entity);
+
+            // Retrieve the related entities for comparison
+            var existingRelatedEntities = getRelatedEntities(entity);
+
+            // Remove any related entities that are not in the incoming list
+            var toRemove = existingRelatedEntities
+                .Where(existing => !relatedItems.Any(item => item.Equals(existing)))
+                .ToList();
+
+            if (toRemove.Any()) {
+                context.Set<TRelatedEntity>().RemoveRange(toRemove);
+            }
+
+            // Set foreign key for each related entity
+            foreach (var relatedItem in relatedItems) {
+                setForeignKeyForRelatedEntity(relatedItem, foreignKeyValue);
+                context.Set<TRelatedEntity>().AddOrUpdate(relatedItem);
+            }
+
+            // Commit all changes
+            await context.SaveChangesAsync();
+        }
+        public static async Task UpdateAndCommitAsync<TEntity>(
+             this DbContext context,
+             TEntity entity)
+             where TEntity : class {
+
+            context.Set<TEntity>().AddOrUpdate(entity);
+
+            await context.SaveChangesAsync();
+        }
         public static async Task SaveAndCommitAsync<TEntity>(
              this DbContext context,
              TEntity entity)
