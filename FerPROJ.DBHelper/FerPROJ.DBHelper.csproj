@@ -34,6 +34,10 @@
     <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AutoMapper, Version=10.0.0.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\MyDLL\AutoMapper.dll</HintPath>
+    </Reference>
     <Reference Include="EntityFramework">
       <HintPath>..\..\MyDLL\EntityFramework.dll</HintPath>
     </Reference>
@@ -47,6 +51,7 @@
       <HintPath>..\..\MyDLL\MySql.Data.Entity.EF6.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
@@ -62,6 +67,7 @@
     <Compile Include="Base\BaseDBEntityAsync.cs" />
     <Compile Include="Base\BaseDBEntity.cs" />
     <Compile Include="CRUD\Conn.cs" />
+    <Compile Include="DBExtensions\DBTransactionExtensions.cs" />
     <Compile Include="DBExtensions\IEnumerableExtentions.cs" />
     <Compile Include="DBExtensions\IQueryableExtensions.cs" />
     <Compile Include="Generate\GTableClass.cs" />
