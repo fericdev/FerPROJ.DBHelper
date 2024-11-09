@@ -4,12 +4,33 @@ using System.Data.Entity;
 using System.Data.Entity.Migrations;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net.NetworkInformation;
 using System.Reflection;
+using System.Runtime.Remoting.Contexts;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.DBExtensions {
     public static class IQueryableExtensions {
+        public static async Task RemoveAndCommitAsync<TEntity>(this DbContext context, List<TEntity> entity) where TEntity : class {
+            context.Set<TEntity>().RemoveRange(entity);
+
+            await context.SaveChangesAsync();
+        }
+        public static async Task RemoveAsync<TEntity>(this DbContext context, List<TEntity> entity) where TEntity : class {
+            context.Set<TEntity>().RemoveRange(entity);
+            await Task.CompletedTask;
+        }
+        public static async Task RemoveAndCommitAsync<TEntity>(this DbContext context, TEntity entity) where TEntity : class{
+            context.Set<TEntity>().Remove(entity);
+
+            await context.SaveChangesAsync();
+        }
+        public static async Task RemoveAsync<TEntity>(this DbContext context, TEntity entity) where TEntity : class {
+            context.Set<TEntity>().Remove(entity);
+
+            await Task.CompletedTask;
+        }
         public static async Task UpdateAndCommitAsync<TEntity, TRelatedEntity>(
             this DbContext context,
             TEntity entity,
@@ -43,6 +64,24 @@ namespace FerPROJ.DBHelper.DBExtensions {
             // Commit all changes
             await context.SaveChangesAsync();
         }
+        public static async Task UpdateAsync<TEntity>(
+             this DbContext context,
+             TEntity entity)
+             where TEntity : class {
+
+            context.Set<TEntity>().AddOrUpdate(entity);
+
+            await Task.CompletedTask;
+        }
+        public static async Task UpdateAsync<TEntity>(
+             this DbContext context,
+             List<TEntity> entity)
+             where TEntity : class {
+            foreach (var item in entity) {
+                context.Set<TEntity>().AddOrUpdate(item);
+            }
+            await Task.CompletedTask;
+        }
         public static async Task UpdateAndCommitAsync<TEntity>(
              this DbContext context,
              TEntity entity)
@@ -51,6 +90,34 @@ namespace FerPROJ.DBHelper.DBExtensions {
             context.Set<TEntity>().AddOrUpdate(entity);
 
             await context.SaveChangesAsync();
+        }
+        public static async Task UpdateAndCommitAsync<TEntity>(
+             this DbContext context,
+             List<TEntity> entity)
+             where TEntity : class {
+
+            foreach (var item in entity) {
+                context.Set<TEntity>().AddOrUpdate(item);
+            }
+            await context.SaveChangesAsync();
+        }
+        public static async Task SaveAsync<TEntity>(
+             this DbContext context,
+             TEntity entity)
+             where TEntity : class {
+
+            context.Set<TEntity>().Add(entity);
+
+            await Task.CompletedTask;
+        }
+        public static async Task SaveAsync<TEntity>(
+             this DbContext context,
+             List<TEntity> entity)
+             where TEntity : class {
+
+            context.Set<TEntity>().AddRange(entity);
+
+            await Task.CompletedTask;
         }
         public static async Task SaveAndCommitAsync<TEntity>(
              this DbContext context,
@@ -61,6 +128,16 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             await context.SaveChangesAsync();
         }
+        public static async Task SaveAndCommitAsync<TEntity>(
+             this DbContext context,
+             List<TEntity> entity)
+             where TEntity : class {
+
+            context.Set<TEntity>().AddRange(entity);
+
+            await context.SaveChangesAsync();
+        }
+        //
         public static async Task<string> GetGeneratedIDAsync<TEntity>(
             this DbContext context, string prefix = null) where TEntity : class {
 
