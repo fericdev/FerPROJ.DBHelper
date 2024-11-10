@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
 using System.Data.Entity.Migrations;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net.Http.Headers;
 using System.Net.NetworkInformation;
 using System.Reflection;
@@ -13,6 +14,8 @@ using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.DBExtensions {
     public static class DBTransactionExtensions {
+        public static bool AllowDuplicate {  get; set; } 
+        public static string PropertyToCheck { get; set; }
         public static async Task RemoveRangeAndCommitAsync<TEntity>(this DbContext context, ICollection<TEntity> entity) where TEntity : class {
             if (entity.Count() <= 0) {
                 return;
@@ -247,6 +250,42 @@ namespace FerPROJ.DBHelper.DBExtensions {
             myDTO.Status = CStaticVariable.ACTIVE_STATUS;
 
             var tbl = new CMapping<TSource, TEntity>().GetMappingResult(myDTO);
+
+            if (!AllowDuplicate && !string.IsNullOrWhiteSpace(PropertyToCheck)) {
+                // Get the property info for PropertyToCheck
+                var propertyInfo = typeof(TEntity).GetProperty(PropertyToCheck);
+
+                // Check if the property exists on TEntity
+                if (propertyInfo == null) {
+                    throw new ArgumentException($"Property '{PropertyToCheck}' does not exist on entity type '{typeof(TEntity).Name}'.");
+                }
+
+                // Build a dynamic expression to represent the equality comparison in LINQ
+                // Example: e => e.PropertyToCheck == propertyValue
+
+                // Parameter "e" in the expression
+                var parameter = Expression.Parameter(typeof(TEntity), "e");
+
+                // Access "e.PropertyToCheck"
+                var propertyAccess = Expression.Property(parameter, propertyInfo);
+
+                // Get the value of PropertyToCheck from tbl (the mapped entity)
+                var propertyValue = propertyInfo.GetValue(tbl);
+
+                // Create the expression "e.PropertyToCheck == propertyValue"
+                var constant = Expression.Constant(propertyValue);
+                var equality = Expression.Equal(propertyAccess, constant);
+
+                // Build the complete lambda expression: e => e.PropertyToCheck == propertyValue
+                var lambda = Expression.Lambda<Func<TEntity, bool>>(equality, parameter);
+
+                // Use the expression in AnyAsync to check if an entity with the same property value exists
+                var entityExists = await context.Set<TEntity>().AnyAsync(lambda);
+
+                if (entityExists) {
+                    throw new ArgumentException($"{PropertyToCheck} already exists.");
+                }
+            }
 
             context.Set<TEntity>().Add(tbl);
 

@@ -25,6 +25,7 @@ namespace FerPROJ.DBHelper.Base {
     public abstract class BaseDBEntityAsync<EntityContext, TSource, TEntity, TType> : IDisposable where EntityContext : DbContext where TSource : CValidator where TEntity : class {
         public string _tableName { get; set; }
         public string _tableDetailsName { get; set; }
+        public bool AllowDuplicate {  get; set; }
         public EntityContext _ts;
 
         protected BaseDBEntityAsync() {
@@ -41,6 +42,8 @@ namespace FerPROJ.DBHelper.Base {
         }
         public void Dispose() {
             _ts.Dispose();
+            DBTransactionExtensions.AllowDuplicate = false;
+            DBTransactionExtensions.PropertyToCheck = null;
         }
         //
         public async Task<string> GetGeneratedIDAsync(string prefix, bool withSlash = true) {
