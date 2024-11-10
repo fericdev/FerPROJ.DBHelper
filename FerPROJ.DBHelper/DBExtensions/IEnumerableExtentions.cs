@@ -80,6 +80,39 @@ namespace FerPROJ.DBHelper.DBExtensions {
             return queryable.Where(predicate);
         }
         //
+        public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, string propertyName, object propertyValue) where TEntity : class {
+            // Get the DbSet for TEntity
+            var dbSet = context.Set<TEntity>();
+
+            if (!string.IsNullOrEmpty(propertyName)) {
+                // Get the property info for the specified property name
+                var property = typeof(TEntity).GetProperty(propertyName);
+
+                if (property != null) {
+                    // Create a parameter expression representing the entity (e.g., e => e.PropertyName)
+                    var parameter = Expression.Parameter(typeof(TEntity), "e");
+
+                    // Create an expression for accessing the property (e.PropertyName)
+                    var propertyAccess = Expression.MakeMemberAccess(parameter, property);
+
+                    // Create a constant expression for the value to compare against (propertyValue)
+                    var constant = Expression.Constant(propertyValue);
+
+                    // Create an equality expression (e.PropertyName == propertyValue)
+                    var equality = Expression.Equal(propertyAccess, constant);
+
+                    // Create a lambda expression representing the predicate (e => e.PropertyName == propertyValue)
+                    var lambda = Expression.Lambda<Func<TEntity, bool>>(equality, parameter);
+
+                    // Use the lambda expression in the query
+                    var query = dbSet.Where(lambda);
+                    return await query.ToListAsync();
+                }
+            }
+
+            // If no property filter is provided or the property does not exist, return all entities
+            return await dbSet.ToListAsync();
+        }
         public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, string status = null) where TEntity : class {
             // Get the DbSet for TEntity
             var dbSet = context.Set<TEntity>();

@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
 using System.Data.Entity.Migrations;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Text;
@@ -13,11 +14,30 @@ using System.Threading.Tasks;
 namespace FerPROJ.DBHelper.DBExtensions {
     public static class DBTransactionExtensions {
         public static async Task RemoveRangeAndCommitAsync<TEntity>(this DbContext context, ICollection<TEntity> entity) where TEntity : class {
+            if (entity.Count() <= 0) {
+                return;
+            }
             context.Set<TEntity>().RemoveRange(entity);
-
+            await context.SaveChangesAsync();
+        }
+        public static async Task RemoveRangeAndCommitAsync<TEntity>(this DbContext context, IEnumerable<TEntity> entity) where TEntity : class {
+            if (entity.Count() <= 0) {
+                return;
+            }
+            context.Set<TEntity>().RemoveRange(entity);
             await context.SaveChangesAsync();
         }
         public static async Task RemoveRangeAsync<TEntity>(this DbContext context, ICollection<TEntity> entity) where TEntity : class {
+            if (entity.Count() <= 0) {
+                return;
+            }
+            context.Set<TEntity>().RemoveRange(entity);
+            await Task.CompletedTask;
+        }
+        public static async Task RemoveRangeAsync<TEntity>(this DbContext context, IEnumerable<TEntity> entity) where TEntity : class {
+            if (entity.Count() <= 0) {
+                return;
+            }
             context.Set<TEntity>().RemoveRange(entity);
             await Task.CompletedTask;
         }
@@ -72,6 +92,41 @@ namespace FerPROJ.DBHelper.DBExtensions {
             context.Set<TEntity>().AddOrUpdate(entity);
 
             await Task.CompletedTask;
+        }
+        public static async Task UpdateRangeWithForeignKeyAsync<TEntity>(
+            this DbContext context,
+            List<TEntity> entities,
+            string foreignKey,
+            object foreignKeyValue)
+            where TEntity : class {
+            // Get the property info for the specified foreign key
+            var foreignKeyProperty = typeof(TEntity).GetProperty(foreignKey, BindingFlags.Public | BindingFlags.Instance);
+
+            if (foreignKeyProperty == null) {
+                throw new ArgumentException($"The property '{foreignKey}' does not exist on type '{typeof(TEntity).Name}'.");
+            }
+
+            // Ensure the foreign key property can be set and its type is compatible with the provided value
+            if (!foreignKeyProperty.CanWrite) {
+                throw new InvalidOperationException($"The property '{foreignKey}' is read-only.");
+            }
+
+            // Retreive all to be deleted
+            var entitiesToBeDeleted = await context.GetAllAsync<TEntity>(foreignKey, foreignKeyValue);
+            await context.RemoveRangeAsync(entitiesToBeDeleted);
+
+            // Iterate through each entity in the list
+            foreach (var entity in entities) {
+                // Set the foreign key property value
+                foreignKeyProperty.SetValue(entity, foreignKeyValue);
+
+                // Add or update the entity
+                await context.SaveAsync(entity);
+            }
+
+            //
+            await Task.CompletedTask;
+
         }
         public static async Task UpdateRangeAsync<TEntity>(
              this DbContext context,
@@ -151,7 +206,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             await Task.CompletedTask;
         }
         public static async Task SaveDTOAndCommitAsync<TSource, TEntity>(this DbContext context, TSource myDTO) where TSource : CValidator where TEntity : class {
-            
+
             myDTO.DateCreated = DateTime.Now;
             myDTO.CreatedBy = CStaticVariable.USERNAME;
             myDTO.Status = CStaticVariable.ACTIVE_STATUS;
@@ -164,7 +219,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
         }
         public static async Task SaveRangeDTOAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : CValidator where TEntity : class {
 
-            foreach(var item in myDTO) {
+            foreach (var item in myDTO) {
                 item.DateCreated = DateTime.Now;
                 item.CreatedBy = CStaticVariable.USERNAME;
                 item.Status = CStaticVariable.ACTIVE_STATUS;
@@ -191,7 +246,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             await context.SaveChangesAsync();
         }
         public static async Task UpdateDTOAsync<TSource, TEntity>(this DbContext context, TSource myDTO) where TSource : CValidator where TEntity : class {
-            
+
             myDTO.DateModified = DateTime.Now;
             myDTO.ModifiedBy = CStaticVariable.USERNAME;
 
@@ -214,7 +269,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
         }
         public static async Task UpdateRangeDTOAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : CValidator where TEntity : class {
 
-            foreach(var item in myDTO) {
+            foreach (var item in myDTO) {
                 item.DateModified = DateTime.Now;
                 item.ModifiedBy = CStaticVariable.USERNAME;
             }
