@@ -42,7 +42,7 @@ namespace FerPROJ.DBHelper.Base {
         }
         public void Dispose() {
             _ts.Dispose();
-            DBTransactionExtensions.AllowDuplicate = false;
+            DBTransactionExtensions.AllowDuplicate = true;
             DBTransactionExtensions.PropertyToCheck = null;
         }
         //
