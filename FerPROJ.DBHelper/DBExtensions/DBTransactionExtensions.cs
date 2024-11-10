@@ -128,6 +128,41 @@ namespace FerPROJ.DBHelper.DBExtensions {
             await Task.CompletedTask;
 
         }
+        public static async Task UpdateRangeAndCommitWithForeignKeyAsync<TEntity>(
+            this DbContext context,
+            List<TEntity> entities,
+            string foreignKey,
+            object foreignKeyValue)
+            where TEntity : class {
+            // Get the property info for the specified foreign key
+            var foreignKeyProperty = typeof(TEntity).GetProperty(foreignKey, BindingFlags.Public | BindingFlags.Instance);
+
+            if (foreignKeyProperty == null) {
+                throw new ArgumentException($"The property '{foreignKey}' does not exist on type '{typeof(TEntity).Name}'.");
+            }
+
+            // Ensure the foreign key property can be set and its type is compatible with the provided value
+            if (!foreignKeyProperty.CanWrite) {
+                throw new InvalidOperationException($"The property '{foreignKey}' is read-only.");
+            }
+
+            // Retreive all to be deleted
+            var entitiesToBeDeleted = await context.GetAllAsync<TEntity>(foreignKey, foreignKeyValue);
+            await context.RemoveRangeAsync(entitiesToBeDeleted);
+
+            // Iterate through each entity in the list
+            foreach (var entity in entities) {
+                // Set the foreign key property value
+                foreignKeyProperty.SetValue(entity, foreignKeyValue);
+
+                // Add or update the entity
+                await context.SaveAsync(entity);
+            }
+
+            //
+            await context.SaveChangesAsync();
+
+        }
         public static async Task UpdateRangeAsync<TEntity>(
              this DbContext context,
              List<TEntity> entity)
