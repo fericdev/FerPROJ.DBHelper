@@ -10,44 +10,53 @@ using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.DBExtensions {
     public static class IEnumerableExtentions {
-        public static IEnumerable<T> SearchDateRange<T>(this IEnumerable<T> queryable, DateTime? dateFrom, DateTime? dateTo) {
+        public static IEnumerable<T> SearchDateRange<T>(this IEnumerable<T> queryable, DateTime? dateFrom, DateTime? dateTo, string dateProperty = "") {
             if (dateFrom == null && dateTo == null) {
-                return queryable; // Return the original query if both dateFrom and dateTo are null.
+                return queryable; // Return the original collection if both dateFrom and dateTo are null.
             }
 
-            // Get all DateTime properties of the type
-            var properties = typeof(T).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
-                                      .Where(p => p.PropertyType == typeof(DateTime))
-                                      .ToList();
+            // Get the specified DateTime property if dateProperty is provided
+            PropertyInfo property = null;
+            if (!string.IsNullOrEmpty(dateProperty)) {
+                property = typeof(T).GetProperty(dateProperty, BindingFlags.Public | BindingFlags.Instance);
+                if (property == null) {
+                    throw new ArgumentException($"Property '{dateProperty}' is not found or is not of type DateTime.");
+                }
+            }
+            else {
+                // Get all DateTime properties of the type
+                var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                                          .Where(p => p.PropertyType == typeof(DateTime))
+                                          .ToList();
 
-            if (!properties.Any()) {
-                return queryable; // Return the original query if there are no DateTime properties.
+                if (!properties.Any()) {
+                    return queryable; // Return the original collection if there are no DateTime properties.
+                }
             }
 
             // Filter the collection
-            return queryable.Where(item => {
-                foreach (var property in properties) {
-                    var propertyValue = (DateTime?)property.GetValue(item);
+            return queryable.Where(item =>
+            {
+                var propertiesToCheck = property != null ? new List<PropertyInfo> { property } :
+                                                           typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                                                                    .Where(p => p.PropertyType == typeof(DateTime) || p.PropertyType == typeof(DateTime?))
+                                                                    .ToList();
 
-                    bool isInRange = true;
+                foreach (var prop in propertiesToCheck) {
+                    var propertyValue = (DateTime?)prop.GetValue(item);
 
-                    // Check if the property is within the date range (if dateFrom is specified)
-                    if (dateFrom.HasValue && propertyValue.HasValue && propertyValue <= dateFrom.Value) {
-                        isInRange = false;
-                    }
+                    // Check if the property is within the date range
+                    if (propertyValue.HasValue) {
+                        bool isAfterStart = !dateFrom.HasValue || propertyValue >= dateFrom.Value;
+                        bool isBeforeEnd = !dateTo.HasValue || propertyValue < dateTo.Value.AddDays(1);
 
-                    // Check if the property is within the date range (if dateTo is specified)
-                    if (dateTo.HasValue && propertyValue.HasValue && propertyValue >= dateTo.Value) {
-                        isInRange = false;
-                    }
-
-                    // If any of the DateTime properties fail to meet the range conditions, exclude this item
-                    if (isInRange) {
-                        return true;
+                        if (isAfterStart && isBeforeEnd) {
+                            return true; // Property is within range
+                        }
                     }
                 }
 
-                return false; // If no DateTime properties meet the range criteria
+                return false; // No properties matched the date range
             });
         }
         public static IEnumerable<T> SearchText<T>(this IEnumerable<T> queryable, string searchText) {
