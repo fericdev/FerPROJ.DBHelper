@@ -32,12 +32,12 @@ namespace FerPROJ.DBHelper.DBExtensions {
                     bool isInRange = true;
 
                     // Check if the property is within the date range (if dateFrom is specified)
-                    if (dateFrom.HasValue && propertyValue.HasValue && propertyValue < dateFrom.Value) {
+                    if (dateFrom.HasValue && propertyValue.HasValue && propertyValue <= dateFrom.Value) {
                         isInRange = false;
                     }
 
                     // Check if the property is within the date range (if dateTo is specified)
-                    if (dateTo.HasValue && propertyValue.HasValue && propertyValue > dateTo.Value) {
+                    if (dateTo.HasValue && propertyValue.HasValue && propertyValue >= dateTo.Value) {
                         isInRange = false;
                     }
 
