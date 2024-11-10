@@ -106,8 +106,11 @@ namespace FerPROJ.DBHelper.Base {
         public virtual async Task<TEntity> GetByIdAsync(TType id, string propertyName) {
             return await _ts.GetByIdAsync<TEntity, TType>(id, propertyName);
         }
-        public virtual async Task<TEntity> GetByAsync<TIDType>(TIDType id, string propertyName) {
+        public virtual async Task<TEntity> GetByPropertyAsync<TIDType>(TIDType id, string propertyName) {
             return await _ts.GetByIdAsync<TEntity, TIDType>(id, propertyName);
+        }
+        public virtual async Task<TEntity> GetByPredicateAsync(Expression<Func<TEntity, bool>> predicate) {
+            return await _ts.GetByPredicateAsync(predicate);
         }
         //
         protected async virtual Task SaveDataAsync(TSource myDTO) {
