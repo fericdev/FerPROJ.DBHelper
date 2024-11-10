@@ -25,8 +25,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             }
 
             // Filter the collection
-            return queryable.Where(item =>
-            {
+            return queryable.Where(item => {
                 foreach (var property in properties) {
                     var propertyValue = (DateTime?)property.GetValue(item);
 
@@ -81,24 +80,38 @@ namespace FerPROJ.DBHelper.DBExtensions {
             return queryable.Where(predicate);
         }
         //
-        public static async Task<IEnumerable<TEntity>> GetAllActiveAsync<TEntity>(this DbContext context) where TEntity : class {
+        public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, string status = null) where TEntity : class {
             // Get the DbSet for TEntity
             var dbSet = context.Set<TEntity>();
 
-            // Check if the Status property exists
-            var statusProperty = typeof(TEntity).GetProperty("Status");
+            if (!string.IsNullOrEmpty(status)) {
+                // Check if the Status property exists
+                var statusProperty = typeof(TEntity).GetProperty("Status");
 
-            if (statusProperty != null) {
-                // Check if the Status property is of the correct type (e.g., string or int, depending on your design)
-                if (statusProperty.PropertyType == typeof(string)) {
-                    // If Status is a string, filter by active status
-                    var query = dbSet.Where(e => (string)statusProperty.GetValue(e) == CStaticVariable.ACTIVE_STATUS);
-                    return await query.ToListAsync();
+                if (statusProperty != null) {
+                    // Check if the Status property is of the correct type (e.g., string or int, depending on your design)
+                    if (statusProperty.PropertyType == typeof(string)) {
+                        // If Status is a string, filter by active status
+                        var query = dbSet.Where(e => (string)statusProperty.GetValue(e) == status);
+                        return await query.ToListAsync();
+                    }
                 }
             }
 
             // If no Status property exists, return all entities
             return await dbSet.ToListAsync();
+        }
+        public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> whereCondition) where TEntity : class {
+            // Get the DbSet for TEntity
+            var dbSet = context.Set<TEntity>();
+
+            // Apply the where condition if provided
+            var query = dbSet.AsQueryable();
+
+            query = query.Where(whereCondition);
+
+            // If no Status property exists, return all entities
+            return await query.ToListAsync();
         }
         public static IEnumerable<T> ActiveOnly<T>(this IEnumerable<T> queryable) {
             // Get the Status property if it exists
@@ -107,8 +120,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             // If Status property exists, filter based on active status
             if (statusProperty != null) {
                 // Define the predicate to filter active entities
-                Func<T, bool> predicate = x =>
-                {
+                Func<T, bool> predicate = x => {
                     var statusValue = statusProperty.GetValue(x);
 
                     // Check if Status property is of type string and matches active status

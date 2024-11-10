@@ -12,12 +12,12 @@ using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.DBExtensions {
     public static class DBTransactionExtensions {
-        public static async Task RemoveAndCommitAsync<TEntity>(this DbContext context, List<TEntity> entity) where TEntity : class {
+        public static async Task RemoveRangeAndCommitAsync<TEntity>(this DbContext context, ICollection<TEntity> entity) where TEntity : class {
             context.Set<TEntity>().RemoveRange(entity);
 
             await context.SaveChangesAsync();
         }
-        public static async Task RemoveAsync<TEntity>(this DbContext context, List<TEntity> entity) where TEntity : class {
+        public static async Task RemoveRangeAsync<TEntity>(this DbContext context, ICollection<TEntity> entity) where TEntity : class {
             context.Set<TEntity>().RemoveRange(entity);
             await Task.CompletedTask;
         }
@@ -73,7 +73,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             await Task.CompletedTask;
         }
-        public static async Task UpdateAsync<TEntity>(
+        public static async Task UpdateRangeAsync<TEntity>(
              this DbContext context,
              List<TEntity> entity)
              where TEntity : class {
@@ -91,7 +91,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             await context.SaveChangesAsync();
         }
-        public static async Task UpdateAndCommitAsync<TEntity>(
+        public static async Task UpdateRangeAndCommitAsync<TEntity>(
              this DbContext context,
              List<TEntity> entity)
              where TEntity : class {
@@ -110,7 +110,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             await Task.CompletedTask;
         }
-        public static async Task SaveAsync<TEntity>(
+        public static async Task SaveRangeAsync<TEntity>(
              this DbContext context,
              List<TEntity> entity)
              where TEntity : class {
@@ -128,7 +128,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             await context.SaveChangesAsync();
         }
-        public static async Task SaveAndCommitAsync<TEntity>(
+        public static async Task SaveRangeAndCommitAsync<TEntity>(
              this DbContext context,
              List<TEntity> entity)
              where TEntity : class {
@@ -162,7 +162,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             await context.SaveChangesAsync();
         }
-        public static async Task SaveDTOAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : CValidator where TEntity : class {
+        public static async Task SaveRangeDTOAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : CValidator where TEntity : class {
 
             foreach(var item in myDTO) {
                 item.DateCreated = DateTime.Now;
@@ -176,7 +176,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             await Task.CompletedTask;
         }
-        public static async Task SaveDTOAndCommitAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : CValidator where TEntity : class {
+        public static async Task SaveRangeDTOAndCommitAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : CValidator where TEntity : class {
 
             foreach (var item in myDTO) {
                 item.DateCreated = DateTime.Now;
@@ -212,7 +212,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             await context.SaveChangesAsync();
         }
-        public static async Task UpdateDTOAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : CValidator where TEntity : class {
+        public static async Task UpdateRangeDTOAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : CValidator where TEntity : class {
 
             foreach(var item in myDTO) {
                 item.DateModified = DateTime.Now;
@@ -226,7 +226,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             }
             await Task.CompletedTask;
         }
-        public static async Task UpdateDTOAndCommitAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : CValidator where TEntity : class {
+        public static async Task UpdateRangeDTOAndCommitAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : CValidator where TEntity : class {
 
             foreach (var item in myDTO) {
                 item.DateModified = DateTime.Now;

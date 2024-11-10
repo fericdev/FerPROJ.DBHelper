@@ -1,5 +1,6 @@
 ﻿using FerPROJ.DBHelper.Class;
 using FerPROJ.DBHelper.CRUD;
+using FerPROJ.DBHelper.DBExtensions;
 using FerPROJ.DBHelper.Query;
 using FerPROJ.Design.Class;
 using MySql.Data.MySqlClient;
@@ -21,7 +22,7 @@ using System.Windows.Forms;
 using static FerPROJ.Design.Class.CEnum;
 
 namespace FerPROJ.DBHelper.Base {
-    public abstract class BaseDBEntityAsync<EntityContext, TSource, TType> : IDisposable where EntityContext : DbContext where TSource : CValidator {
+    public abstract class BaseDBEntityAsync<EntityContext, TSource, TEntity, TType> : IDisposable where EntityContext : DbContext where TSource : CValidator where TEntity : class {
         public string _tableName { get; set; }
         public string _tableDetailsName { get; set; }
         public EntityContext _ts;
@@ -42,26 +43,36 @@ namespace FerPROJ.DBHelper.Base {
             _ts.Dispose();
         }
         //
-        protected async Task<string> GetGeneratedIDAsync<T>(string prefix = null) where T : class {
+        public async Task<string> GetGeneratedIDAsync(string prefix, bool withSlash = true) {
             // Use the first 3 letters of the class name as default prefix if none is provided
-            if (prefix == null) {
-                prefix = typeof(T).Name.Substring(2, 3).ToUpper();
+            if (string.IsNullOrEmpty(prefix)) {
+                prefix = typeof(TEntity).Name.Substring(2, 3).ToUpper();
             }
 
             // Get the current count and increment by 1
-            var count = await _ts.Set<T>().CountAsync() + 1;
+            var count = await _ts.Set<TEntity>().CountAsync() + 1;
+
+            // Extract the numeric portion from the prefix if it’s meant to be a number
+            if (long.TryParse(prefix, out long baseNumber)) {
+
+                // Increment the base number by the count
+                var newIDNumber = baseNumber + count;
+
+                // Return the new ID with or without the slash as specified
+                return withSlash ? $"{newIDNumber.ToString().Insert(4, "-")}" : $"{newIDNumber}";
+            }
 
             // Return the new ID with the format "<prefix>-00<count>"
-            return $"{prefix}-00{count}";
+            return withSlash ? $"{prefix}-00{count}" : $"{prefix}{count}";
         }
-        protected async Task<string> GetGeneratedIDAsync<T>(string prefix = null, Expression<Func<T, bool>> whereCondition = null) where T : class {
+        public async Task<string> GetGeneratedIDAsync(string prefix, bool withSlash, Expression<Func<TEntity, bool>> whereCondition) {
             // Use the first 3 letters of the class name as default prefix if none is provided
-            if (prefix == null) {
-                prefix = typeof(T).Name.Substring(2, 3).ToUpper();
+            if (string.IsNullOrEmpty(prefix)) {
+                prefix = typeof(TEntity).Name.Substring(2, 3).ToUpper();
             }
 
             // Apply the where condition if provided
-            var query = _ts.Set<T>().AsQueryable();
+            var query = _ts.Set<TEntity>().AsQueryable();
 
             if (whereCondition != null) {
                 query = query.Where(whereCondition);
@@ -70,12 +81,34 @@ namespace FerPROJ.DBHelper.Base {
             // Get the count with the where condition, then increment by 1
             var count = await query.CountAsync() + 1;
 
+            // Extract the numeric portion from the prefix if it’s meant to be a number
+            if (long.TryParse(prefix, out long baseNumber)) {
+
+                // Increment the base number by the count
+                var newIDNumber = baseNumber + count;
+
+                // Return the new ID with or without the slash as specified
+                return withSlash ? $"{newIDNumber.ToString().Insert(4, "-")}" : $"{newIDNumber}";
+            }
+
             // Return the new ID with the format "<prefix>-00<count>"
-            return $"{prefix}-00{count}";
+            return withSlash ? $"{prefix}-00{count}" : $"{prefix}{count}";
+        }
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync() {
+            return await _ts.GetAllAsync<TEntity>();
+        }
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> whereCondition) {
+            return await _ts.GetAllAsync(whereCondition);
+        }
+        public virtual async Task<TEntity> GetByIdAsync(TType id) {
+            return await _ts.GetByIdAsync<TEntity, TType>(id);
+        }
+        public virtual async Task<TEntity> GetByIdAsync(TType id, string propertyName) {
+            return await _ts.GetByIdAsync<TEntity, TType>(id, propertyName);
         }
         //
         protected async virtual Task SaveDataAsync(TSource myDTO) {
-            await Task.CompletedTask;
+            await _ts.SaveDTOAndCommitAsync<TSource, TEntity>(myDTO);
         }
         public async Task<bool> SaveDTOAsync(TSource myDTO, bool EnableValidation = false, bool confirmation = true, bool returnResult = true) {
             if (myDTO == null) {
@@ -178,7 +211,7 @@ namespace FerPROJ.DBHelper.Base {
         }
         //
         protected async virtual Task UpdateDataAsync(TSource myDTO) {
-            await Task.CompletedTask;
+            await _ts.UpdateDTOAndCommitAsync<TSource, TEntity>(myDTO);
         }
         public async Task<bool> UpdateDTOAsync(TSource myDTO, bool EnableValidation = false, bool confirmation = true, bool returnResult = true) {
             if (myDTO == null) {
@@ -282,7 +315,12 @@ namespace FerPROJ.DBHelper.Base {
         }
         //
         protected async virtual Task DeleteDataAsync(TType id) {
-            await Task.CompletedTask;
+            var tbl = await _ts.GetByIdAsync<TEntity, TType>(id);
+            //
+            if (tbl == null) {
+                return;
+            }
+            await _ts.RemoveAndCommitAsync(tbl);
         }
         public async Task DeleteByIdAsync(TType id) {
             if (id == null) {

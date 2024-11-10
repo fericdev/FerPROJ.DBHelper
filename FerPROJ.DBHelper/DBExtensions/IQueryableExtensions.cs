@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Migrations;
 using System.Linq;
 using System.Linq.Expressions;
@@ -12,6 +14,78 @@ using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.DBExtensions {
     public static class IQueryableExtensions {
+        public static async Task<TEntity> GetByIdAsync<TEntity, TType>(this DbContext context, TType id) where TEntity : class {
+            // Get the DbSet for TEntity
+            var dbSet = context.Set<TEntity>();
+
+            // Use ObjectContext to find the primary key property in EF6
+            var objectContext = ((IObjectContextAdapter)context).ObjectContext;
+            var entityType = objectContext.MetadataWorkspace
+                .GetItems<System.Data.Entity.Core.Metadata.Edm.EntityType>(System.Data.Entity.Core.Metadata.Edm.DataSpace.CSpace)
+                .FirstOrDefault(e => e.Name == typeof(TEntity).Name);
+
+            if (entityType == null) {
+                throw new InvalidOperationException($"Entity type {typeof(TEntity).Name} is not part of the model.");
+            }
+
+            // Get the primary key property name
+            var keyPropertyName = entityType.KeyMembers.FirstOrDefault()?.Name;
+            if (string.IsNullOrEmpty(keyPropertyName)) {
+                throw new InvalidOperationException($"No primary key defined on entity {typeof(TEntity).Name}");
+            }
+
+            // Find the property in TEntity that matches the primary key name
+            var keyProperty = typeof(TEntity).GetProperty(keyPropertyName);
+            if (keyProperty == null) {
+                throw new InvalidOperationException($"No primary key property named '{keyPropertyName}' found on entity {typeof(TEntity).Name}");
+            }
+
+            // Create a parameter expression for the entity type (e.g., "e => e.Id == id")
+            var parameter = Expression.Parameter(typeof(TEntity), "e");
+
+            // Ensure type compatibility by converting `id` to the primary key's type
+            var idConstant = Expression.Constant(Convert.ChangeType(id, keyProperty.PropertyType), keyProperty.PropertyType);
+
+            // Create the equality expression (e.g., "e.Id == id")
+            var predicate = Expression.Lambda<Func<TEntity, bool>>(
+                Expression.Equal(
+                    Expression.Property(parameter, keyProperty.Name),
+                    idConstant
+                ),
+                parameter
+            );
+
+            // Execute the query with the generated predicate
+            return await dbSet.FirstOrDefaultAsync(predicate);
+        }
+        public static async Task<TEntity> GetByIdAsync<TEntity, TType>(
+            this DbContext context,
+            TType id,
+            string propertyName) where TEntity : class {
+            // Get the DbSet for TEntity
+            var dbSet = context.Set<TEntity>();
+
+            // Find the specified property on TEntity
+            var property = typeof(TEntity).GetProperty(propertyName);
+            if (property == null) {
+                throw new ArgumentException($"Property '{propertyName}' does not exist on entity {typeof(TEntity).Name}");
+            }
+
+            // Create a parameter expression for the entity type
+            var parameter = Expression.Parameter(typeof(TEntity), "e");
+
+            // Create the equality expression for the specified property
+            var predicate = Expression.Lambda<Func<TEntity, bool>>(
+                Expression.Equal(
+                    Expression.Property(parameter, property),
+                    Expression.Constant(id, typeof(TType))
+                ),
+                parameter
+            );
+
+            // Execute the query with the generated predicate
+            return await dbSet.FirstOrDefaultAsync(predicate);
+        }
         public static async Task<string> GetGeneratedIDAsync<TEntity>(
             this DbContext context, string prefix = null) where TEntity : class {
 
