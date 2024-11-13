@@ -205,7 +205,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
         }
         public static async Task SaveRangeAsync<TEntity>(
              this DbContext context,
-             List<TEntity> entity)
+             ICollection<TEntity> entity)
              where TEntity : class {
 
             context.Set<TEntity>().AddRange(entity);
