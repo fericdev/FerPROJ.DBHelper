@@ -132,15 +132,24 @@ namespace FerPROJ.DBHelper.Base {
         public virtual async Task LoadComboBoxAsync(CComboBoxKrypton cmb, string cmbName, string cmbValue, Expression<Func<TEntity, bool>> whereCondition = null)  {
             var listItems = whereCondition != null ? await _ts.GetAllAsync(whereCondition) : await _ts.GetAllAsync<TEntity>();
             cmb.FillComboBox(cmbName, cmbValue, listItems);
+        }        
+        public virtual async Task LoadComboBoxAsync(CComboBoxKrypton cmb, Func<TEntity, string> cmbName, string cmbValue, Expression<Func<TEntity, bool>> whereCondition = null)  {
+            var listItems = whereCondition != null ? await _ts.GetAllAsync(whereCondition) : await _ts.GetAllAsync<TEntity>();
+            cmb.FillComboBox(cmbName, cmbValue, listItems);
         }
         public virtual async Task LoadComboBoxByEntityAsync<T>(CComboBoxKrypton cmb, string cmbName, string cmbValue, Expression<Func<T, bool>> whereCondition = null) where T : class {
             var listItems = whereCondition != null ? await _ts.GetAllAsync(whereCondition) : await _ts.GetAllAsync<T>();
             cmb.FillComboBox(cmbName, cmbValue, listItems);
         }
+        public virtual async Task LoadComboBoxByEntityAsync<T>(CComboBoxKrypton cmb, Func<T, string> cmbName, string cmbValue, Expression<Func<T, bool>> whereCondition = null) where T : class {
+            var listItems = whereCondition != null ? await _ts.GetAllAsync(whereCondition) : await _ts.GetAllAsync<T>();
+            cmb.FillComboBox<T>(cmbName, cmbValue, listItems);
+        }
+
         #endregion
 
-        #region Base DTO CRUD
-        //
+            #region Base DTO CRUD
+            //
         protected async virtual Task SaveDataAsync(TSource myDTO) {
             await _ts.SaveDTOAndCommitAsync<TSource, TEntity>(myDTO);
         }
