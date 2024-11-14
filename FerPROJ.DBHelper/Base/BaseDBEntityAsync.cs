@@ -27,7 +27,7 @@ namespace FerPROJ.DBHelper.Base {
         #region BaseProperties
         public string _tableName { get; set; }
         public string _tableDetailsName { get; set; }
-        public bool AllowDuplicate {  get; set; }
+        public bool AllowDuplicate { get; set; }
         public EntityContext _ts;
         #endregion
 
@@ -129,11 +129,11 @@ namespace FerPROJ.DBHelper.Base {
 
         #region Base Load Methods
         // Load
-        public virtual async Task LoadComboBoxAsync(CComboBoxKrypton cmb, string cmbName, string cmbValue, Expression<Func<TEntity, bool>> whereCondition = null)  {
+        public virtual async Task LoadComboBoxAsync(CComboBoxKrypton cmb, string cmbName, string cmbValue, Expression<Func<TEntity, bool>> whereCondition = null) {
             var listItems = whereCondition != null ? await _ts.GetAllAsync(whereCondition) : await _ts.GetAllAsync<TEntity>();
             cmb.FillComboBox(cmbName, cmbValue, listItems);
-        }        
-        public virtual async Task LoadComboBoxAsync(CComboBoxKrypton cmb, Func<TEntity, string> cmbName, string cmbValue, Expression<Func<TEntity, bool>> whereCondition = null)  {
+        }
+        public virtual async Task LoadComboBoxAsync(CComboBoxKrypton cmb, Func<TEntity, string> cmbName, string cmbValue, Expression<Func<TEntity, bool>> whereCondition = null) {
             var listItems = whereCondition != null ? await _ts.GetAllAsync(whereCondition) : await _ts.GetAllAsync<TEntity>();
             cmb.FillComboBox(cmbName, cmbValue, listItems);
         }
@@ -148,8 +148,8 @@ namespace FerPROJ.DBHelper.Base {
 
         #endregion
 
-            #region Base DTO CRUD
-            //
+        #region Base DTO CRUD
+        //
         protected async virtual Task SaveDataAsync(TSource myDTO) {
             await _ts.SaveDTOAndCommitAsync<TSource, TEntity>(myDTO);
         }
