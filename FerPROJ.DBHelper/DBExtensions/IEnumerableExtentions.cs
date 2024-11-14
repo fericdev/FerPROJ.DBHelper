@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.DBExtensions {
     public static class IEnumerableExtentions {
+
+        #region Search By Date
         public static IEnumerable<T> SearchDateRange<T>(this IEnumerable<T> queryable, DateTime? dateFrom, DateTime? dateTo, string dateProperty = "") {
             if (dateFrom == null && dateTo == null) {
                 return queryable; // Return the original collection if both dateFrom and dateTo are null.
@@ -59,6 +61,9 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 return false; // No properties matched the date range
             });
         }
+        #endregion
+
+        #region Search By Text
         public static IEnumerable<T> SearchText<T>(this IEnumerable<T> queryable, string searchText) {
             if (string.IsNullOrEmpty(searchText)) {
                 return queryable; // Return original query if searchText is empty.
@@ -88,6 +93,9 @@ namespace FerPROJ.DBHelper.DBExtensions {
             // Apply the predicate to filter the collection
             return queryable.Where(predicate);
         }
+        #endregion
+
+        #region Get Method
         //
         public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, string propertyName, object propertyValue) where TEntity : class {
             // Get the DbSet for TEntity
@@ -155,7 +163,10 @@ namespace FerPROJ.DBHelper.DBExtensions {
             // If no Status property exists, return all entities
             return await query.ToListAsync();
         }
-        public static IEnumerable<T> ActiveOnly<T>(this IEnumerable<T> queryable) {
+        #endregion
+
+        #region Get Active Only
+        public static IEnumerable<T> GetAllActiveOnly<T>(this IEnumerable<T> queryable) {
             // Get the Status property if it exists
             var statusProperty = typeof(T).GetProperty("Status");
 
@@ -180,7 +191,10 @@ namespace FerPROJ.DBHelper.DBExtensions {
             // If no Status property, return the original collection unfiltered
             return queryable;
         }
-        public static IEnumerable<T> InActiveOnly<T>(this IEnumerable<T> queryable) {
+        #endregion
+
+        #region Get InActive Only
+        public static IEnumerable<T> GetAllInActiveOnly<T>(this IEnumerable<T> queryable) {
             // Get the Status property if it exists
             var statusProperty = typeof(T).GetProperty("Status");
 
@@ -205,5 +219,6 @@ namespace FerPROJ.DBHelper.DBExtensions {
             // If no Status property, return the original collection unfiltered
             return queryable;
         }
+        #endregion
     }
 }

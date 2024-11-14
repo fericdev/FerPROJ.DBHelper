@@ -14,97 +14,7 @@ using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.DBExtensions {
     public static class IQueryableExtensions {
-        public static async Task<TEntity> GetByIdAsync<TEntity, TType>(this DbContext context, TType id) where TEntity : class {
-            // Get the DbSet for TEntity
-            var dbSet = context.Set<TEntity>();
-
-            // Use ObjectContext to find the primary key property in EF6
-            var objectContext = ((IObjectContextAdapter)context).ObjectContext;
-            var entityType = objectContext.MetadataWorkspace
-                .GetItems<System.Data.Entity.Core.Metadata.Edm.EntityType>(System.Data.Entity.Core.Metadata.Edm.DataSpace.CSpace)
-                .FirstOrDefault(e => e.Name == typeof(TEntity).Name);
-
-            if (entityType == null) {
-                throw new InvalidOperationException($"Entity type {typeof(TEntity).Name} is not part of the model.");
-            }
-
-            // Get the primary key property name
-            var keyPropertyName = entityType.KeyMembers.FirstOrDefault()?.Name;
-            if (string.IsNullOrEmpty(keyPropertyName)) {
-                throw new InvalidOperationException($"No primary key defined on entity {typeof(TEntity).Name}");
-            }
-
-            // Find the property in TEntity that matches the primary key name
-            var keyProperty = typeof(TEntity).GetProperty(keyPropertyName);
-            if (keyProperty == null) {
-                throw new InvalidOperationException($"No primary key property named '{keyPropertyName}' found on entity {typeof(TEntity).Name}");
-            }
-
-            // Create a parameter expression for the entity type (e.g., "e => e.Id == id")
-            var parameter = Expression.Parameter(typeof(TEntity), "e");
-
-            // Ensure type compatibility by converting `id` to the primary key's type
-            var idConstant = Expression.Constant(Convert.ChangeType(id, keyProperty.PropertyType), keyProperty.PropertyType);
-
-            // Create the equality expression (e.g., "e.Id == id")
-            var predicate = Expression.Lambda<Func<TEntity, bool>>(
-                Expression.Equal(
-                    Expression.Property(parameter, keyProperty.Name),
-                    idConstant
-                ),
-                parameter
-            );
-
-            // Execute the query with the generated predicate
-            return await dbSet.FirstOrDefaultAsync(predicate);
-        }
-        public static async Task<TEntity> GetByIdAsync<TEntity, TType>(
-            this DbContext context,
-            TType id,
-            string propertyName) where TEntity : class {
-            // Get the DbSet for TEntity
-            var dbSet = context.Set<TEntity>();
-
-            // Find the specified property on TEntity
-            var property = typeof(TEntity).GetProperty(propertyName);
-            if (property == null) {
-                throw new ArgumentException($"Property '{propertyName}' does not exist on entity {typeof(TEntity).Name}");
-            }
-
-            // Create a parameter expression for the entity type
-            var parameter = Expression.Parameter(typeof(TEntity), "e");
-
-            // Create the equality expression for the specified property
-            var predicate = Expression.Lambda<Func<TEntity, bool>>(
-                Expression.Equal(
-                    Expression.Property(parameter, property),
-                    Expression.Constant(id, typeof(TType))
-                ),
-                parameter
-            );
-
-            // Execute the query with the generated predicate
-            return await dbSet.FirstOrDefaultAsync(predicate);
-        }
-        public static async Task<TEntity> GetByPredicateAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate) where TEntity : class {
-            return await context.Set<TEntity>().FirstOrDefaultAsync(predicate);
-
-        }
-        public static async Task<string> GetGeneratedIDAsync<TEntity>(
-            this DbContext context, string prefix = null) where TEntity : class {
-
-            if (prefix == null) {
-                prefix = typeof(TEntity).Name.Substring(2, 3).ToUpper();
-            }
-
-            // Get the current count and increment by 1
-            var count = await context.Set<TEntity>().CountAsync() + 1;
-
-            // Return the new ID with the format "<prefix>-00<count>"
-            return $"{prefix}-00{count}";
-
-        }
-        //
+        #region Search By Date
         public static IQueryable<T> SearchDateRange<T>(this IQueryable<T> queryable, DateTime? dateFrom, DateTime? dateTo) {
             if (dateFrom == null && dateTo == null) {
                 return queryable; // Return the original query if both dateFrom and dateTo are null.
@@ -148,6 +58,9 @@ namespace FerPROJ.DBHelper.DBExtensions {
             // Apply the predicate to the queryable
             return queryable.Where(predicate);
         }
+        #endregion
+
+        #region Search By Text
         public static IQueryable<T> SearchText<T>(this IQueryable<T> queryable, string searchText) {
             if (string.IsNullOrEmpty(searchText)) {
                 return queryable; // Return original query if searchText is empty.
@@ -190,5 +103,6 @@ namespace FerPROJ.DBHelper.DBExtensions {
             // Apply the predicate to the queryable
             return queryable.Where(predicate);
         }
+        #endregion
     }
 }

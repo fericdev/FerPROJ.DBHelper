@@ -3,6 +3,7 @@ using FerPROJ.DBHelper.CRUD;
 using FerPROJ.DBHelper.DBExtensions;
 using FerPROJ.DBHelper.Query;
 using FerPROJ.Design.Class;
+using FerPROJ.Design.Controls;
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
@@ -23,17 +24,23 @@ using static FerPROJ.Design.Class.CEnum;
 
 namespace FerPROJ.DBHelper.Base {
     public abstract class BaseDBEntityAsync<EntityContext, TSource, TEntity, TType> : IDisposable where EntityContext : DbContext where TSource : CValidator where TEntity : class {
+        #region BaseProperties
         public string _tableName { get; set; }
         public string _tableDetailsName { get; set; }
         public bool AllowDuplicate {  get; set; }
         public EntityContext _ts;
+        #endregion
 
+        #region ctor
         protected BaseDBEntityAsync() {
             _ts = NewConnection();
         }
         protected BaseDBEntityAsync(EntityContext ts) {
             _ts = UseConnection(ts);
         }
+        #endregion
+
+        #region CreateConnection
         private EntityContext NewConnection() {
             return Activator.CreateInstance<EntityContext>();
         }
@@ -45,6 +52,9 @@ namespace FerPROJ.DBHelper.Base {
             DBTransactionExtensions.AllowDuplicate = true;
             DBTransactionExtensions.PropertyToCheck = null;
         }
+        #endregion
+
+        #region Base GetDBEntity Method
         //
         public async Task<string> GetGeneratedIDAsync(string prefix, bool withSlash = true) {
             // Use the first 3 letters of the class name as default prefix if none is provided
@@ -115,6 +125,21 @@ namespace FerPROJ.DBHelper.Base {
         public virtual async Task<TEntity> GetByPredicateAsync(Expression<Func<TEntity, bool>> predicate) {
             return await _ts.GetByPredicateAsync(predicate);
         }
+        #endregion
+
+        #region Base Load Methods
+        // Load
+        public virtual async Task LoadComboBoxAsync(CComboBoxKrypton cmb, string cmbName, string cmbValue, Expression<Func<TEntity, bool>> whereCondition = null)  {
+            var listItems = whereCondition != null ? await _ts.GetAllAsync(whereCondition) : await _ts.GetAllAsync<TEntity>();
+            cmb.FillComboBox(cmbName, cmbValue, listItems);
+        }
+        public virtual async Task LoadComboBoxByEntityAsync<T>(CComboBoxKrypton cmb, string cmbName, string cmbValue, Expression<Func<T, bool>> whereCondition = null) where T : class {
+            var listItems = whereCondition != null ? await _ts.GetAllAsync(whereCondition) : await _ts.GetAllAsync<T>();
+            cmb.FillComboBox(cmbName, cmbValue, listItems);
+        }
+        #endregion
+
+        #region Base DTO CRUD
         //
         protected async virtual Task SaveDataAsync(TSource myDTO) {
             await _ts.SaveDTOAndCommitAsync<TSource, TEntity>(myDTO);
@@ -394,5 +419,6 @@ namespace FerPROJ.DBHelper.Base {
                 }
             }
         }
+        #endregion
     }
 }
