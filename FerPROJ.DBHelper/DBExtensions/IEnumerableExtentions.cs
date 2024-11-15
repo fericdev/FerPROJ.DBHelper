@@ -28,7 +28,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             else {
                 // Get all DateTime properties of the type
                 var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                                          .Where(p => p.PropertyType == typeof(DateTime))
+                                          .Where(p => p.PropertyType == typeof(DateTime) || p.PropertyType == typeof(DateTime?))
                                           .ToList();
 
                 if (!properties.Any()) {

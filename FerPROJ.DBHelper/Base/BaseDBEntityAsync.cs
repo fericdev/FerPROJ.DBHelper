@@ -110,6 +110,16 @@ namespace FerPROJ.DBHelper.Base {
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync() {
             return await _ts.GetAllAsync<TEntity>();
         }
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsyncWithSearch(string searchText, DateTime? dateFrom, DateTime? dateTo) {
+
+            var query = await _ts.GetAllAsync<TEntity>();
+
+            query = query.SearchDateRange(dateFrom, dateTo);
+
+            query = query.SearchText(searchText);
+
+            return query;
+        }
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> whereCondition) {
             return await _ts.GetAllAsync(whereCondition);
         }
@@ -365,27 +375,26 @@ namespace FerPROJ.DBHelper.Base {
             }
             await _ts.RemoveAndCommitAsync(tbl);
         }
-        public async Task DeleteByIdAsync(TType id) {
+        public async Task<bool> DeleteByIdAsync(TType id) {
             if (id == null) {
-                throw new ArgumentException($"{nameof(id)} is null!");
+                CShowMessage.Warning($"{nameof(id)} is null!");
+                return false;
             }
             //
-            using (var trans = _ts.Database.BeginTransaction()) {
-                try {
-                    if (CShowMessage.Ask("Are you sure to delete this data?", "Confirmation")) {
-                        await DeleteDataAsync(id);
-                        trans.Commit();
-                        CShowMessage.Info("Deleted Successfully!", "Success");
-                    }
-                }
-                catch (Exception ex) {
-                    trans.Rollback();
-                    throw ex;
-                }
-                finally {
-                    _ts.Dispose();
+            try {
+                if (CShowMessage.Ask("Are you sure to delete this data?", "Confirmation")) {
+                    await DeleteDataAsync(id);
+                    CShowMessage.Info("Deleted Successfully!", "Success");
+                    return true;
                 }
             }
+            catch (Exception ex) {
+                throw ex;
+            }
+            finally {
+                _ts.Dispose();
+            }
+            return false;
         }
         public async Task DeleteMultipleDataByIdsAsync(List<TType> ids) {
             if (ids.Count <= 0) {
