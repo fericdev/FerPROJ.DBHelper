@@ -69,6 +69,41 @@ namespace FerPROJ.DBHelper.DBExtensions {
         #endregion
 
         #region Search By Text
+        public static IEnumerable<T> SearchTextStrict<T>(this IEnumerable<T> queryable, string searchText, string propertyName) {
+
+            // Get the property from the type or its base classes
+            PropertyInfo property = null;
+            Type type = typeof(T);
+
+            // Traverse up the inheritance chain to find the property in the class or its base classes
+            while (type != null) {
+                property = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                if (property != null) {
+                    break;
+                }
+                type = type.BaseType;
+            }
+
+            // If the property was not found, return the original collection as there's nothing to search by
+            if (property == null) {
+                throw new ArgumentException($"Property '{propertyName}' not found on type '{typeof(T).Name}' or its base classes.");
+            }
+
+            // Check if the found property is of type string
+            if (property.PropertyType != typeof(string)) {
+                throw new ArgumentException($"Property '{propertyName}' must be of type 'string'.");
+            }
+
+            // Build the predicate expression to filter by the search text
+            Func<T, bool> predicate = x =>
+            {
+                var propertyValue = property.GetValue(x) as string;
+                return propertyValue != null && propertyValue.SearchFor(searchText);
+            };
+
+            // Apply the predicate to filter the collection
+            return queryable.Where(predicate);
+        }
         public static IEnumerable<T> SearchText<T>(this IEnumerable<T> queryable, string searchText) {
             if (string.IsNullOrEmpty(searchText)) {
                 return queryable; // Return original query if searchText is empty.
