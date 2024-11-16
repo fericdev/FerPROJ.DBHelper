@@ -25,14 +25,14 @@ namespace FerPROJ.DBHelper.DBExtensions {
             // Get the specified DateTime property if dateProperty is provided
             PropertyInfo property = null;
             if (!string.IsNullOrEmpty(dateProperty)) {
-                property = typeof(T).GetProperty(dateProperty, BindingFlags.Public | BindingFlags.Instance);
+                property = typeof(T).GetProperty(dateProperty, BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy);
                 if (property == null) {
                     throw new ArgumentException($"Property '{dateProperty}' is not found or is not of type DateTime.");
                 }
             }
             else {
                 // Get all DateTime properties of the type
-                var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy)
                                           .Where(p => p.PropertyType == typeof(DateTime) || p.PropertyType == typeof(DateTime?))
                                           .ToList();
 
@@ -45,9 +45,9 @@ namespace FerPROJ.DBHelper.DBExtensions {
             return queryable.Where(item =>
             {
                 var propertiesToCheck = property != null ? new List<PropertyInfo> { property } :
-                                                           typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                                                                    .Where(p => p.PropertyType == typeof(DateTime) || p.PropertyType == typeof(DateTime?))
-                                                                    .ToList();
+                                        typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy)
+                                                 .Where(p => p.PropertyType == typeof(DateTime) || p.PropertyType == typeof(DateTime?))
+                                                 .ToList();
 
                 foreach (var prop in propertiesToCheck) {
                     var propertyValue = (DateTime?)prop.GetValue(item);
