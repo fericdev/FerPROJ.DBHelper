@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -219,6 +220,26 @@ namespace FerPROJ.DBHelper.DBExtensions {
             // If no Status property, return the original collection unfiltered
             return queryable;
         }
+        #endregion
+
+        #region Select 
+        public static async Task<IEnumerable<TResult>> SelectListAsync<TEntity, TResult>(
+            this IEnumerable<TEntity> source,
+            Func<TEntity, Task<TResult>> selector) {
+
+            var tasks = source.Select(selector); // Creates tasks for each item in the collection
+            return await Task.WhenAll(tasks);    // Waits for all tasks to complete and returns the results
+
+        }
+
+        public static IEnumerable<TEntity> DataLimit<TEntity>(
+            this IEnumerable<TEntity> source,
+            int dataLimit) {
+
+            return source.Take(dataLimit);
+
+        }
+
         #endregion
     }
 }

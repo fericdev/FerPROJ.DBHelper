@@ -107,10 +107,10 @@ namespace FerPROJ.DBHelper.Base {
             // Return the new ID with the format "<prefix>-00<count>"
             return withSlash ? $"{prefix}-00{count}" : $"{prefix}{count}";
         }
-        public virtual async Task<IEnumerable<TEntity>> GetAllAsync() {
+        protected virtual async Task<IEnumerable<TEntity>> GetAllAsync() {
             return await _ts.GetAllAsync<TEntity>();
         }
-        public virtual async Task<IEnumerable<TEntity>> GetAllAsyncWithSearch(string searchText, DateTime? dateFrom, DateTime? dateTo) {
+        protected virtual async Task<IEnumerable<TEntity>> GetAllAsyncWithSearch(string searchText, DateTime? dateFrom, DateTime? dateTo) {
 
             var query = await _ts.GetAllAsync<TEntity>();
 
