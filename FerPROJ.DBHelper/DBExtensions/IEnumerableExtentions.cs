@@ -18,6 +18,10 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 return queryable; // Return the original collection if both dateFrom and dateTo are null.
             }
 
+            if(dateFrom.Value.Date == DateTime.Now.Date && dateTo.Value.Date == DateTime.Now.Date) {
+                return queryable;
+            }
+
             // Get the specified DateTime property if dateProperty is provided
             PropertyInfo property = null;
             if (!string.IsNullOrEmpty(dateProperty)) {
