@@ -74,9 +74,18 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 return queryable; // Return original query if searchText is empty.
             }
 
-            // Get the properties of the type
-            var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                                      .Where(p => p.PropertyType == typeof(string)); // Only string properties
+            // Get the properties of the type and all its base classes
+            var properties = new List<PropertyInfo>();
+            Type type = typeof(T);
+
+            // Traverse up the inheritance hierarchy to get all string properties
+            while (type != null) {
+                properties.AddRange(
+                    type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                        .Where(p => p.PropertyType == typeof(string))
+                );
+                type = type.BaseType;
+            }
 
             if (!properties.Any()) {
                 return queryable; // Return original query if no string properties are found.
@@ -84,11 +93,15 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             // Build the predicate expression
             Func<T, bool> predicate = x => {
-                // Loop through all string properties and check if any of them contains the search text
+                // Loop through all string properties and check if any of them contain the search text
                 foreach (var property in properties) {
-                    var propertyValue = property.GetValue(x) as string;
-                    if (propertyValue != null && propertyValue.SearchFor(searchText)) {
-                        return true; // Found a match, no need to check other properties
+                    // Ignore properties with index parameters to avoid TargetParameterCountException
+                    if (property.GetIndexParameters().Length == 0) // Only proceed if there are no index parameters
+                    {
+                        // Safely retrieve the property value as a string
+                        if (property.GetValue(x) is string propertyValue && propertyValue.SearchFor(searchText)) {
+                            return true; // Found a match, no need to check other properties
+                        }
                     }
                 }
 
