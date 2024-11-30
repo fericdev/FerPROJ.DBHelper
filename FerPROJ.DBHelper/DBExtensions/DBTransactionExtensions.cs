@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
+using System.Data.Entity.Core.Metadata.Edm;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Migrations;
 using System.Linq;
@@ -387,23 +388,9 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
         #region Update Status
         public static async Task SetStatusInActiveAsync<TEntity>(this DbContext context, string id) where TEntity : class {
-            // Get the DbSet for TEntity
-            var dbSet = context.Set<TEntity>();
-
-            // Locate the primary key property
-            var keyProperty = typeof(TEntity).GetProperties()
-                .FirstOrDefault(p => p.GetCustomAttributes<KeyAttribute>().Any());
-
-            if (keyProperty == null) {
-                throw new InvalidOperationException("Primary key not found for entity.");
-            }
-
-            // Convert the id to the appropriate type of the key property
-            var keyType = keyProperty.PropertyType;
-            var convertedId = Convert.ChangeType(id, keyType);
-
+         
             // Retrieve the entity by primary key
-            var entity = await dbSet.FindAsync(convertedId);
+            var entity = await context.GetByIdAsync<TEntity, string>(id);
 
             // If the entity was not found, return
             if (entity == null) {
