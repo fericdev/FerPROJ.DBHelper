@@ -69,7 +69,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
         #endregion
 
         #region Search By Text
-        public static IEnumerable<T> SearchTextStrict<T>(this IEnumerable<T> queryable, string searchText, string propertyName) {
+        public static IEnumerable<T> SearchTextByProperty<T>(this IEnumerable<T> queryable, string searchText, string propertyName) {
 
             // Get the property from the type or its base classes
             PropertyInfo property = null;
