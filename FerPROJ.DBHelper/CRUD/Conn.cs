@@ -481,7 +481,7 @@ namespace FerPROJ.DBHelper.CRUD {
         public string GetNewStringID(string prefix, string tableName) {
             return $"{prefix}-00{GetValueFromColumn<int>("COUNT", tableName) + 1}";
         }
-        public bool SaveManual<sDTO>(string tableName, sDTO myDTO) where sDTO : CValidator {
+        public bool SaveManual<sDTO>(string tableName, sDTO myDTO) where sDTO : BaseDTO {
             if (myDTO.DataValidation()) {
                 string[] fieldsToExclude = null;
                 string message = null;
@@ -510,7 +510,7 @@ namespace FerPROJ.DBHelper.CRUD {
             return false;
 
         }
-        public bool SaveManual<sDTO>(string tableName, sDTO myDTO, string[] fieldsToExclude = null) where sDTO : CValidator {
+        public bool SaveManual<sDTO>(string tableName, sDTO myDTO, string[] fieldsToExclude = null) where sDTO : BaseDTO {
             if (myDTO.DataValidation()) {
                 string message = null;
                 if (CShowMessage.Ask(message != null ? message : "Are you sure to save this data?", "Confirmation")) {
@@ -537,7 +537,7 @@ namespace FerPROJ.DBHelper.CRUD {
             CShowMessage.Warning(myDTO.Error, "Warning");
             return false;
         }
-        public bool SaveManual<sDTO>(string tableName, sDTO myDTO, string message = null) where sDTO : CValidator {
+        public bool SaveManual<sDTO>(string tableName, sDTO myDTO, string message = null) where sDTO : BaseDTO {
             if (myDTO.DataValidation()) {
                 string[] fieldsToExclude = null;
                 if (CShowMessage.Ask(message != null ? message : "Are you sure to save this data?", "Confirmation")) {
@@ -564,7 +564,7 @@ namespace FerPROJ.DBHelper.CRUD {
             CShowMessage.Warning(myDTO.Error, "Warning");
             return false;
         }
-        public void SaveDetailsManual<mDTO>(string tableName, mDTO myDTO) where mDTO : CValidator {
+        public void SaveDetailsManual<mDTO>(string tableName, mDTO myDTO) where mDTO : BaseDTO {
             if (myDTO.DataValidation()) {
                 string[] fieldsToExclude = null;
                 string[] columnList;
@@ -585,7 +585,7 @@ namespace FerPROJ.DBHelper.CRUD {
                 throw new ArgumentException(myDTO.Error);
             }
         }
-        public void SaveDetailsManual<mDTO>(string tableName, mDTO myDTO, string[] fieldsToExclude = null) where mDTO : CValidator {
+        public void SaveDetailsManual<mDTO>(string tableName, mDTO myDTO, string[] fieldsToExclude = null) where mDTO : BaseDTO {
             if (myDTO.DataValidation()) {
                 string[] columnList;
                 string[] valueList;
@@ -605,7 +605,7 @@ namespace FerPROJ.DBHelper.CRUD {
                 throw new ArgumentException(myDTO.Error);
             }
         }
-        public bool UpdateManual<sDTO>(string tableName, string whereCondition, sDTO myDTO) where sDTO : CValidator {
+        public bool UpdateManual<sDTO>(string tableName, string whereCondition, sDTO myDTO) where sDTO : BaseDTO {
             if (myDTO.DataValidation()) {
                 string message = null;
                 string[] fieldsToExclude = null;
@@ -629,7 +629,7 @@ namespace FerPROJ.DBHelper.CRUD {
             CShowMessage.Warning(myDTO.Error, "Warning");
             return false;
         }
-        public bool UpdateManual<sDTO>(string tableName, string whereCondition, sDTO myDTO, string message = null) where sDTO : CValidator {
+        public bool UpdateManual<sDTO>(string tableName, string whereCondition, sDTO myDTO, string message = null) where sDTO : BaseDTO {
             if (myDTO.DataValidation()) {
                 string[] fieldsToExclude = null;
                 if (CShowMessage.Ask(message != null ? message : "Are you sure to update this data?", "Confirmation")) {
@@ -652,7 +652,7 @@ namespace FerPROJ.DBHelper.CRUD {
             CShowMessage.Warning(myDTO.Error, "Warning");
             return false;
         }
-        public bool UpdateManual<sDTO>(string tableName, string whereCondition, sDTO myDTO, string[] fieldsToExclude = null) where sDTO : CValidator {
+        public bool UpdateManual<sDTO>(string tableName, string whereCondition, sDTO myDTO, string[] fieldsToExclude = null) where sDTO : BaseDTO {
             if (myDTO.DataValidation()) {
                 string message = null;
                 if (CShowMessage.Ask(message != null ? message : "Are you sure to update this data?", "Confirmation")) {
@@ -675,7 +675,7 @@ namespace FerPROJ.DBHelper.CRUD {
             CShowMessage.Warning(myDTO.Error, "Warning");
             return false;
         }
-        public bool UpdateManual<sDTO>(string tableName, string whereCondition, sDTO myDTO, string[] fieldsToExclude = null, string message = null) where sDTO : CValidator {
+        public bool UpdateManual<sDTO>(string tableName, string whereCondition, sDTO myDTO, string[] fieldsToExclude = null, string message = null) where sDTO : BaseDTO {
             if (myDTO.DataValidation()) {
                 if (CShowMessage.Ask(message != null ? message : "Are you sure to update this data?", "Confirmation")) {
                     string[] columnAndValueList;
@@ -697,7 +697,7 @@ namespace FerPROJ.DBHelper.CRUD {
             CShowMessage.Warning(myDTO.Error, "Warning");
             return false;
         }
-        public bool UpdateDetailsManual<mDTO>(string tableName, string whereCondition, mDTO myDTO) where mDTO : CValidator {
+        public bool UpdateDetailsManual<mDTO>(string tableName, string whereCondition, mDTO myDTO) where mDTO : BaseDTO {
             if (myDTO.DataValidation()) {
                 string[] fieldsToExclude = null;
                 string[] columnAndValueList;
@@ -718,7 +718,7 @@ namespace FerPROJ.DBHelper.CRUD {
             CShowMessage.Warning(myDTO.Error, "Warning");
             return false;
         }
-        public bool UpdateDetailsManual<mDTO>(string tableName, string whereCondition, mDTO myDTO, string[] fieldsToExclude = null) where mDTO : CValidator {
+        public bool UpdateDetailsManual<mDTO>(string tableName, string whereCondition, mDTO myDTO, string[] fieldsToExclude = null) where mDTO : BaseDTO {
             if (myDTO.DataValidation()) {
                 string[] columnAndValueList;
 
@@ -768,7 +768,7 @@ namespace FerPROJ.DBHelper.CRUD {
             }
             return false;
         }
-        public string GetSaveManualQuery<sDTO>(string tableName, sDTO myDTO, string[] fieldsToExclude = null) where sDTO : CValidator {
+        public string GetSaveManualQuery<sDTO>(string tableName, sDTO myDTO, string[] fieldsToExclude = null) where sDTO : BaseDTO {
             if (myDTO.DataValidation()) {
                 string[] columnList;
                 string[] valueList;
@@ -815,7 +815,7 @@ namespace FerPROJ.DBHelper.CRUD {
             string insertQuery = $"UPDATE {tableName} SET {columns} {whereCondition}";
             return insertQuery;
         }
-        public string GetUpdateManualQuery<sDTO>(string tableName, string whereCondition, sDTO myDTO, string[] fieldsToExclude = null) where sDTO : CValidator {
+        public string GetUpdateManualQuery<sDTO>(string tableName, string whereCondition, sDTO myDTO, string[] fieldsToExclude = null) where sDTO : BaseDTO {
             if (myDTO.DataValidation()) {
                 string[] columnAndValueList;
 
@@ -868,7 +868,7 @@ namespace FerPROJ.DBHelper.CRUD {
                 }
             }
         }
-        public void SaveTransaction<DTO>(DTO myDTO, string _tableName, string _tableDetailsName, List<string> queryToAdd = null) where DTO : CValidator {
+        public void SaveTransaction<DTO>(DTO myDTO, string _tableName, string _tableDetailsName, List<string> queryToAdd = null) where DTO : BaseDTO {
             var MultipleQuery = new List<string>();
             //
             if (queryToAdd != null) {
@@ -887,7 +887,7 @@ namespace FerPROJ.DBHelper.CRUD {
                 var itemToAdd = (IEnumerable)listItem.GetValue(myDTO);
                 if (itemToAdd != null) {
                     foreach (var item in itemToAdd) {
-                        ListValidation((CValidator)item);
+                        ListValidation((BaseDTO)item);
                         MultipleQuery.Add(GetSaveDetailsManualQuery(_tableDetailsName, item));
                     }
                 }
@@ -895,7 +895,7 @@ namespace FerPROJ.DBHelper.CRUD {
             //
             SaveMultipleQuery(MultipleQuery);
         }
-        public void SaveTransaction<DTO>(DTO myDTO, string _tableName, string _tableDetailsName) where DTO : CValidator {
+        public void SaveTransaction<DTO>(DTO myDTO, string _tableName, string _tableDetailsName) where DTO : BaseDTO {
             var MultipleQuery = new List<string>();
             //
             MultipleQuery.Add(GetSaveManualQuery(_tableName, myDTO));
@@ -908,7 +908,7 @@ namespace FerPROJ.DBHelper.CRUD {
                 var itemToAdd = (IEnumerable)listItem.GetValue(myDTO);
                 if (itemToAdd != null) {
                     foreach (var item in itemToAdd) {
-                        ListValidation((CValidator)item);
+                        ListValidation((BaseDTO)item);
                         MultipleQuery.Add(GetSaveDetailsManualQuery(_tableDetailsName, item));
                     }
                 }
@@ -916,7 +916,7 @@ namespace FerPROJ.DBHelper.CRUD {
             //
             SaveMultipleQuery(MultipleQuery);
         }
-        public void SaveTransaction<DTO>(DTO myDTO, string _tableName, string _tableDetailsName, string[] fieldToExclude, string[] fieldToExcludeList) where DTO : CValidator {
+        public void SaveTransaction<DTO>(DTO myDTO, string _tableName, string _tableDetailsName, string[] fieldToExclude, string[] fieldToExcludeList) where DTO : BaseDTO {
             var MultipleQuery = new List<string>();
             //
             MultipleQuery.Add(GetSaveManualQuery(_tableName, myDTO, fieldToExclude));
@@ -929,7 +929,7 @@ namespace FerPROJ.DBHelper.CRUD {
                 var itemToAdd = (IEnumerable)listItem.GetValue(myDTO);
                 if (itemToAdd != null) {
                     foreach (var item in itemToAdd) {
-                        ListValidation((CValidator)item);
+                        ListValidation((BaseDTO)item);
                         MultipleQuery.Add(GetSaveDetailsManualQuery(_tableDetailsName, item, fieldToExcludeList));
                     }
                 }
@@ -937,7 +937,7 @@ namespace FerPROJ.DBHelper.CRUD {
             //
             SaveMultipleQuery(MultipleQuery);
         }
-        public void UpdateTransaction<DTO>(DTO myDTO, string sWhere, string _tableName, string _tableDetailsName, List<string> queryToAdd = null) where DTO : CValidator {
+        public void UpdateTransaction<DTO>(DTO myDTO, string sWhere, string _tableName, string _tableDetailsName, List<string> queryToAdd = null) where DTO : BaseDTO {
             var MultipleQuery = new List<string>();
             //
             if (queryToAdd != null) {
@@ -956,7 +956,7 @@ namespace FerPROJ.DBHelper.CRUD {
                 var itemToAdd = (IEnumerable)listItem.GetValue(myDTO);
                 if (itemToAdd != null) {
                     foreach (var item in itemToAdd) {
-                        ListValidation((CValidator)item);
+                        ListValidation((BaseDTO)item);
                         MultipleQuery.Add(GetUpdateDetailsManualQuery(_tableDetailsName, sWhere, item));
                     }
                 }
@@ -964,7 +964,7 @@ namespace FerPROJ.DBHelper.CRUD {
             //
             SaveMultipleQuery(MultipleQuery);
         }
-        public void UpdateTransaction<DTO>(DTO myDTO, string sWhere, string _tableName, string _tableDetailsName, string[] fieldToExclude, string[] fieldToExcludeDetails) where DTO : CValidator {
+        public void UpdateTransaction<DTO>(DTO myDTO, string sWhere, string _tableName, string _tableDetailsName, string[] fieldToExclude, string[] fieldToExcludeDetails) where DTO : BaseDTO {
             var MultipleQuery = new List<string>();
             //
             MultipleQuery.Add(GetUpdateManualQuery(_tableName, sWhere, myDTO, fieldToExclude));
@@ -977,7 +977,7 @@ namespace FerPROJ.DBHelper.CRUD {
                 var itemToAdd = (IEnumerable)listItem.GetValue(myDTO);
                 if (itemToAdd != null) {
                     foreach (var item in itemToAdd) {
-                        ListValidation((CValidator)item);
+                        ListValidation((BaseDTO)item);
                         MultipleQuery.Add(GetUpdateDetailsManualQuery(_tableDetailsName, sWhere, item, fieldToExcludeDetails));
                     }
                 }
@@ -1009,7 +1009,7 @@ namespace FerPROJ.DBHelper.CRUD {
             //
             SaveMultipleQuery(MultipleQuery);
         }
-        private void ListValidation<DTO>(DTO myDTO) where DTO : CValidator {
+        private void ListValidation<DTO>(DTO myDTO) where DTO : BaseDTO {
             if (!myDTO.DataValidation()) {
                 throw new ArgumentException(myDTO.Error);
             }

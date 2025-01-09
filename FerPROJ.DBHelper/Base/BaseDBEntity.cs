@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using static FerPROJ.Design.Class.CEnum;
 
 namespace FerPROJ.DBHelper.Base {
-    public abstract class BaseDBEntity<EntityContext, DBConn, TSource, TType> : IDisposable where DBConn : Conn where EntityContext : DbContext where TSource : CValidator {
+    public abstract class BaseDBEntity<EntityContext, DBConn, TSource, TType> : IDisposable where DBConn : Conn where EntityContext : DbContext where TSource : BaseDTO {
         public string _tableName { get; set; }
         public string _tableDetailsName { get; set; }
         public EntityContext _ts;
