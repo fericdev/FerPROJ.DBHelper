@@ -447,41 +447,12 @@ namespace FerPROJ.DBHelper.Base {
         #region Base Cache Methods
         public async Task LoadCache() {
             var entities = await GetAllAsync();
-            var dtos = entities.ToDestination<TModel>();
-            await CacheManager.SaveListToCacheAsync(dtos);
+            await CacheManager.SaveAllToCacheAsync(entities);
         }
 
-        public virtual async Task<IEnumerable<TEntity>> GetAllFromCacheAsync(Func<TEntity, bool> whereCondition = null) {
-
-            // Try to get cached models
-            var models = await CacheManager.GetAllCacheByKeyAsync<TModel>();
-
-            if (models == null) {
-                // If no cache exists, fetch data and map to models once
-                var entities = await GetAllAsync();
-
-                models = entities.ToDestination<TModel>();
-
-                // Cache the fetched models
-                await CacheManager.SaveListToCacheAsync(models);
-            }
-
-            // If a condition is specified, filter models directly without unnecessary remapping
-            if (whereCondition != null) {
-                // Convert models to entities for condition checking, then back to models
-                models = models
-                    .ToDestination<TEntity>()
-                    .Where(whereCondition)
-                    .ToDestination<TModel>();
-
-            }
-
-            // Return the final result as entities, mapping once at the end
-            return models.ToDestination<TEntity>();
-
+        public virtual async Task<IEnumerable<TEntity>> GetAllFromCacheAsync() {
+            return await CacheManager.GetAllEnumerableCacheAsync<TEntity>();
         }
-
-
         #endregion
 
     }

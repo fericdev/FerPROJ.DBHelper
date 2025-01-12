@@ -11,23 +11,31 @@ namespace FerPROJ.DBHelper.DBCache {
 
         private static MemoryCache _cache = MemoryCache.Default;
 
-        public async static Task SaveToCacheAsync<TModel>(TModel value) where TModel : BaseDTO {
-            string key = nameof(TModel);
+        public async static Task SaveToCacheAsync<TEntity>(TEntity value) where TEntity : class {
+            string key = nameof(TEntity);
             await Task.Run(() => _cache.Set(key, value, DateTimeOffset.MaxValue));
         }
-        public async static Task<TModel> GetCacheAsync<TModel>(Func<TModel, bool> whereCondition) where TModel : BaseDTO {            
-            var values = await GetAllCacheAsync<TModel>();
+        public async static Task<TEntity> GetCacheAsync<TEntity>(Func<TEntity, bool> whereCondition) where TEntity : class {            
+            var values = await GetAllListCacheAsync<TEntity>();
             return values.FirstOrDefault(whereCondition);
         }
 
-        public async static Task SaveAllToCacheAsync<TModel>(List<TModel> values) where TModel : BaseDTO {
+        public async static Task SaveAllToCacheAsync<TEntity>(List<TEntity> values) where TEntity : class {
+            var tasks = values.Select(value => SaveToCacheAsync(value));
+            await Task.WhenAll(tasks);
+        }
+        public async static Task SaveAllToCacheAsync<TEntity>(IEnumerable<TEntity> values) where TEntity : class {
             var tasks = values.Select(value => SaveToCacheAsync(value));
             await Task.WhenAll(tasks);
         }
 
-        public async static Task<List<TModel>> GetAllCacheAsync<TModel>() where TModel : BaseDTO {
-            string key = nameof(TModel);
-            return await Task.Run(() => _cache.Get(key) as List<TModel>);
+        public async static Task<List<TEntity>> GetAllListCacheAsync<TEntity>() where TEntity : class {
+            string key = nameof(TEntity);
+            return await Task.Run(() => _cache.Get(key) as List<TEntity>);
+        }
+        public async static Task<IEnumerable<TEntity>> GetAllEnumerableCacheAsync<TEntity>() where TEntity : class {
+            string key = nameof(TEntity);
+            return await Task.Run(() => _cache.Get(key) as IEnumerable<TEntity>);
         }
 
     }
