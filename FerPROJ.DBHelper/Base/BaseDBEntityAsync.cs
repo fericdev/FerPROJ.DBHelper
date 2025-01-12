@@ -1,5 +1,6 @@
 ﻿using FerPROJ.DBHelper.Class;
 using FerPROJ.DBHelper.CRUD;
+using FerPROJ.DBHelper.DBCache;
 using FerPROJ.DBHelper.DBExtensions;
 using FerPROJ.DBHelper.Query;
 using FerPROJ.Design.Class;
@@ -23,7 +24,7 @@ using System.Windows.Forms;
 using static FerPROJ.Design.Class.CEnum;
 
 namespace FerPROJ.DBHelper.Base {
-    public abstract class BaseDBEntityAsync<EntityContext, TSource, TEntity, TType> : IDisposable where EntityContext : DbContext where TSource : BaseDTO where TEntity : class {
+    public abstract class BaseDBEntityAsync<EntityContext, TModel, TEntity, TType> : IDisposable where EntityContext : DbContext where TModel : BaseDTO where TEntity : class {
         #region BaseProperties
         public string _tableName { get; set; }
         public string _tableDetailsName { get; set; }
@@ -160,10 +161,10 @@ namespace FerPROJ.DBHelper.Base {
 
         #region Base DTO CRUD
         //
-        protected async virtual Task SaveDataAsync(TSource myDTO) {
-            await _ts.SaveDTOAndCommitAsync<TSource, TEntity>(myDTO);
+        protected async virtual Task SaveDataAsync(TModel myDTO) {
+            await _ts.SaveDTOAndCommitAsync<TModel, TEntity>(myDTO);
         }
-        public async Task<bool> SaveDTOAsync(TSource myDTO, bool EnableValidation = false, bool confirmation = true, bool returnResult = true) {
+        public async Task<bool> SaveDTOAsync(TModel myDTO, bool EnableValidation = false, bool confirmation = true, bool returnResult = true) {
             if (myDTO == null) {
                 throw new ArgumentNullException($"{nameof(myDTO)} is null!");
             }
@@ -195,12 +196,14 @@ namespace FerPROJ.DBHelper.Base {
                         if (confirmation) {
                             if (CShowMessage.Ask("Are you sure to save this data?", "Confirmation")) {
                                 await SaveDataAsync(myDTO);
+                                await CacheManager.SaveToCacheAsync(myDTO);
                                 CShowMessage.Info("Saved Successfully!", "Success");
                                 return true;
                             }
                         }
                         else {
                             await SaveDataAsync(myDTO);
+                            await CacheManager.SaveToCacheAsync(myDTO);
                             if (returnResult) {
                                 CShowMessage.Info("Saved Successfully!", "Success");
                             }
@@ -263,10 +266,10 @@ namespace FerPROJ.DBHelper.Base {
             return false;
         }
         //
-        protected async virtual Task UpdateDataAsync(TSource myDTO) {
-            await _ts.UpdateDTOAndCommitAsync<TSource, TEntity>(myDTO);
+        protected async virtual Task UpdateDataAsync(TModel myDTO) {
+            await _ts.UpdateDTOAndCommitAsync<TModel, TEntity>(myDTO);
         }
-        public async Task<bool> UpdateDTOAsync(TSource myDTO, bool EnableValidation = false, bool confirmation = true, bool returnResult = true) {
+        public async Task<bool> UpdateDTOAsync(TModel myDTO, bool EnableValidation = false, bool confirmation = true, bool returnResult = true) {
             if (myDTO == null) {
                 throw new ArgumentNullException($"{nameof(myDTO)} is null!");
             }
@@ -297,12 +300,14 @@ namespace FerPROJ.DBHelper.Base {
                         if (confirmation) {
                             if (CShowMessage.Ask("Are you sure to update this data?", "Confirmation")) {
                                 await UpdateDataAsync(myDTO);
+                                await CacheManager.SaveToCacheAsync(myDTO);
                                 CShowMessage.Info("Updated Successfully!", "Success");
                                 return true;
                             }
                         }
                         else {
                             await UpdateDataAsync(myDTO);
+                            await CacheManager.SaveToCacheAsync(myDTO);
                             if (returnResult) {
                                 CShowMessage.Info("Updated Successfully!", "Success");
                             }
@@ -438,5 +443,46 @@ namespace FerPROJ.DBHelper.Base {
             }
         }
         #endregion
+
+        #region Base Cache Methods
+        public async Task LoadCache() {
+            var entities = await GetAllAsync();
+            var dtos = entities.ToDestination<TModel>();
+            await CacheManager.SaveListToCacheAsync(dtos);
+        }
+
+        public virtual async Task<IEnumerable<TEntity>> GetAllFromCacheAsync(Func<TEntity, bool> whereCondition = null) {
+
+            // Try to get cached models
+            var models = await CacheManager.GetAllCacheByKeyAsync<TModel>();
+
+            if (models == null) {
+                // If no cache exists, fetch data and map to models once
+                var entities = await GetAllAsync();
+
+                models = entities.ToDestination<TModel>();
+
+                // Cache the fetched models
+                await CacheManager.SaveListToCacheAsync(models);
+            }
+
+            // If a condition is specified, filter models directly without unnecessary remapping
+            if (whereCondition != null) {
+                // Convert models to entities for condition checking, then back to models
+                models = models
+                    .ToDestination<TEntity>()
+                    .Where(whereCondition)
+                    .ToDestination<TModel>();
+
+            }
+
+            // Return the final result as entities, mapping once at the end
+            return models.ToDestination<TEntity>();
+
+        }
+
+
+        #endregion
+
     }
 }

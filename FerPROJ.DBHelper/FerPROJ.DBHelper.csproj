@@ -55,6 +55,7 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -68,6 +69,7 @@
     <Compile Include="Base\BaseDBEntityAsync.cs" />
     <Compile Include="Base\BaseDBEntity.cs" />
     <Compile Include="CRUD\Conn.cs" />
+    <Compile Include="DBCache\CacheManager.cs" />
     <Compile Include="DBExtensions\DBTransactionExtensions.cs" />
     <Compile Include="DBExtensions\IEnumerableExtentions.cs" />
     <Compile Include="DBExtensions\IQueryableExtensions.cs" />
