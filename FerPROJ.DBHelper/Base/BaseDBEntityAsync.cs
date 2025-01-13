@@ -196,14 +196,12 @@ namespace FerPROJ.DBHelper.Base {
                         if (confirmation) {
                             if (CShowMessage.Ask("Are you sure to save this data?", "Confirmation")) {
                                 await SaveDataAsync(myDTO);
-                                await CacheManager.SaveToCacheAsync(myDTO);
                                 CShowMessage.Info("Saved Successfully!", "Success");
                                 return true;
                             }
                         }
                         else {
                             await SaveDataAsync(myDTO);
-                            await CacheManager.SaveToCacheAsync(myDTO);
                             if (returnResult) {
                                 CShowMessage.Info("Saved Successfully!", "Success");
                             }
@@ -300,14 +298,12 @@ namespace FerPROJ.DBHelper.Base {
                         if (confirmation) {
                             if (CShowMessage.Ask("Are you sure to update this data?", "Confirmation")) {
                                 await UpdateDataAsync(myDTO);
-                                await CacheManager.SaveToCacheAsync(myDTO);
                                 CShowMessage.Info("Updated Successfully!", "Success");
                                 return true;
                             }
                         }
                         else {
                             await UpdateDataAsync(myDTO);
-                            await CacheManager.SaveToCacheAsync(myDTO);
                             if (returnResult) {
                                 CShowMessage.Info("Updated Successfully!", "Success");
                             }
@@ -445,13 +441,9 @@ namespace FerPROJ.DBHelper.Base {
         #endregion
 
         #region Base Cache Methods
-        public async Task LoadCache() {
+        public async Task LoadCachedAsync() {
             var entities = await GetAllAsync();
             await CacheManager.SaveAllToCacheAsync(entities);
-        }
-
-        public virtual async Task<IEnumerable<TEntity>> GetAllFromCacheAsync() {
-            return await CacheManager.GetAllEnumerableCacheAsync<TEntity>();
         }
         #endregion
 

@@ -1,4 +1,5 @@
-﻿using FerPROJ.Design.Class;
+﻿using FerPROJ.DBHelper.DBCache;
+using FerPROJ.Design.Class;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -212,8 +213,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
              where TEntity : class {
 
             context.Set<TEntity>().Add(entity);
-
-            await Task.CompletedTask;
+            await CacheManager.SaveToCacheAsync(entity);
         }
         public static async Task SaveRangeAsync<TEntity>(
              this DbContext context,
@@ -221,8 +221,8 @@ namespace FerPROJ.DBHelper.DBExtensions {
              where TEntity : class {
 
             context.Set<TEntity>().AddRange(entity);
+            await CacheManager.SaveAllToCacheAsync(entity);
 
-            await Task.CompletedTask;
         }
         public static async Task SaveAndCommitAsync<TEntity>(
              this DbContext context,
@@ -230,6 +230,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
              where TEntity : class {
 
             context.Set<TEntity>().Add(entity);
+            await CacheManager.SaveToCacheAsync(entity);
 
             await context.SaveChangesAsync();
         }
@@ -239,6 +240,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
              where TEntity : class {
 
             context.Set<TEntity>().AddRange(entity);
+            await CacheManager.SaveAllToCacheAsync(entity);
 
             await context.SaveChangesAsync();
         }
@@ -251,9 +253,8 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             var tbl = new CMapping<TSource, TEntity>().GetMappingResult(myDTO);
 
-            context.Set<TEntity>().Add(tbl);
+            await context.SaveAsync(tbl);
 
-            await Task.CompletedTask;
         }
         public static async Task SaveDTOAndCommitAsync<TSource, TEntity>(this DbContext context, TSource myDTO) where TSource : BaseDTO where TEntity : class {
 
@@ -299,9 +300,8 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 }
             }
 
-            context.Set<TEntity>().Add(tbl);
+            await context.SaveAndCommitAsync(tbl);
 
-            await context.SaveChangesAsync();
         }
         public static async Task SaveRangeDTOAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : BaseDTO where TEntity : class {
 
@@ -313,9 +313,8 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             var tbl = new CMappingList<TSource, TEntity>().GetMappingResultList(myDTO);
 
-            context.Set<TEntity>().AddRange(tbl);
+            await context.SaveRangeAsync(tbl);
 
-            await Task.CompletedTask;
         }
         public static async Task SaveRangeDTOAndCommitAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : BaseDTO where TEntity : class {
 
@@ -327,9 +326,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             var tbl = new CMappingList<TSource, TEntity>().GetMappingResultList(myDTO);
 
-            context.Set<TEntity>().AddRange(tbl);
-
-            await context.SaveChangesAsync();
+            await context.SaveRangeAndCommitAsync(tbl);
         }
         #endregion
 
@@ -342,8 +339,8 @@ namespace FerPROJ.DBHelper.DBExtensions {
             var tbl = new CMapping<TSource, TEntity>().GetMappingResult(myDTO);
 
             context.Set<TEntity>().AddOrUpdate(tbl);
+            await CacheManager.SaveToCacheAsync(tbl);
 
-            await Task.CompletedTask;
         }
         public static async Task UpdateDTOAndCommitAsync<TSource, TEntity>(this DbContext context, TSource myDTO) where TSource : BaseDTO where TEntity : class {
 
@@ -353,6 +350,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             var tbl = new CMapping<TSource, TEntity>().GetMappingResult(myDTO);
 
             context.Set<TEntity>().AddOrUpdate(tbl);
+            await CacheManager.SaveToCacheAsync(tbl);
 
             await context.SaveChangesAsync();
         }
@@ -366,9 +364,10 @@ namespace FerPROJ.DBHelper.DBExtensions {
             var tbl = new CMappingList<TSource, TEntity>().GetMappingResultList(myDTO);
 
             foreach (var item in tbl) {
-                context.Set<TEntity>().AddOrUpdate(item);
+                await context.UpdateAsync(item);
+                await CacheManager.SaveToCacheAsync(item);
             }
-            await Task.CompletedTask;
+
         }
         public static async Task UpdateRangeDTOAndCommitAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : BaseDTO where TEntity : class {
 
@@ -380,9 +379,10 @@ namespace FerPROJ.DBHelper.DBExtensions {
             var tbl = new CMappingList<TSource, TEntity>().GetMappingResultList(myDTO);
 
             foreach (var item in tbl) {
-                context.Set<TEntity>().AddOrUpdate(item);
+                await context.UpdateAndCommitAsync(item);
+                await CacheManager.SaveToCacheAsync(item);
             }
-            await context.SaveChangesAsync();
+
         }
         #endregion
 
@@ -449,8 +449,6 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
         #region Get Method
         public static async Task<TEntity> GetByIdAsync<TEntity, TType>(this DbContext context, TType id) where TEntity : class {
-            // Get the DbSet for TEntity
-            var dbSet = context.Set<TEntity>();
 
             // Use ObjectContext to find the primary key property in EF6
             var objectContext = ((IObjectContextAdapter)context).ObjectContext;
@@ -489,15 +487,13 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 parameter
             );
 
-            // Execute the query with the generated predicate
-            return await dbSet.FirstOrDefaultAsync(predicate);
+            return await context.GetByPredicateAsync(predicate);
+
         }
         public static async Task<TEntity> GetByIdAsync<TEntity, TType>(
             this DbContext context,
             TType id,
             string propertyName) where TEntity : class {
-            // Get the DbSet for TEntity
-            var dbSet = context.Set<TEntity>();
 
             // Find the specified property on TEntity
             var property = typeof(TEntity).GetProperty(propertyName);
@@ -517,10 +513,22 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 parameter
             );
 
-            // Execute the query with the generated predicate
-            return await dbSet.FirstOrDefaultAsync(predicate);
+            return await context.GetByPredicateAsync(predicate);
+
         }
         public static async Task<TEntity> GetByPredicateAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate) where TEntity : class {
+            
+            var cachedData = await CacheManager.GetAllQueryableCacheAsync<TEntity>();
+
+            if (cachedData != null && cachedData.Any()) {
+
+                var result = cachedData.FirstOrDefault(predicate);
+
+                if(result != null) {
+                    return result;
+                }
+            }
+
             return await context.Set<TEntity>().FirstOrDefaultAsync(predicate);
 
         }

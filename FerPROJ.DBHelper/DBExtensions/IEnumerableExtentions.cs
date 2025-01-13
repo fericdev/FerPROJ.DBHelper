@@ -1,4 +1,5 @@
-﻿using FerPROJ.Design.Class;
+﻿using FerPROJ.DBHelper.DBCache;
+using FerPROJ.Design.Class;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -18,7 +19,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 return queryable; // Return the original collection if both dateFrom and dateTo are null.
             }
 
-            if(dateFrom.Value.Date == DateTime.Now.Date && dateTo.Value.Date == DateTime.Now.Date) {
+            if (dateFrom.Value.Date == DateTime.Now.Date && dateTo.Value.Date == DateTime.Now.Date) {
                 return queryable;
             }
 
@@ -42,8 +43,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             }
 
             // Filter the collection
-            return queryable.Where(item =>
-            {
+            return queryable.Where(item => {
                 var propertiesToCheck = property != null ? new List<PropertyInfo> { property } :
                                         typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy)
                                                  .Where(p => p.PropertyType == typeof(DateTime) || p.PropertyType == typeof(DateTime?))
@@ -95,8 +95,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             }
 
             // Build the predicate expression to filter by the search text
-            Func<T, bool> predicate = x =>
-            {
+            Func<T, bool> predicate = x => {
                 var propertyValue = property.GetValue(x) as string;
                 return propertyValue != null && propertyValue.SearchFor(searchText);
             };
@@ -184,8 +183,8 @@ namespace FerPROJ.DBHelper.DBExtensions {
             return await dbSet.ToListAsync();
         }
         public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, string status = null) where TEntity : class {
-            // Get the DbSet for TEntity
-            var dbSet = context.Set<TEntity>();
+
+            var cachedData = await CacheManager.GetAllQueryableCacheAsync<TEntity>();
 
             if (!string.IsNullOrEmpty(status)) {
                 // Check if the Status property exists
@@ -195,16 +194,52 @@ namespace FerPROJ.DBHelper.DBExtensions {
                     // Check if the Status property is of the correct type (e.g., string or int, depending on your design)
                     if (statusProperty.PropertyType == typeof(string)) {
                         // If Status is a string, filter by active status
+
+                        if (cachedData != null && cachedData.Any()) {
+
+                            var result = cachedData.Where(e => (string)statusProperty.GetValue(e) == status);
+
+                            if (result != null && result.Any()) {
+
+                                return result;
+
+                            }
+
+                        }
+
+                        // Get the DbSet for TEntity
+                        var dbSet = context.Set<TEntity>();
+
                         var query = dbSet.Where(e => (string)statusProperty.GetValue(e) == status);
+
                         return await query.ToListAsync();
                     }
                 }
             }
 
-            // If no Status property exists, return all entities
-            return await dbSet.ToListAsync();
+            if (cachedData != null && cachedData.Any()) {
+
+                return cachedData;
+
+            }
+
+            return await context.Set<TEntity>().ToListAsync();
+
         }
         public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> whereCondition) where TEntity : class {
+
+            var cachedData = await CacheManager.GetAllQueryableCacheAsync<TEntity>();
+
+            if (cachedData != null && cachedData.Any()) {
+
+                var result = cachedData.Where(whereCondition);
+
+                if (result != null && result.Any()) {
+                    return result;
+                }
+
+            }
+
             // Get the DbSet for TEntity
             var dbSet = context.Set<TEntity>();
 
