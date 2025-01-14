@@ -150,8 +150,8 @@ namespace FerPROJ.DBHelper.DBExtensions {
         #region Get Method
         //
         public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, string propertyName, object propertyValue) where TEntity : class {
-            // Get the DbSet for TEntity
-            var dbSet = context.Set<TEntity>();
+
+            Expression<Func<TEntity, bool>> whereCondition = null;
 
             if (!string.IsNullOrEmpty(propertyName)) {
                 // Get the property info for the specified property name
@@ -171,51 +171,17 @@ namespace FerPROJ.DBHelper.DBExtensions {
                     var equality = Expression.Equal(propertyAccess, constant);
 
                     // Create a lambda expression representing the predicate (e => e.PropertyName == propertyValue)
-                    var lambda = Expression.Lambda<Func<TEntity, bool>>(equality, parameter);
+                    whereCondition = Expression.Lambda<Func<TEntity, bool>>(equality, parameter);
 
-                    // Use the lambda expression in the query
-                    var query = dbSet.Where(lambda);
-                    return await query.ToListAsync();
                 }
             }
 
             // If no property filter is provided or the property does not exist, return all entities
-            return await dbSet.ToListAsync();
+            return await context.GetAllAsync(whereCondition);
         }
-        public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, string status = null) where TEntity : class {
+        public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context) where TEntity : class {
 
             var cachedData = await CacheManager.GetAllQueryableCacheAsync<TEntity>();
-
-            if (!string.IsNullOrEmpty(status)) {
-                // Check if the Status property exists
-                var statusProperty = typeof(TEntity).GetProperty("Status");
-
-                if (statusProperty != null) {
-                    // Check if the Status property is of the correct type (e.g., string or int, depending on your design)
-                    if (statusProperty.PropertyType == typeof(string)) {
-                        // If Status is a string, filter by active status
-
-                        if (cachedData != null && cachedData.Any()) {
-
-                            var result = cachedData.Where(e => (string)statusProperty.GetValue(e) == status);
-
-                            if (result != null && result.Any()) {
-
-                                return result;
-
-                            }
-
-                        }
-
-                        // Get the DbSet for TEntity
-                        var dbSet = context.Set<TEntity>();
-
-                        var query = dbSet.Where(e => (string)statusProperty.GetValue(e) == status);
-
-                        return await query.ToListAsync();
-                    }
-                }
-            }
 
             if (cachedData != null && cachedData.Any()) {
 
@@ -315,8 +281,34 @@ namespace FerPROJ.DBHelper.DBExtensions {
             Func<TEntity, Task<TResult>> selector) {
 
             var tasks = source.Select(selector); // Creates tasks for each item in the collection
+
             return await Task.WhenAll(tasks);    // Waits for all tasks to complete and returns the results
 
+        }
+
+        public static async Task<IEnumerable<TResult>> SelectListAsync<TEntity, TResult>(
+            this IEnumerable<TEntity> source,
+            Func<TEntity, Task<TResult>> selector,
+            Func<TResult, bool> filter,
+            int dataLimit = 100) {
+
+            var result = new List<TResult>();
+            int count = 0;
+
+            foreach (var item in source) {
+
+                if (count >= dataLimit)
+                    break;
+
+                var transformedItem = await selector(item);
+
+                if (transformedItem != null && filter(transformedItem)) {
+                    result.Add(transformedItem);
+                    count++;
+                }
+            }
+
+            return result;
         }
 
         public static IEnumerable<TEntity> DataLimit<TEntity>(
