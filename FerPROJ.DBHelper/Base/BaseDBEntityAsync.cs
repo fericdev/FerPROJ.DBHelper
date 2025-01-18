@@ -18,6 +18,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.Remoting.Contexts;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -443,7 +444,7 @@ namespace FerPROJ.DBHelper.Base {
         #region Base Cache Methods
         public async Task LoadCachedAsync() {
             var entities = await _ts.GetAllAsync<TEntity>();
-            await CacheManager.SaveAllToCacheAsync(entities);
+            await _ts.SaveAllToCacheAsync(entities);
         }
         #endregion
 

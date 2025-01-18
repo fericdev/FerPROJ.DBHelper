@@ -213,7 +213,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
              where TEntity : class {
 
             context.Set<TEntity>().Add(entity);
-            await CacheManager.SaveToCacheAsync(entity);
+            await context.SaveToCacheAsync(entity);
         }
         public static async Task SaveRangeAsync<TEntity>(
              this DbContext context,
@@ -221,7 +221,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
              where TEntity : class {
 
             context.Set<TEntity>().AddRange(entity);
-            await CacheManager.SaveAllToCacheAsync(entity);
+            await context.SaveAllToCacheAsync(entity);
 
         }
         public static async Task SaveAndCommitAsync<TEntity>(
@@ -230,7 +230,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
              where TEntity : class {
 
             context.Set<TEntity>().Add(entity);
-            await CacheManager.SaveToCacheAsync(entity);
+            await context.SaveToCacheAsync(entity);
 
             await context.SaveChangesAsync();
         }
@@ -240,7 +240,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
              where TEntity : class {
 
             context.Set<TEntity>().AddRange(entity);
-            await CacheManager.SaveAllToCacheAsync(entity);
+            await context.SaveAllToCacheAsync(entity);
 
             await context.SaveChangesAsync();
         }
@@ -339,7 +339,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             var tbl = new CMapping<TSource, TEntity>().GetMappingResult(myDTO);
 
             context.Set<TEntity>().AddOrUpdate(tbl);
-            await CacheManager.SaveToCacheAsync(tbl);
+            await context.SaveToCacheAsync(tbl);
 
         }
         public static async Task UpdateDTOAndCommitAsync<TSource, TEntity>(this DbContext context, TSource myDTO) where TSource : BaseDTO where TEntity : class {
@@ -350,7 +350,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             var tbl = new CMapping<TSource, TEntity>().GetMappingResult(myDTO);
 
             context.Set<TEntity>().AddOrUpdate(tbl);
-            await CacheManager.SaveToCacheAsync(tbl);
+            await context.SaveToCacheAsync(tbl);
 
             await context.SaveChangesAsync();
         }
@@ -365,7 +365,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             foreach (var item in tbl) {
                 await context.UpdateAsync(item);
-                await CacheManager.SaveToCacheAsync(item);
+                await context.SaveToCacheAsync(item);
             }
 
         }
@@ -380,7 +380,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             foreach (var item in tbl) {
                 await context.UpdateAndCommitAsync(item);
-                await CacheManager.SaveToCacheAsync(item);
+                await context.SaveToCacheAsync(item);
             }
 
         }
@@ -449,28 +449,9 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
         #region Get Method
         public static async Task<TEntity> GetByIdAsync<TEntity, TType>(this DbContext context, TType id) where TEntity : class {
-
-            // Use ObjectContext to find the primary key property in EF6
-            var objectContext = ((IObjectContextAdapter)context).ObjectContext;
-            var entityType = objectContext.MetadataWorkspace
-                .GetItems<System.Data.Entity.Core.Metadata.Edm.EntityType>(System.Data.Entity.Core.Metadata.Edm.DataSpace.CSpace)
-                .FirstOrDefault(e => e.Name == typeof(TEntity).Name);
-
-            if (entityType == null) {
-                throw new InvalidOperationException($"Entity type {typeof(TEntity).Name} is not part of the model.");
-            }
-
-            // Get the primary key property name
-            var keyPropertyName = entityType.KeyMembers.FirstOrDefault()?.Name;
-            if (string.IsNullOrEmpty(keyPropertyName)) {
-                throw new InvalidOperationException($"No primary key defined on entity {typeof(TEntity).Name}");
-            }
-
-            // Find the property in TEntity that matches the primary key name
-            var keyProperty = typeof(TEntity).GetProperty(keyPropertyName);
-            if (keyProperty == null) {
-                throw new InvalidOperationException($"No primary key property named '{keyPropertyName}' found on entity {typeof(TEntity).Name}");
-            }
+            
+            // Get Primary Key
+            PropertyInfo keyProperty = context.GetPrimaryKeyOfDbContext<TEntity>();
 
             // Create a parameter expression for the entity type (e.g., "e => e.Id == id")
             var parameter = Expression.Parameter(typeof(TEntity), "e");
@@ -545,6 +526,34 @@ namespace FerPROJ.DBHelper.DBExtensions {
             // Return the new ID with the format "<prefix>-00<count>"
             return $"{prefix}-00{count}";
 
+        }
+        #endregion
+
+        #region Get Primary Key
+        public static PropertyInfo GetPrimaryKeyOfDbContext<TEntity>(this DbContext context) where TEntity : class {
+            // Use ObjectContext to find the primary key property in EF6
+            var objectContext = ((IObjectContextAdapter)context).ObjectContext;
+            var entityType = objectContext.MetadataWorkspace
+                .GetItems<System.Data.Entity.Core.Metadata.Edm.EntityType>(System.Data.Entity.Core.Metadata.Edm.DataSpace.CSpace)
+                .FirstOrDefault(e => e.Name == typeof(TEntity).Name);
+
+            if (entityType == null) {
+                throw new InvalidOperationException($"Entity type {typeof(TEntity).Name} is not part of the model.");
+            }
+
+            // Get the primary key property name
+            var keyPropertyName = entityType.KeyMembers.FirstOrDefault()?.Name;
+            if (string.IsNullOrEmpty(keyPropertyName)) {
+                throw new InvalidOperationException($"No primary key defined on entity {typeof(TEntity).Name}");
+            }
+
+            // Find the property in TEntity that matches the primary key name
+            var keyProperty = typeof(TEntity).GetProperty(keyPropertyName);
+            if (keyProperty == null) {
+                throw new InvalidOperationException($"No primary key property named '{keyPropertyName}' found on entity {typeof(TEntity).Name}");
+            }
+
+            return keyProperty;
         }
         #endregion
     }
