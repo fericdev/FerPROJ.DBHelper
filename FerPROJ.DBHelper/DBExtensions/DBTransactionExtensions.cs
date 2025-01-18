@@ -29,6 +29,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             }
             context.Set<TEntity>().RemoveRange(entity);
             await context.SaveChangesAsync();
+            await context.RemoveAllFromCacheAsync(entity);
         }
         public static async Task RemoveRangeAndCommitAsync<TEntity>(this DbContext context, IEnumerable<TEntity> entity) where TEntity : class {
             if (entity.Count() <= 0) {
@@ -36,30 +37,33 @@ namespace FerPROJ.DBHelper.DBExtensions {
             }
             context.Set<TEntity>().RemoveRange(entity);
             await context.SaveChangesAsync();
+            await context.RemoveAllFromCacheAsync(entity);
         }
         public static async Task RemoveRangeAsync<TEntity>(this DbContext context, ICollection<TEntity> entity) where TEntity : class {
             if (entity.Count() <= 0) {
                 return;
             }
             context.Set<TEntity>().RemoveRange(entity);
-            await Task.CompletedTask;
+            await context.RemoveFromCacheAsync(entity);
         }
         public static async Task RemoveRangeAsync<TEntity>(this DbContext context, IEnumerable<TEntity> entity) where TEntity : class {
             if (entity.Count() <= 0) {
                 return;
             }
             context.Set<TEntity>().RemoveRange(entity);
-            await Task.CompletedTask;
+            await context.RemoveAllFromCacheAsync(entity);
         }
         public static async Task RemoveAndCommitAsync<TEntity>(this DbContext context, TEntity entity) where TEntity : class {
+            
             context.Set<TEntity>().Remove(entity);
-
             await context.SaveChangesAsync();
+            await context.RemoveFromCacheAsync(entity);
         }
         public static async Task RemoveAsync<TEntity>(this DbContext context, TEntity entity) where TEntity : class {
+           
             context.Set<TEntity>().Remove(entity);
+            await context.RemoveFromCacheAsync(entity);
 
-            await Task.CompletedTask;
         }
         #endregion
 
@@ -497,19 +501,24 @@ namespace FerPROJ.DBHelper.DBExtensions {
             return await context.GetByPredicateAsync(predicate);
 
         }
-        public static async Task<TEntity> GetByPredicateAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate) where TEntity : class {
-            
+        public static async Task<TEntity> GetByPredicateCachedAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate) where TEntity : class {
+
             var cachedData = await CacheManager.GetAllQueryableCacheAsync<TEntity>();
 
             if (cachedData != null && cachedData.Any()) {
 
                 var result = cachedData.FirstOrDefault(predicate);
 
-                if(result != null) {
+                if (result != null) {
                     return result;
                 }
             }
 
+            return await context.Set<TEntity>().FirstOrDefaultAsync(predicate);
+
+        }
+        public static async Task<TEntity> GetByPredicateAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate) where TEntity : class {
+            
             return await context.Set<TEntity>().FirstOrDefaultAsync(predicate);
 
         }

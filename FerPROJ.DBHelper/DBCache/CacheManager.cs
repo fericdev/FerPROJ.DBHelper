@@ -42,6 +42,33 @@ namespace FerPROJ.DBHelper.DBCache {
             // Save the updated list to the cache
             await Task.Run(() => _cache.Set(key, existingList, DateTimeOffset.MaxValue));
         }
+        public async static Task RemoveFromCacheAsync<TEntity>(this DbContext dbContext, TEntity value) where TEntity : class {
+            string key = typeof(TEntity).Name;
+
+            // Get the current cached list of TEntity
+            var existingList = await GetAllListCacheAsync<TEntity>();
+
+            // If there's no existing list, there's nothing to remove
+            if (existingList == null) {
+                return;
+            }
+            else {
+                var primaryKey = dbContext.GetPrimaryKeyOfDbContext<TEntity>();
+                if (primaryKey == null) {
+                    return;
+                }
+
+                var primaryValue = primaryKey.GetValue(value);
+                var existingValue = existingList.FirstOrDefault(x => primaryKey.GetValue(x).Equals(primaryValue) == true);
+                if (existingValue != null) {
+                    existingList.Remove(existingValue);
+                }
+
+            }
+
+            // Save the updated list to the cache
+            await Task.Run(() => _cache.Set(key, existingList, DateTimeOffset.MaxValue));
+        }
         public async static Task SaveAllToCacheAsync<TEntity>(this DbContext dbContext, List<TEntity> values) where TEntity : class {
             string key = typeof(TEntity).Name;
 
@@ -76,13 +103,50 @@ namespace FerPROJ.DBHelper.DBCache {
             // Save the updated list to the cache
             await Task.Run(() => _cache.Set(key, existingList, DateTimeOffset.MaxValue));
         }
+        public async static Task RemoveAllFromCacheAsync<TEntity>(this DbContext dbContext, List<TEntity> values) where TEntity : class {
+            string key = typeof(TEntity).Name;
+
+            // Get the current cached list of TEntity
+            var existingList = await GetAllListCacheAsync<TEntity>();
+
+            // If there's no existing list, return
+            if (existingList == null) {
+                return;
+            }
+            else {
+                // Remove all values from the list that are already in the new list
+                foreach (var value in values) {
+
+                    var primaryKey = dbContext.GetPrimaryKeyOfDbContext<TEntity>();
+                    if (primaryKey == null) {
+                        return;
+                    }
+
+                    var primaryValue = primaryKey.GetValue(value);
+
+                    var existingValue = existingList.FirstOrDefault(x => primaryKey.GetValue(x).Equals(primaryValue) == true);
+                    if (existingValue != null) {
+                        existingList.Remove(existingValue);
+                    }
+                }
+            }
+
+            // Save the updated list to the cache
+            await Task.Run(() => _cache.Set(key, existingList, DateTimeOffset.MaxValue));
+        }
 
         public async static Task SaveAllToCacheAsync<TEntity>(this DbContext dbContext, IEnumerable<TEntity> values) where TEntity : class {
             await dbContext.SaveAllToCacheAsync(values.ToList());
         }
+        public async static Task RemoveAllFromCacheAsync<TEntity>(this DbContext dbContext, IEnumerable<TEntity> values) where TEntity : class {
+            await dbContext.RemoveAllFromCacheAsync(values.ToList());
+        }
 
         public async static Task SaveAllToCacheAsync<TEntity>(this DbContext dbContext, ICollection<TEntity> values) where TEntity : class {
             await dbContext.SaveAllToCacheAsync(values.ToList());
+        }
+        public async static Task RemoveAllFromCacheAsync<TEntity>(this DbContext dbContext, ICollection<TEntity> values) where TEntity : class {
+            await dbContext.RemoveAllFromCacheAsync(values.ToList());
         }
         public async static Task<List<TEntity>> GetAllListCacheAsync<TEntity>() where TEntity : class {
             string key = typeof(TEntity).Name;
