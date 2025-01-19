@@ -194,7 +194,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
         }
         public static async Task<IEnumerable<TEntity>> GetAllWithSearchAsync<TEntity>(this DbContext context, string searchText, DateTime? dateFrom, DateTime? dateTo) where TEntity : class {
             
-            var cachedData = await CacheManager.GetAllQueryableCacheAsync<TEntity>();
+            var cachedData = await CacheManager.GetAllEnumerableCacheAsync<TEntity>();
             
             if (cachedData != null && cachedData.Any()) {
 
