@@ -177,7 +177,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             }
 
             // If no property filter is provided or the property does not exist, return all entities
-            return await context.GetAllAsync(whereCondition);
+            return await context.GetAllAsync(whereCondition, false);
         }
         public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context) where TEntity : class {
 
@@ -192,11 +192,34 @@ namespace FerPROJ.DBHelper.DBExtensions {
             return await context.Set<TEntity>().ToListAsync();
 
         }
-        public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> whereCondition) where TEntity : class {
+        public static async Task<IEnumerable<TEntity>> GetAllWithSearchAsync<TEntity>(this DbContext context, string searchText, DateTime? dateFrom, DateTime? dateTo) where TEntity : class {
+            
+            var cachedData = await CacheManager.GetAllQueryableCacheAsync<TEntity>();
+            
+            if (cachedData != null && cachedData.Any()) {
+
+                var result = cachedData.SearchDateRange(dateFrom, dateTo);
+
+                result = cachedData.SearchText(searchText);
+
+                if (result != null && result.Any()) {
+
+                    return result;
+
+                }
+            }
+
+            var query = context.Set<TEntity>().AsEnumerable();
+
+            query = query.SearchDateRange(dateFrom, dateTo);
+
+            return query.SearchText(searchText).ToList();
+        }
+        public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> whereCondition, bool isCached = true) where TEntity : class {
 
             var cachedData = await CacheManager.GetAllQueryableCacheAsync<TEntity>();
 
-            if (cachedData != null && cachedData.Any()) {
+            if (cachedData != null && cachedData.Any() && isCached) {
 
                 var result = cachedData.Where(whereCondition);
 
@@ -320,5 +343,6 @@ namespace FerPROJ.DBHelper.DBExtensions {
         }
 
         #endregion
+
     }
 }

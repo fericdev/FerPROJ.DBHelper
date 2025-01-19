@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.DBExtensions {
     public static class DBTransactionExtensions {
+
         #region properties
         public static bool AllowDuplicate {  get; set; } 
         public static string PropertyToCheck { get; set; }
@@ -89,13 +90,13 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 .ToList();
 
             if (toRemove.Any()) {
-                context.Set<TRelatedEntity>().RemoveRange(toRemove);
+                await context.RemoveRangeAsync(toRemove);
             }
 
             // Set foreign key for each related entity
             foreach (var relatedItem in relatedItems) {
                 setForeignKeyForRelatedEntity(relatedItem, foreignKeyValue);
-                context.Set<TRelatedEntity>().AddOrUpdate(relatedItem);
+                await context.UpdateAsync(relatedItem);
             }
 
             // Commit all changes
@@ -107,8 +108,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
              where TEntity : class {
 
             context.Set<TEntity>().AddOrUpdate(entity);
-
-            await Task.CompletedTask;
+            await context.SaveToCacheAsync(entity);
         }
         public static async Task UpdateRangeWithForeignKeyAsync<TEntity>(
             this DbContext context,
@@ -140,9 +140,6 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 // Add or update the entity
                 await context.SaveAsync(entity);
             }
-
-            //
-            await Task.CompletedTask;
 
         }
         public static async Task UpdateRangeAndCommitWithForeignKeyAsync<TEntity>(
@@ -185,16 +182,15 @@ namespace FerPROJ.DBHelper.DBExtensions {
              List<TEntity> entity)
              where TEntity : class {
             foreach (var item in entity) {
-                context.Set<TEntity>().AddOrUpdate(item);
+                await context.UpdateAsync(item);
             }
-            await Task.CompletedTask;
         }
         public static async Task UpdateAndCommitAsync<TEntity>(
              this DbContext context,
              TEntity entity)
              where TEntity : class {
 
-            context.Set<TEntity>().AddOrUpdate(entity);
+            await context.UpdateAsync(entity);
 
             await context.SaveChangesAsync();
         }
@@ -204,7 +200,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
              where TEntity : class {
 
             foreach (var item in entity) {
-                context.Set<TEntity>().AddOrUpdate(item);
+                await context.UpdateAsync(item);
             }
             await context.SaveChangesAsync();
         }
@@ -565,5 +561,6 @@ namespace FerPROJ.DBHelper.DBExtensions {
             return keyProperty;
         }
         #endregion
+
     }
 }
