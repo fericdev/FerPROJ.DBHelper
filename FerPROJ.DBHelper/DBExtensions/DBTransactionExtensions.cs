@@ -405,9 +405,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             statusProperty.SetValue(entity, CStaticVariable.IN_ACTIVE_STATUS);
 
-            // Mark entity as modified and save changes
-            context.Entry(entity).State = EntityState.Modified;
-            await context.SaveChangesAsync();
+            await context.UpdateAndCommitAsync(entity);
         }
         public static async Task SetStatusActiveAsync<TEntity>(this DbContext context, string id) where TEntity : class {
             // Get the DbSet for TEntity
@@ -441,9 +439,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             statusProperty.SetValue(entity, CStaticVariable.ACTIVE_STATUS);
 
-            // Mark entity as modified and save changes
-            context.Entry(entity).State = EntityState.Modified;
-            await context.SaveChangesAsync();
+            await context.UpdateAndCommitAsync(entity);
         }
         #endregion
 
