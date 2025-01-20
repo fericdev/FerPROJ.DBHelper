@@ -15,12 +15,8 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
         #region Search By Date
         public static IEnumerable<T> SearchDateRange<T>(this IEnumerable<T> queryable, DateTime? dateFrom, DateTime? dateTo, string dateProperty = "") {
-            if (dateFrom == null && dateTo == null) {
+            if (!dateFrom.HasValue && !dateTo.HasValue) {
                 return queryable; // Return the original collection if both dateFrom and dateTo are null.
-            }
-
-            if (dateFrom.Value.Date == DateTime.Now.Date && dateTo.Value.Date == DateTime.Now.Date) {
-                return queryable;
             }
 
             // Get the specified DateTime property if dateProperty is provided
@@ -44,24 +40,28 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             // Filter the collection
             return queryable.Where(item => {
+
                 var propertiesToCheck = property != null ? new List<PropertyInfo> { property } :
                                         typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy)
                                                  .Where(p => p.PropertyType == typeof(DateTime) || p.PropertyType == typeof(DateTime?))
                                                  .ToList();
 
                 foreach (var prop in propertiesToCheck) {
+
                     var propertyValue = (DateTime?)prop.GetValue(item);
 
+                    // If the value is null, skip this property
+                    if (!propertyValue.HasValue)
+                        continue;
+
                     // Check if the property is within the date range
-                    if (propertyValue.HasValue) {
+                    bool isAfterStart = !dateFrom.HasValue || propertyValue > dateFrom.Value.AddDays(-1);
+                    bool isBeforeEnd = !dateTo.HasValue || propertyValue < dateTo.Value.AddDays(1);
 
-                        bool isAfterStart = !dateFrom.HasValue || propertyValue > dateFrom.Value.AddDays(-1);
-                        bool isBeforeEnd = !dateTo.HasValue || propertyValue < dateTo.Value.AddDays(1);
-
-                        if (isAfterStart && isBeforeEnd) {
-                            return true; // Property is within range
-                        }
+                    if (isAfterStart && isBeforeEnd) {
+                        return true; // Property is within range
                     }
+
                 }
 
                 return false; // No properties matched the date range
@@ -194,14 +194,14 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
         }
         public static async Task<IEnumerable<TEntity>> GetAllWithSearchAsync<TEntity>(this DbContext context, string searchText, DateTime? dateFrom, DateTime? dateTo) where TEntity : class {
-            
+
             var cachedData = await CacheManager.GetAllEnumerableCacheAsync<TEntity>();
-            
+
             if (cachedData != null && cachedData.Any()) {
 
-                var result = cachedData.SearchDateRange(dateFrom, dateTo);
+                var result = cachedData.SearchText(searchText);
 
-                result = cachedData.SearchText(searchText);
+                result = cachedData.SearchDateRange(dateFrom, dateTo);
 
                 if (result != null && result.Any()) {
 
