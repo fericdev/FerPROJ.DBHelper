@@ -54,7 +54,8 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
                     // Check if the property is within the date range
                     if (propertyValue.HasValue) {
-                        bool isAfterStart = !dateFrom.HasValue || propertyValue >= dateFrom.Value;
+
+                        bool isAfterStart = !dateFrom.HasValue || propertyValue > dateFrom.Value.AddDays(-1);
                         bool isBeforeEnd = !dateTo.HasValue || propertyValue < dateTo.Value.AddDays(1);
 
                         if (isAfterStart && isBeforeEnd) {
