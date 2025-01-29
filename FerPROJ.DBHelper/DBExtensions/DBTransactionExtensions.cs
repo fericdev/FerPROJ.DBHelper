@@ -1,5 +1,6 @@
 ﻿using FerPROJ.DBHelper.DBCache;
 using FerPROJ.Design.Class;
+using FerPROJ.Design.BaseDTO;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;

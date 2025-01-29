@@ -1,4 +1,5 @@
 ﻿using FerPROJ.Design.Class;
+using FerPROJ.Design.BaseDTO;
 using FerPROJ.Design.Controls;
 using MySql.Data.MySqlClient;
 using System;

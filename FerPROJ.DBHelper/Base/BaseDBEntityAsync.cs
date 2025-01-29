@@ -1,5 +1,6 @@
 ﻿using FerPROJ.DBHelper.Class;
 using FerPROJ.DBHelper.CRUD;
+using FerPROJ.Design.BaseDTO;
 using FerPROJ.DBHelper.DBCache;
 using FerPROJ.DBHelper.DBExtensions;
 using FerPROJ.DBHelper.Query;
