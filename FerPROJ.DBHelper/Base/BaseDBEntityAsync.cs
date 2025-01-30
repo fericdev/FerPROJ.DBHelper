@@ -27,6 +27,7 @@ using static FerPROJ.Design.Class.CEnum;
 
 namespace FerPROJ.DBHelper.Base {
     public abstract class BaseDBEntityAsync<EntityContext, TModel, TEntity, TType> : IDisposable where EntityContext : DbContext where TModel : BaseDTO where TEntity : class {
+       
         #region BaseProperties
         public string _tableName { get; set; }
         public string _tableDetailsName { get; set; }
