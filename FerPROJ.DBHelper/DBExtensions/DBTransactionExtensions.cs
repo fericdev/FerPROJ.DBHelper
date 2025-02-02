@@ -112,7 +112,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             await Task.CompletedTask;
 
-            //await context.SaveToCacheAsync(entity);
+            await context.SaveToCacheAsync(entity);
         }
         public static async Task UpdateRangeWithForeignKeyAsync<TEntity>(
             this DbContext context,
@@ -218,7 +218,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             context.Set<TEntity>().Add(entity);
             await Task.CompletedTask;
-            //await context.SaveToCacheAsync(entity);
+            await context.SaveToCacheAsync(entity);
         }
         public static async Task SaveRangeAsync<TEntity>(
              this DbContext context,
@@ -226,8 +226,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
              where TEntity : class {
 
             context.Set<TEntity>().AddRange(entity);
-            await Task.CompletedTask;
-            //await context.SaveAllToCacheAsync(entity);
+            await context.SaveAllToCacheAsync(entity);
 
         }
         public static async Task SaveAndCommitAsync<TEntity>(
@@ -236,7 +235,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
              where TEntity : class {
 
             context.Set<TEntity>().Add(entity);
-            //await context.SaveToCacheAsync(entity);
+            await context.SaveToCacheAsync(entity);
 
             await context.SaveChangesAsync();
         }
@@ -246,7 +245,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
              where TEntity : class {
 
             context.Set<TEntity>().AddRange(entity);
-            //await context.SaveAllToCacheAsync(entity);
+            await context.SaveAllToCacheAsync(entity);
 
             await context.SaveChangesAsync();
         }
@@ -345,7 +344,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             var tbl = new CMapping<TSource, TEntity>().GetMappingResult(myDTO);
 
             context.Set<TEntity>().AddOrUpdate(tbl);
-            //await context.SaveToCacheAsync(tbl);
+            await context.SaveToCacheAsync(tbl);
             await Task.CompletedTask;
 
         }
@@ -357,7 +356,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             var tbl = new CMapping<TSource, TEntity>().GetMappingResult(myDTO);
 
             context.Set<TEntity>().AddOrUpdate(tbl);
-            //await context.SaveToCacheAsync(tbl);
+            await context.SaveToCacheAsync(tbl);
 
             await context.SaveChangesAsync();
         }
@@ -372,7 +371,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             foreach (var item in tbl) {
                 await context.UpdateAsync(item);
-                //await context.SaveToCacheAsync(item);
+                await context.SaveToCacheAsync(item);
             }
 
         }
@@ -387,7 +386,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             foreach (var item in tbl) {
                 await context.UpdateAndCommitAsync(item);
-                //await context.SaveToCacheAsync(item);
+                await context.SaveToCacheAsync(item);
             }
 
         }
@@ -534,6 +533,103 @@ namespace FerPROJ.DBHelper.DBExtensions {
             // Return the new ID with the format "<prefix>-00<count>"
             return $"{prefix}-00{count}";
 
+        }
+        #endregion
+
+        #region Get All Method
+        //
+        public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, string propertyName, object propertyValue) where TEntity : class {
+
+            Expression<Func<TEntity, bool>> whereCondition = null;
+
+            if (!string.IsNullOrEmpty(propertyName)) {
+                // Get the property info for the specified property name
+                var property = typeof(TEntity).GetProperty(propertyName);
+
+                if (property != null) {
+                    // Create a parameter expression representing the entity (e.g., e => e.PropertyName)
+                    var parameter = Expression.Parameter(typeof(TEntity), "e");
+
+                    // Create an expression for accessing the property (e.PropertyName)
+                    var propertyAccess = Expression.MakeMemberAccess(parameter, property);
+
+                    // Create a constant expression for the value to compare against (propertyValue)
+                    var constant = Expression.Constant(propertyValue);
+
+                    // Create an equality expression (e.PropertyName == propertyValue)
+                    var equality = Expression.Equal(propertyAccess, constant);
+
+                    // Create a lambda expression representing the predicate (e => e.PropertyName == propertyValue)
+                    whereCondition = Expression.Lambda<Func<TEntity, bool>>(equality, parameter);
+
+                }
+            }
+
+            // If no property filter is provided or the property does not exist, return all entities
+            return await context.GetAllAsync(whereCondition, false);
+        }
+        public static async Task<IEnumerable<TEntity>> GetAllWithSearchAsync<TEntity>(this DbContext context, string searchText, DateTime? dateFrom, DateTime? dateTo, bool isCached = true) where TEntity : class {
+
+            var cachedData = await CacheManager.GetAllEnumerableCacheAsync<TEntity>();
+
+            if (cachedData != null && cachedData.Any() && isCached) {
+
+                var result = cachedData.SearchDateRange(dateFrom, dateTo);
+
+                result = cachedData.SearchText(searchText);
+
+                if (result != null && result.Any()) {
+
+                    return result.ToList();
+
+                }
+            }
+
+            var query = context.Set<TEntity>().AsEnumerable();
+
+            query = query.SearchDateRange(dateFrom, dateTo);
+
+            return await Task.FromResult(query.SearchText(searchText).ToList());
+        }
+        public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, bool isCached = true) where TEntity : class {
+
+            var cachedData = await CacheManager.GetAllQueryableCacheAsync<TEntity>();
+
+            if (cachedData != null && cachedData.Any() && isCached) {
+
+                return cachedData;
+
+            }
+
+            return await context.Set<TEntity>().ToListAsync();
+
+        }
+        public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> whereCondition, bool isCached = true) where TEntity : class {
+
+            var cachedData = await CacheManager.GetAllQueryableCacheAsync<TEntity>();
+
+            if (cachedData != null && cachedData.Any() && isCached) {
+
+                var result = cachedData.Where(whereCondition);
+
+                if (result != null && result.Any()) {
+
+                    return result.ToList();
+
+                }
+
+            }
+
+            // Get the DbSet for TEntity
+            var dbSet = context.Set<TEntity>();
+
+            // Apply the where condition if provided
+            var query = dbSet.AsQueryable();
+
+            query = query.Where(whereCondition);
+
+            // If no Status property exists, return all entities
+            return await query.ToListAsync();
         }
         #endregion
 

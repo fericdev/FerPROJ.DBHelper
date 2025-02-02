@@ -1,9 +1,12 @@
-﻿using FerPROJ.DBHelper.DBExtensions;
+﻿using FerPROJ.DBHelper.Base;
+using FerPROJ.DBHelper.DBExtensions;
+using FerPROJ.Design.BaseDTO;
 using FerPROJ.Design.Class;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.Caching;
 using System.Text;
 using System.Threading.Tasks;
@@ -41,7 +44,7 @@ namespace FerPROJ.DBHelper.DBCache {
             existingList.Add(value);
 
             // Save the updated list to the cache
-            await Task.Run(() => _cache.Set(key, existingList, DateTimeOffset.MaxValue));
+            _cache.Set(key, existingList, DateTimeOffset.MaxValue);
         }
         public async static Task SaveAllToCacheAsync<TEntity>(this DbContext dbContext, List<TEntity> values) where TEntity : class {
             string key = typeof(TEntity).Name;
@@ -75,7 +78,7 @@ namespace FerPROJ.DBHelper.DBCache {
             existingList.AddRange(values);
 
             // Save the updated list to the cache
-            await Task.Run(() => _cache.Set(key, existingList, DateTimeOffset.MaxValue));
+            _cache.Set(key, existingList, DateTimeOffset.MaxValue);
         }
 
         public async static Task SaveAllToCacheAsync<TEntity>(this DbContext dbContext, IEnumerable<TEntity> values) where TEntity : class {
@@ -91,16 +94,21 @@ namespace FerPROJ.DBHelper.DBCache {
         #region Clear and Save
         public async static Task ClearAndSaveAllToCacheAsync<TEntity>(this DbContext dbContext, List<TEntity> values) where TEntity : class {
             //
+            if(values.Count <= 0) {
+                return;
+            }
+            //
             string key = typeof(TEntity).Name;
-            //
-            var newList = new List<TEntity>();
-            // Add the new values to the existing list
-            newList.AddRange(values);
-            // Save the updated list to the cache
-            await Task.Run(() => _cache.Set(key, newList, DateTimeOffset.MaxValue));
-            //
-            Console.WriteLine("Cache Cleared and Saved:" + key + " TIME:" + DateTime.Now.TimeOfDay + "Count:" + newList.Count);
 
+            // Clear the cache synchronously (fast operation)
+            _cache.Remove(key);
+
+            // Save the updated list to the cache synchronously
+            _cache.Set(key, values, DateTimeOffset.MaxValue);
+
+            Console.WriteLine($"Cache Cleared and Saved: {key} TIME: {DateTime.Now.TimeOfDay} Count: {values.Count}");
+
+            await Task.CompletedTask;
         }
 
         public async static Task ClearAndSaveAllToCacheAsync<TEntity>(this DbContext dbContext, IEnumerable<TEntity> values) where TEntity : class {
@@ -189,7 +197,7 @@ namespace FerPROJ.DBHelper.DBCache {
         #region Get 
         public async static Task<List<TEntity>> GetAllListCacheAsync<TEntity>() where TEntity : class {
             string key = typeof(TEntity).Name;
-            return await Task.Run(() => _cache.Get(key) as List<TEntity>);
+            return await Task.FromResult(_cache.Get(key) as List<TEntity>);
         }
         public async static Task<IEnumerable<TEntity>> GetAllEnumerableCacheAsync<TEntity>() where TEntity : class {
             var result = await GetAllListCacheAsync<TEntity>();
@@ -198,6 +206,52 @@ namespace FerPROJ.DBHelper.DBCache {
         public async static Task<IQueryable<TEntity>> GetAllQueryableCacheAsync<TEntity>() where TEntity : class {
             var result = await GetAllListCacheAsync<TEntity>();
             return result?.AsQueryable();
+        }
+        #endregion
+
+        #region Load all Cached From DB
+        public static List<Func<Task>> GetCacheLoadTasks(Type dbContextType) {
+            var baseGenericType = typeof(BaseDBEntityAsync<,,,>);
+
+            // List of assemblies to search, including current and referenced assemblies
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies()
+                .Where(a => !a.IsDynamic)  // Ignore dynamic assemblies
+                .ToList();
+
+            // Get the derived types (that implement BaseDBEntityAsync)
+            var derivedTypes = assemblies
+                .SelectMany(a => a.GetTypes())
+                .Where(t => !t.IsAbstract && IsSubclassOfRawGeneric(baseGenericType, t))
+                .ToList();
+
+            var tasks = new List<Func<Task>>();
+
+            foreach (var type in derivedTypes) {
+                var method = type.GetMethod("LoadCachedAsync");
+                if (method != null) {
+                    // Create a new instance of DbContext dynamically inside each task
+                    tasks.Add(async () => {
+                        using (var freshDbContext = (DbContext)Activator.CreateInstance(dbContextType)) {
+                            var instance = Activator.CreateInstance(type, freshDbContext);
+                            await (Task)method.Invoke(instance, null);
+                        }
+                    });
+                }
+            }
+
+            return tasks;
+        }
+
+        // Helper to check generic inheritance
+        private static bool IsSubclassOfRawGeneric(Type generic, Type toCheck) {
+            while (toCheck != null && toCheck != typeof(object)) {
+                var cur = toCheck.IsGenericType ? toCheck.GetGenericTypeDefinition() : toCheck;
+                if (generic == cur) {
+                    return true;
+                }
+                toCheck = toCheck.BaseType;
+            }
+            return false;
         }
         #endregion
 

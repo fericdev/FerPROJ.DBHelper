@@ -437,7 +437,7 @@ namespace FerPROJ.DBHelper.Base {
         #endregion
 
         #region Base Cache Methods
-        public async Task LoadCachedAsync() {
+        public virtual async Task LoadCachedAsync() {
             var entities = await _ts.GetAllAsync<TEntity>(false);
             await _ts.ClearAndSaveAllToCacheAsync(entities);
         }
