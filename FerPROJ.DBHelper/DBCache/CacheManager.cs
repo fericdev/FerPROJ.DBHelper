@@ -12,7 +12,7 @@ namespace FerPROJ.DBHelper.DBCache {
     public static class CacheManager {
 
         private static MemoryCache _cache = MemoryCache.Default;
-        
+
         #region Save
         public async static Task SaveToCacheAsync<TEntity>(this DbContext dbContext, TEntity value) where TEntity : class {
             string key = typeof(TEntity).Name;
@@ -31,7 +31,7 @@ namespace FerPROJ.DBHelper.DBCache {
                 }
 
                 var primaryValue = primaryKey.GetValue(value);
-                var existingValue = existingList.FirstOrDefault(x => primaryKey.GetValue(x).Equals(primaryValue) == true);              
+                var existingValue = existingList.FirstOrDefault(x => primaryKey.GetValue(x).Equals(primaryValue) == true);
                 if (existingValue != null) {
                     existingList.Remove(existingValue);
                 }
@@ -84,6 +84,31 @@ namespace FerPROJ.DBHelper.DBCache {
 
         public async static Task SaveAllToCacheAsync<TEntity>(this DbContext dbContext, ICollection<TEntity> values) where TEntity : class {
             await dbContext.SaveAllToCacheAsync(values.ToList());
+        }
+
+        #endregion
+
+        #region Clear and Save
+        public async static Task ClearAndSaveAllToCacheAsync<TEntity>(this DbContext dbContext, List<TEntity> values) where TEntity : class {
+            //
+            string key = typeof(TEntity).Name;
+            //
+            var newList = new List<TEntity>();
+            // Add the new values to the existing list
+            newList.AddRange(values);
+            // Save the updated list to the cache
+            await Task.Run(() => _cache.Set(key, newList, DateTimeOffset.MaxValue));
+            //
+            Console.WriteLine("Cache Cleared and Saved:" + key + " TIME:" + DateTime.Now.TimeOfDay + "Count:" + newList.Count);
+
+        }
+
+        public async static Task ClearAndSaveAllToCacheAsync<TEntity>(this DbContext dbContext, IEnumerable<TEntity> values) where TEntity : class {
+            await dbContext.ClearAndSaveAllToCacheAsync(values.ToList());
+        }
+
+        public async static Task ClearAndSaveAllToCacheAsync<TEntity>(this DbContext dbContext, ICollection<TEntity> values) where TEntity : class {
+            await dbContext.ClearAndSaveAllToCacheAsync(values.ToList());
         }
 
         #endregion
