@@ -109,7 +109,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
              where TEntity : class {
 
             context.Set<TEntity>().AddOrUpdate(entity);
-
+            UpdateFieldsOfEntity(entity);
             await Task.CompletedTask;
 
             await context.SaveToCacheAsync(entity);
@@ -688,6 +688,32 @@ namespace FerPROJ.DBHelper.DBExtensions {
             }
 
             return keyProperty;
+        }
+        #endregion
+
+        #region Check extra property 
+        private static void UpdateFieldsOfEntity<TEntity>(TEntity entity)
+            where TEntity : class {
+
+            var type = typeof(TEntity);
+
+            // Check for DateModified property
+            var dateModifiedProperty = type.GetProperty("DateModified");
+            if (dateModifiedProperty != null && dateModifiedProperty.CanWrite) {
+                dateModifiedProperty.SetValue(entity, DateTime.Now);
+            }
+
+            // Check for ModifiedBy property
+            var modifiedByProperty = type.GetProperty("ModifiedBy");
+            if (modifiedByProperty != null && modifiedByProperty.CanWrite) {
+                modifiedByProperty.SetValue(entity, CStaticVariable.USERNAME); // Default to "Unknown" if null
+            }
+        }
+        private static void UpdateFieldsOfEntities<TEntity>(ICollection<TEntity> entities)
+            where TEntity : class {
+            foreach (var entity in entities) {
+                UpdateFieldsOfEntity(entity);
+            }
         }
         #endregion
 
