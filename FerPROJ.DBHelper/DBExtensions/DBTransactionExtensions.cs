@@ -15,6 +15,7 @@ using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections;
 
 namespace FerPROJ.DBHelper.DBExtensions {
     public static class DBTransactionExtensions {
@@ -585,11 +586,15 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 }
             }
 
-            var query = context.Set<TEntity>().AsEnumerable();
+            var query = context.Set<TEntity>().AsQueryable();
 
             query = query.SearchDateRange(dateFrom, dateTo);
 
-            return await Task.FromResult(query.SearchText(searchText).ToList());
+            query = query.SearchText(searchText);
+
+            query = query.Take(100);
+
+            return await query.ToListAsync();
         }
         public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, bool isCached = true) where TEntity : class {
 
@@ -621,6 +626,21 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 // Compare the two lists based on their properties
                 var newOrModifiedData = CComparison.CompareLists(queryData, cachedData);
 
+                // Step 1: Get the primary key property
+                var pkeyProperty = context.GetPrimaryKeyOfDbContext<TEntity>();
+
+                var pkeyValues = await context.GetPrimaryKeyValuesAsync<TEntity>();
+
+                var cachedIds = cached.Select(item => pkeyProperty.GetValue(item))
+                                .ToList();
+
+                var deletedIds = cachedIds.Except(pkeyValues).ToList();
+
+                if(deletedIds.Count > 0) {
+
+                    await context.RemoveAllByIdsFromCacheAsync<TEntity>(deletedIds);
+
+                }
                 // If there is new or modified data, return it
                 if (newOrModifiedData.Any()) {
 
@@ -689,6 +709,46 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             return keyProperty;
         }
+
+        public static async Task<List<object>> GetPrimaryKeyValuesAsync<TEntity>(this DbContext context) where TEntity : class {
+            var keyProperty = context.GetPrimaryKeyOfDbContext<TEntity>();
+            var keyType = keyProperty.PropertyType;
+
+            // Parameter expression (e =>)
+            var parameter = Expression.Parameter(typeof(TEntity), "e");
+
+            // Property access (e.KeyProperty)
+            var propertyAccess = Expression.Property(parameter, keyProperty.Name);
+
+            // Create lambda expression (e => e.KeyProperty)
+            var lambda = Expression.Lambda(propertyAccess, parameter);
+
+            // Create the IQueryable of primary key values using the correct types
+            var query = context.Set<TEntity>().AsQueryable();
+
+            // Use reflection to invoke Select method with the correct generic parameters
+            var selectMethod = typeof(Queryable)
+                .GetMethods()
+                .First(m => m.Name == "Select" && m.GetParameters().Length == 2)
+                .MakeGenericMethod(typeof(TEntity), keyType);
+
+            // Execute Select with the lambda expression
+            var primaryKeysQuery = selectMethod.Invoke(null, new object[] { query, lambda });
+
+            // Convert the result to List<object> and execute asynchronously (no need for MakeGenericMethod)
+            var toListAsyncMethod = typeof(System.Data.Entity.QueryableExtensions)
+                .GetMethods()
+                .First(m => m.Name == nameof(System.Data.Entity.QueryableExtensions.ToListAsync) && m.GetParameters().Length == 1);
+
+            // Execute asynchronously
+            var task = (Task)toListAsyncMethod.Invoke(null, new object[] { primaryKeysQuery });
+            await task.ConfigureAwait(false);
+
+            // Convert results to List<object>
+            var result = (IEnumerable)task.GetType().GetProperty("Result").GetValue(task);
+            return result.Cast<object>().ToList();
+        }
+
         #endregion
 
         #region Check extra property 

@@ -97,5 +97,111 @@ namespace FerPROJ.DBHelper.DBExtensions {
         }
         #endregion
 
+        #region Search by Text Property
+        public static IQueryable<T> SearchTextByProperty<T>(this IQueryable<T> queryable, string searchText, string propertyName) {
+            // Get the property from the type or its base classes
+            PropertyInfo property = null;
+            Type type = typeof(T);
+
+            // Traverse up the inheritance chain to find the property in the class or its base classes
+            while (type != null) {
+                property = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+                if (property != null) {
+                    break;
+                }
+                type = type.BaseType;
+            }
+
+            // If the property was not found, return the original collection as there's nothing to search by
+            if (property == null) {
+                throw new ArgumentException($"Property '{propertyName}' not found on type '{typeof(T).Name}' or its base classes.");
+            }
+
+            // Check if the found property is of type string
+            if (property.PropertyType != typeof(string)) {
+                throw new ArgumentException($"Property '{propertyName}' must be of type 'string'.");
+            }
+
+            // Create parameter for the entity
+            ParameterExpression parameter = Expression.Parameter(typeof(T), "x");
+
+            // Create the property expression
+            MemberExpression propertyExpression = Expression.Property(parameter, property);
+
+            // Create the search text comparison
+            MethodInfo containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) });
+            MethodCallExpression containsExpression = Expression.Call(propertyExpression, containsMethod, Expression.Constant(searchText));
+
+            // Create the predicate expression
+            Expression<Func<T, bool>> predicate = Expression.Lambda<Func<T, bool>>(containsExpression, parameter);
+
+            // Apply the predicate to filter the IQueryable collection
+            return queryable.Where(predicate);
+        }
+
+        #endregion
+
+        #region Search by Text
+        public static IQueryable<T> SearchText<T>(this IQueryable<T> queryable, string searchText) {
+            if (string.IsNullOrEmpty(searchText)) {
+                return queryable; // Return original query if searchText is empty.
+            }
+
+            // Get the properties of the type and all its base classes
+            var properties = new List<PropertyInfo>();
+            Type type = typeof(T);
+
+            // Traverse up the inheritance hierarchy to get all string properties
+            while (type != null) {
+                properties.AddRange(
+                    type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+                        .Where(p => p.PropertyType == typeof(string))
+                );
+                type = type.BaseType;
+            }
+
+            if (!properties.Any()) {
+                return queryable; // Return original query if no string properties are found.
+            }
+
+            // Create parameter for the entity
+            ParameterExpression parameter = Expression.Parameter(typeof(T), "x");
+
+            // Initialize the expression for the OR condition
+            Expression combinedExpression = null;
+
+            foreach (var property in properties) {
+                // Create the property expression
+                MemberExpression propertyExpression = Expression.Property(parameter, property);
+
+                // Check if the property is of type string and build the "Contains" check
+                if (property.PropertyType == typeof(string)) {
+                    // Create the method call expression for the Contains method
+                    MethodInfo containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) });
+                    MethodCallExpression containsExpression = Expression.Call(propertyExpression, containsMethod, Expression.Constant(searchText));
+
+                    // Combine the expression with OR if it's the first one or use OR for subsequent properties
+                    if (combinedExpression == null) {
+                        combinedExpression = containsExpression;
+                    }
+                    else {
+                        combinedExpression = Expression.OrElse(combinedExpression, containsExpression);
+                    }
+
+                }
+            }
+
+            // If no matching properties found, return the original query
+            if (combinedExpression == null) {
+                return queryable;
+            }
+
+            // Create the lambda expression and apply the predicate to filter the IQueryable collection
+            Expression<Func<T, bool>> predicate = Expression.Lambda<Func<T, bool>>(combinedExpression, parameter);
+            return queryable.Where(predicate);
+        }
+
+        #endregion
+
     }
 }

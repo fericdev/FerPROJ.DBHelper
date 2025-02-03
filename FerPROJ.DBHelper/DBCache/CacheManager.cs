@@ -194,6 +194,11 @@ namespace FerPROJ.DBHelper.DBCache {
         }
 
         public async static Task RemoveAllFromCacheAsync<TEntity>(this DbContext dbContext, List<TEntity> values) where TEntity : class {
+
+            if (values.Count <= 0) {
+                return;
+            }
+
             string key = typeof(TEntity).Name;
 
             // Get the current cached list of TEntity
@@ -204,25 +209,14 @@ namespace FerPROJ.DBHelper.DBCache {
                 return;
             }
             else {
-                // Remove all values from the list that are already in the new list
-                foreach (var value in values) {
-
-                    var primaryKey = dbContext.GetPrimaryKeyOfDbContext<TEntity>();
-                    if (primaryKey == null) {
-                        return;
-                    }
-
-                    var primaryValue = primaryKey.GetValue(value);
-
-                    var existingValue = existingList.FirstOrDefault(x => primaryKey.GetValue(x).Equals(primaryValue) == true);
-                    if (existingValue != null) {
-                        existingList.Remove(existingValue);
-                    }
+                foreach (var value in values) { 
+                    existingList.Remove(value);
                 }
             }
 
             // Save the updated list to the cache
             await Task.Run(() => _cache.Set(key, existingList, DateTimeOffset.MaxValue));
+
         }
 
 
@@ -235,6 +229,69 @@ namespace FerPROJ.DBHelper.DBCache {
             await dbContext.RemoveAllFromCacheAsync(values.ToList());
         }
 
+        #endregion
+
+        #region Remove by list ids
+        public async static Task RemoveAllByIdsFromCacheAsync<TEntity>(this DbContext dbContext, List<object> values) where TEntity : class {
+
+            if (values.Count <= 0) {
+                return;
+            }
+
+            string key = typeof(TEntity).Name;
+
+            // Get the current cached list of TEntity
+            var existingList = await GetAllListCacheAsync<TEntity>();
+
+            // If there's no existing list, return
+            if (existingList == null) {
+                return;
+            }
+
+            var primaryKey = dbContext.GetPrimaryKeyOfDbContext<TEntity>();
+
+            if (primaryKey == null) {
+                return;
+            }
+
+            // Prepare a list to store items to remove
+            var itemsToRemove = new List<TEntity>();
+
+            // Loop through each object value in the values list
+            foreach (var value in values) {
+
+                var existingValue = existingList.FirstOrDefault(x => primaryKey.GetValue(x).Equals(value));
+
+                if (existingValue != null) {
+
+                    itemsToRemove.Add(existingValue);
+
+                }
+
+            }
+
+            // Remove identified items after the iteration
+            foreach (var item in itemsToRemove) {
+
+                existingList.Remove(item);
+
+            }
+
+            // Save the updated list to the cache
+            await Task.Run(() => _cache.Set(key, existingList, DateTimeOffset.MaxValue));
+
+            Console.WriteLine($"Updated: {key} TIME: {DateTime.Now.TimeOfDay} Count: {existingList.Count}");
+        }
+
+        // Overload for IEnumerable
+        public async static Task RemoveAllFromCacheAsync<TEntity>(this DbContext dbContext, IEnumerable<object> values) where TEntity : class {
+            await dbContext.RemoveAllByIdsFromCacheAsync<TEntity>(values.ToList());
+        }
+
+        // Overload for ICollection
+        public async static Task RemoveAllFromCacheAsync<TEntity>(this DbContext dbContext, ICollection<object> values) where TEntity : class {
+            await dbContext.RemoveAllByIdsFromCacheAsync<TEntity>(values.ToList());
+        }
         #endregion
 
         #region Get 
