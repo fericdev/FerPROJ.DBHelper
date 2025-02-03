@@ -18,6 +18,10 @@ namespace FerPROJ.DBHelper.DBCache {
 
         #region Save
         public async static Task SaveToCacheAsync<TEntity>(this DbContext dbContext, TEntity value) where TEntity : class {
+            if (value == null) {
+                return;
+            }
+
             string key = typeof(TEntity).Name;
 
             // Get the current cached list of TEntity
@@ -35,18 +39,26 @@ namespace FerPROJ.DBHelper.DBCache {
 
                 var primaryValue = primaryKey.GetValue(value);
                 var existingValue = existingList.FirstOrDefault(x => primaryKey.GetValue(x).Equals(primaryValue) == true);
+                // Remove the existing value after identifying it
                 if (existingValue != null) {
-                    existingList.Remove(existingValue);
+                    existingList = existingList.Where(x => !primaryKey.GetValue(x).Equals(primaryValue)).ToList();
                 }
-
             }
 
+            // Now you can safely add the new value
             existingList.Add(value);
 
             // Save the updated list to the cache
             _cache.Set(key, existingList, DateTimeOffset.MaxValue);
+
+            Console.WriteLine($"Cache Cleared and Saved: {key} TIME: {DateTime.Now.TimeOfDay} Count: {existingList.Count}");
         }
         public async static Task SaveAllToCacheAsync<TEntity>(this DbContext dbContext, List<TEntity> values) where TEntity : class {
+
+            if (values.Count <= 0) {
+                return;
+            }
+
             string key = typeof(TEntity).Name;
 
             // Get the current cached list of TEntity
@@ -57,20 +69,35 @@ namespace FerPROJ.DBHelper.DBCache {
                 existingList = new List<TEntity>();
             }
             else {
-                // Remove all values from the list that are already in the new list
-                foreach (var value in values) {
 
-                    var primaryKey = dbContext.GetPrimaryKeyOfDbContext<TEntity>();
-                    if (primaryKey == null) {
-                        return;
-                    }
+                var primaryKey = dbContext.GetPrimaryKeyOfDbContext<TEntity>();
+
+                if (primaryKey == null) {
+                    return;
+                }
+
+                // Prepare a list to store items to remove
+                var itemsToRemove = new List<TEntity>();
+
+                // Identify the items to remove without modifying the collection during iteration
+                foreach (var value in values) {
 
                     var primaryValue = primaryKey.GetValue(value);
 
-                    var existingValue = existingList.FirstOrDefault(x => primaryKey.GetValue(x).Equals(primaryValue) == true);
+                    var existingValue = existingList.FirstOrDefault(x => primaryKey.GetValue(x).Equals(primaryValue));
+
                     if (existingValue != null) {
-                        existingList.Remove(existingValue);
+
+                        itemsToRemove.Add(existingValue);
+
                     }
+                }
+
+                // Remove identified items after the iteration
+                foreach (var item in itemsToRemove) {
+
+                    existingList.Remove(item);
+
                 }
             }
 
@@ -79,13 +106,29 @@ namespace FerPROJ.DBHelper.DBCache {
 
             // Save the updated list to the cache
             _cache.Set(key, existingList, DateTimeOffset.MaxValue);
+
+            Console.WriteLine($"Cache Cleared and Saved: {key} TIME: {DateTime.Now.TimeOfDay} Count: {existingList.Count}");
         }
 
         public async static Task SaveAllToCacheAsync<TEntity>(this DbContext dbContext, IEnumerable<TEntity> values) where TEntity : class {
+
+            if (values == null || !values.Any()) {
+
+                return;
+
+            }
+
             await dbContext.SaveAllToCacheAsync(values.ToList());
         }
 
         public async static Task SaveAllToCacheAsync<TEntity>(this DbContext dbContext, ICollection<TEntity> values) where TEntity : class {
+
+            if (values == null || !values.Any()) {
+
+                return;
+
+            }
+
             await dbContext.SaveAllToCacheAsync(values.ToList());
         }
 
@@ -94,7 +137,7 @@ namespace FerPROJ.DBHelper.DBCache {
         #region Clear and Save
         public async static Task ClearAndSaveAllToCacheAsync<TEntity>(this DbContext dbContext, List<TEntity> values) where TEntity : class {
             //
-            if(values.Count <= 0) {
+            if (values.Count <= 0) {
                 return;
             }
             //

@@ -20,7 +20,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
     public static class DBTransactionExtensions {
 
         #region properties
-        public static bool AllowDuplicate {  get; set; } 
+        public static bool AllowDuplicate { get; set; }
         public static string PropertyToCheck { get; set; }
         #endregion
 
@@ -56,13 +56,13 @@ namespace FerPROJ.DBHelper.DBExtensions {
             await context.RemoveAllFromCacheAsync(entity);
         }
         public static async Task RemoveAndCommitAsync<TEntity>(this DbContext context, TEntity entity) where TEntity : class {
-            
+
             context.Set<TEntity>().Remove(entity);
             await context.SaveChangesAsync();
             await context.RemoveFromCacheAsync(entity);
         }
         public static async Task RemoveAsync<TEntity>(this DbContext context, TEntity entity) where TEntity : class {
-           
+
             context.Set<TEntity>().Remove(entity);
             await context.RemoveFromCacheAsync(entity);
 
@@ -394,7 +394,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
         #region Update Status
         public static async Task SetStatusInActiveAsync<TEntity>(this DbContext context, string id) where TEntity : class {
-         
+
             // Retrieve the entity by primary key
             var entity = await context.GetByIdAsync<TEntity, string>(id);
 
@@ -451,7 +451,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
         #region Get Method
         public static async Task<TEntity> GetByIdAsync<TEntity, TType>(this DbContext context, TType id) where TEntity : class {
-            
+
             // Get Primary Key
             PropertyInfo keyProperty = context.GetPrimaryKeyOfDbContext<TEntity>();
 
@@ -516,7 +516,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
         }
         public static async Task<TEntity> GetByPredicateAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate) where TEntity : class {
-            
+
             return await context.Set<TEntity>().FirstOrDefaultAsync(predicate);
 
         }
@@ -572,13 +572,13 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             var cachedData = await CacheManager.GetAllEnumerableCacheAsync<TEntity>();
 
-            if (cachedData != null && cachedData.Any() && isCached) {
+            if (cachedData != null && isCached) {
 
                 var result = cachedData.SearchDateRange(dateFrom, dateTo);
 
                 result = cachedData.SearchText(searchText);
 
-                if (result != null && result.Any()) {
+                if (result != null) {
 
                     return result.ToList();
 
@@ -595,7 +595,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             var cachedData = await CacheManager.GetAllQueryableCacheAsync<TEntity>();
 
-            if (cachedData != null && cachedData.Any() && isCached) {
+            if (cachedData != null && isCached) {
 
                 return cachedData;
 
@@ -604,11 +604,41 @@ namespace FerPROJ.DBHelper.DBExtensions {
             return await context.Set<TEntity>().ToListAsync();
 
         }
+
+        public static async Task<IEnumerable<TEntity>> GetAllUnCachedAsync<TEntity>(this DbContext context) where TEntity : class {
+            // Get cached data
+            var cached = await CacheManager.GetAllQueryableCacheAsync<TEntity>();
+
+            // Get data from the database (query not executed yet)
+            var query = context.Set<TEntity>().AsQueryable();
+
+            // If cached data exists
+            if (cached != null) {
+
+                var queryData = query.SearchDateRange(DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1)).ToList();
+                var cachedData = cached.SearchDateRange(DateTime.Now.AddDays(-1), DateTime.Now.AddDays(1)).ToList();
+
+                // Compare the two lists based on their properties
+                var newOrModifiedData = CComparison.CompareLists(queryData, cachedData);
+
+                // If there is new or modified data, return it
+                if (newOrModifiedData.Any()) {
+
+                    return newOrModifiedData;
+
+                }
+                // If no new or modified data, return cached data
+                return null;
+            }
+
+            return await query.ToListAsync();
+        }
+
         public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> whereCondition, bool isCached = true) where TEntity : class {
 
             var cachedData = await CacheManager.GetAllQueryableCacheAsync<TEntity>();
 
-            if (cachedData != null && cachedData.Any() && isCached) {
+            if (cachedData != null && isCached) {
 
                 var result = cachedData.Where(whereCondition);
 
