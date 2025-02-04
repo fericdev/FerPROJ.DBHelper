@@ -521,19 +521,56 @@ namespace FerPROJ.DBHelper.DBExtensions {
             return await context.Set<TEntity>().FirstOrDefaultAsync(predicate);
 
         }
-        public static async Task<string> GetGeneratedIDAsync<TEntity>(
-            this DbContext context, string prefix = null) where TEntity : class {
-
-            if (prefix == null) {
+        public static async Task<string> GetGeneratedIDAsync<TEntity>(this DbContext context, string prefix, bool withSlash = true) where TEntity : class {
+            // Use the first 3 letters of the class name as default prefix if none is provided
+            if (string.IsNullOrEmpty(prefix)) {
                 prefix = typeof(TEntity).Name.Substring(2, 3).ToUpper();
             }
 
             // Get the current count and increment by 1
             var count = await context.Set<TEntity>().CountAsync() + 1;
 
-            // Return the new ID with the format "<prefix>-00<count>"
-            return $"{prefix}-00{count}";
+            // Extract the numeric portion from the prefix if it’s meant to be a number
+            if (long.TryParse(prefix, out long baseNumber)) {
 
+                // Increment the base number by the count
+                var newIDNumber = baseNumber + count;
+
+                // Return the new ID with or without the slash as specified
+                return withSlash ? $"{newIDNumber.ToString().Insert(4, "-")}" : $"{newIDNumber}";
+            }
+
+            // Return the new ID with the format "<prefix>-00<count>"
+            return withSlash ? $"{prefix}-00{count}" : $"{prefix}{count}";
+        }
+        public static async Task<string> GetGeneratedIDAsync<TEntity>(this DbContext context, string prefix, bool withSlash, Expression<Func<TEntity, bool>> whereCondition) where TEntity : class{
+            // Use the first 3 letters of the class name as default prefix if none is provided
+            if (string.IsNullOrEmpty(prefix)) {
+                prefix = typeof(TEntity).Name.Substring(2, 3).ToUpper();
+            }
+
+            // Apply the where condition if provided
+            var query = context.Set<TEntity>().AsQueryable();
+
+            if (whereCondition != null) {
+                query = query.Where(whereCondition);
+            }
+
+            // Get the count with the where condition, then increment by 1
+            var count = await query.CountAsync() + 1;
+
+            // Extract the numeric portion from the prefix if it’s meant to be a number
+            if (long.TryParse(prefix, out long baseNumber)) {
+
+                // Increment the base number by the count
+                var newIDNumber = baseNumber + count;
+
+                // Return the new ID with or without the slash as specified
+                return withSlash ? $"{newIDNumber.ToString().Insert(4, "-")}" : $"{newIDNumber}";
+            }
+
+            // Return the new ID with the format "<prefix>-00<count>"
+            return withSlash ? $"{prefix}-00{count}" : $"{prefix}{count}";
         }
         #endregion
 
@@ -774,6 +811,12 @@ namespace FerPROJ.DBHelper.DBExtensions {
             foreach (var entity in entities) {
                 UpdateFieldsOfEntity(entity);
             }
+        }
+        #endregion
+
+        #region Utilities
+        public static async Task<bool> HasData<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate = null) where TEntity : class {
+            return predicate != null ? await context.Set<TEntity>().AnyAsync(predicate) : await context.Set<TEntity>().AnyAsync();
         }
         #endregion
 
