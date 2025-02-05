@@ -278,7 +278,7 @@ namespace FerPROJ.DBHelper.DBCache {
             }
 
             // Save the updated list to the cache
-            await Task.Run(() => _cache.Set(key, existingList, DateTimeOffset.MaxValue));
+            _cache.Set(key, existingList, DateTimeOffset.MaxValue);
 
             Console.WriteLine($"Updated: {key} TIME: {DateTime.Now.TimeOfDay} Count: {existingList.Count}");
         }
