@@ -72,6 +72,10 @@ namespace FerPROJ.DBHelper.Base {
         protected virtual async Task<IEnumerable<TEntity>> GetAllWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo) {
             return await _ts.GetAllWithSearchAsync<TEntity>(searchText, dateFrom, dateTo);
         }
+        protected virtual async Task<IEnumerable<TModel>> GetAllDTOWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo) {
+            var query = await _ts.GetAllWithSearchAsync<TEntity>(searchText, dateFrom, dateTo);
+            return query.ToDestination<TModel>();
+        }
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> whereCondition) {
             return await _ts.GetAllAsync(whereCondition);
         }
