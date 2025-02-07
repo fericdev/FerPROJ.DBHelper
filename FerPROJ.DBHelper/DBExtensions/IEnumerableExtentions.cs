@@ -220,24 +220,19 @@ namespace FerPROJ.DBHelper.DBExtensions {
             Func<TEntity, Task<TResult>> selector,
             Func<TResult, bool> filter,
             int dataLimit = 100) {
+            // Use Parallel Processing
+            var tasks = source
+                .Select(async item => (Result: await selector(item), IsValid: false))
+                .ToList();
 
-            var result = new List<TResult>();
-            int count = 0;
+            // Await all the tasks to complete
+            var results = await Task.WhenAll(tasks);
 
-            foreach (var item in source) {
-
-                if (count >= dataLimit)
-                    break;
-
-                var transformedItem = await selector(item);
-
-                if (transformedItem != null && filter(transformedItem)) {
-                    result.Add(transformedItem);
-                    count++;
-                }
-            }
-
-            return result;
+            // Filter and take only the limited number of items
+            return results
+                .Select(t => t.Result)
+                .Where(filter)
+                .Take(dataLimit);
         }
 
         public static IEnumerable<TEntity> DataLimit<TEntity>(
