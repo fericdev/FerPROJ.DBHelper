@@ -500,20 +500,17 @@ namespace FerPROJ.DBHelper.DBExtensions {
             return await context.GetByPredicateAsync(predicate);
 
         }
-        public static async Task<TEntity> GetByPredicateCachedAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate) where TEntity : class {
+        public static async Task<TEntity> GetCacheByPredicateAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate) where TEntity : class {
 
             var cachedData = await CacheManager.GetAllQueryableCacheAsync<TEntity>();
 
             if (cachedData != null && cachedData.Any()) {
 
-                var result = cachedData.FirstOrDefault(predicate);
+                return cachedData.FirstOrDefault(predicate);
 
-                if (result != null) {
-                    return result;
-                }
             }
 
-            return await context.Set<TEntity>().FirstOrDefaultAsync(predicate);
+            return null;
 
         }
         public static async Task<TEntity> GetByPredicateAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate) where TEntity : class {
