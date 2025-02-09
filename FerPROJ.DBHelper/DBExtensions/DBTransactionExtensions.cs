@@ -601,7 +601,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             }
 
             // If no property filter is provided or the property does not exist, return all entities
-            return await context.GetAllAsync(whereCondition, false);
+            return await context.GetAllAsync(whereCondition);
         }
         public static async Task<IEnumerable<TEntity>> GetAllWithSearchAsync<TEntity>(this DbContext context, string searchText, DateTime? dateFrom, DateTime? dateTo, bool isCached = true) where TEntity : class {
 
