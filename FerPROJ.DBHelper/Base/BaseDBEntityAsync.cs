@@ -119,11 +119,11 @@ namespace FerPROJ.DBHelper.Base {
         protected async virtual Task SaveDataAsync(TModel myDTO) {
             await _ts.SaveDTOAndCommitAsync<TModel, TEntity>(myDTO);
         }
-        public async Task<bool> SaveDTOAsync(TModel myDTO, bool EnableValidation = false, bool confirmation = true, bool returnResult = true) {
+        public async Task<bool> SaveDTOAsync(TModel myDTO, bool enabledValidation = false, bool confirmation = true, bool returnResult = true) {
             if (myDTO == null) {
                 throw new ArgumentNullException($"{nameof(myDTO)} is null!");
             }
-            if (EnableValidation) {
+            if (enabledValidation) {
                 if (!myDTO.DataValidation()) {
 
                     var sb = new StringBuilder();
@@ -222,11 +222,11 @@ namespace FerPROJ.DBHelper.Base {
         protected async virtual Task UpdateDataAsync(TModel myDTO) {
             await _ts.UpdateDTOAndCommitAsync<TModel, TEntity>(myDTO);
         }
-        public async Task<bool> UpdateDTOAsync(TModel myDTO, bool EnableValidation = false, bool confirmation = true, bool returnResult = true) {
+        public async Task<bool> UpdateDTOAsync(TModel myDTO, bool enabledValidation = false, bool confirmation = true, bool returnResult = true) {
             if (myDTO == null) {
                 throw new ArgumentNullException($"{nameof(myDTO)} is null!");
             }
-            if (EnableValidation) {
+            if (enabledValidation) {
                 if (!myDTO.DataValidation()) {
 
                     var sb = new StringBuilder();
