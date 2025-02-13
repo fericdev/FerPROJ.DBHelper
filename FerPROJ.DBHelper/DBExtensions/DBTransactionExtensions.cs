@@ -110,8 +110,8 @@ namespace FerPROJ.DBHelper.DBExtensions {
              where TEntity : class {
 
             context.Set<TEntity>().AddOrUpdate(entity);
+
             UpdateFieldsOfEntity(entity);
-            await Task.CompletedTask;
 
             await context.SaveToCacheAsync(entity);
         }
@@ -218,7 +218,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
              where TEntity : class {
 
             context.Set<TEntity>().Add(entity);
-            await Task.CompletedTask;
+
             await context.SaveToCacheAsync(entity);
         }
         public static async Task SaveRangeAsync<TEntity>(
@@ -227,6 +227,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
              where TEntity : class {
 
             context.Set<TEntity>().AddRange(entity);
+
             await context.SaveAllToCacheAsync(entity);
 
         }
@@ -236,6 +237,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
              where TEntity : class {
 
             context.Set<TEntity>().Add(entity);
+
             await context.SaveToCacheAsync(entity);
 
             await context.SaveChangesAsync();
@@ -246,6 +248,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
              where TEntity : class {
 
             context.Set<TEntity>().AddRange(entity);
+
             await context.SaveAllToCacheAsync(entity);
 
             await context.SaveChangesAsync();
@@ -345,8 +348,9 @@ namespace FerPROJ.DBHelper.DBExtensions {
             var tbl = new CMapping<TSource, TEntity>().GetMappingResult(myDTO);
 
             context.Set<TEntity>().AddOrUpdate(tbl);
+
             await context.SaveToCacheAsync(tbl);
-            await Task.CompletedTask;
+
 
         }
         public static async Task UpdateDTOAndCommitAsync<TSource, TEntity>(this DbContext context, TSource myDTO) where TSource : BaseDTO where TEntity : class {
@@ -357,6 +361,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             var tbl = new CMapping<TSource, TEntity>().GetMappingResult(myDTO);
 
             context.Set<TEntity>().AddOrUpdate(tbl);
+
             await context.SaveToCacheAsync(tbl);
 
             await context.SaveChangesAsync();
