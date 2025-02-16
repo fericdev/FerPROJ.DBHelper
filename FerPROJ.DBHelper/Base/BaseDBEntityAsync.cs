@@ -54,7 +54,7 @@ namespace FerPROJ.DBHelper.Base {
         public void Dispose() {
             _ts.Dispose();
             DBTransactionExtensions.AllowDuplicate = true;
-            DBTransactionExtensions.PropertyToCheck = null;
+            DBTransactionExtensions.PropertiesToCheck = new List<string>();
         }
         #endregion
 
@@ -396,8 +396,8 @@ namespace FerPROJ.DBHelper.Base {
         #endregion
 
         #region Utilities
-        public virtual async Task<bool> HasData(Expression<Func<TEntity, bool>> predicate = null) {
-            return await _ts.HasData(predicate);
+        public virtual async Task<bool> HasDataAsync(Expression<Func<TEntity, bool>> predicate = null) {
+            return await _ts.HasDataAsync(predicate);
         }
         #endregion
 

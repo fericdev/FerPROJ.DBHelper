@@ -22,7 +22,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
         #region properties
         public static bool AllowDuplicate { get; set; }
-        public static string PropertyToCheck { get; set; }
+        public static List<string> PropertiesToCheck { get; set; } = new List<string>();
         #endregion
 
         #region Remove
@@ -273,39 +273,45 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             var tbl = new CMapping<TSource, TEntity>().GetMappingResult(myDTO);
 
-            if (!AllowDuplicate && !string.IsNullOrWhiteSpace(PropertyToCheck)) {
-                // Get the property info for PropertyToCheck
-                var propertyInfo = typeof(TEntity).GetProperty(PropertyToCheck);
+            if (!AllowDuplicate && PropertiesToCheck.Any()) {
 
-                // Check if the property exists on TEntity
-                if (propertyInfo == null) {
-                    throw new ArgumentException($"Property '{PropertyToCheck}' does not exist on entity type '{typeof(TEntity).Name}'.");
+                var entityType = typeof(TEntity);
+
+                // Validate that all properties exist
+                foreach (var prop in PropertiesToCheck) {
+                    if (!entityType.GetProperties().Any(c=>c.Name.SearchFor(prop))) {
+                        throw new ArgumentException($"Property '{prop}' does not exist on entity type '{entityType.Name}'.");
+                    }
                 }
 
-                // Build a dynamic expression to represent the equality comparison in LINQ
-                // Example: e => e.PropertyToCheck == propertyValue
-
                 // Parameter "e" in the expression
-                var parameter = Expression.Parameter(typeof(TEntity), "e");
+                var parameter = Expression.Parameter(entityType, "e");
 
-                // Access "e.PropertyToCheck"
-                var propertyAccess = Expression.Property(parameter, propertyInfo);
+                // Combine all equality checks with AND
+                Expression finalExpression = null;
 
-                // Get the value of PropertyToCheck from tbl (the mapped entity)
-                var propertyValue = propertyInfo.GetValue(tbl);
+                foreach (var prop in PropertiesToCheck) {
+                    var propertyInfo = entityType.GetProperties().FirstOrDefault(c=>c.Name.SearchFor(prop));
+                    var propertyAccess = Expression.Property(parameter, propertyInfo);
 
-                // Create the expression "e.PropertyToCheck == propertyValue"
-                var constant = Expression.Constant(propertyValue);
-                var equality = Expression.Equal(propertyAccess, constant);
+                    var propertyValue = propertyInfo.GetValue(tbl);
+                    var constant = Expression.Constant(propertyValue);
 
-                // Build the complete lambda expression: e => e.PropertyToCheck == propertyValue
-                var lambda = Expression.Lambda<Func<TEntity, bool>>(equality, parameter);
+                    var equality = Expression.Equal(propertyAccess, constant);
 
-                // Use the expression in AnyAsync to check if an entity with the same property value exists
-                var entityExists = await context.Set<TEntity>().AnyAsync(lambda);
+                    finalExpression = finalExpression == null
+                        ? equality
+                        : Expression.AndAlso(finalExpression, equality);
+                }
+
+                // Build the complete lambda expression: e => e.Prop1 == value1 && e.Prop2 == value2
+                var lambda = Expression.Lambda<Func<TEntity, bool>>(finalExpression, parameter);
+
+                // Use the expression to check for duplicates
+                var entityExists = await context.HasDataAsync(lambda);
 
                 if (entityExists) {
-                    throw new ArgumentException($"{PropertyToCheck} already exists.");
+                    throw new ArgumentException($"{string.Join(", ", PropertiesToCheck)} already exists.");
                 }
             }
 
@@ -817,7 +823,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
         #endregion
 
         #region Utilities
-        public static async Task<bool> HasData<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate = null) where TEntity : class {
+        public static async Task<bool> HasDataAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate = null) where TEntity : class {
             return predicate != null ? await context.Set<TEntity>().AnyAsync(predicate) : await context.Set<TEntity>().AnyAsync();
         }
         #endregion
