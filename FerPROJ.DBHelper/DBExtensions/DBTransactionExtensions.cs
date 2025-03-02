@@ -109,9 +109,9 @@ namespace FerPROJ.DBHelper.DBExtensions {
              TEntity entity)
              where TEntity : class {
 
-            context.Set<TEntity>().AddOrUpdate(entity);
-
             UpdateFieldsOfEntity(entity);
+
+            context.Set<TEntity>().AddOrUpdate(entity);
 
             await context.SaveToCacheAsync(entity);
         }
