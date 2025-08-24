@@ -1,6 +1,8 @@
 ﻿using FerPROJ.DBHelper.Base;
 using FerPROJ.DBHelper.Forms;
 using FerPROJ.Design.Class;
+using FerPROJ.Design.Interface;
+using MySql.Data.Entity;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -8,6 +10,7 @@ using System.Data.Entity.Migrations;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Remoting.Contexts;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -70,23 +73,40 @@ namespace FerPROJ.DBHelper.Helper {
                 if (!dbContext.Database.Exists()) {
                     dbContext.Database.Create();
                 }
-            }
 
-            // 2. Run automatic migrations
-            var configType = typeof(DbMigrationsConfiguration<>).MakeGenericType(dbContextType);
 
-            var configuration = (DbMigrationsConfiguration)Activator.CreateInstance(configType);
-            configuration.AutomaticMigrationsEnabled = true;
-            configuration.AutomaticMigrationDataLossAllowed = false; // prevent data loss
+                // 2. Run custom seeders (classes implementing IDbContextMigration<T>)
+                var migrationTypes = AppDomain.CurrentDomain
+                    .GetAssemblies()
+                    .SelectMany(a => {
+                        try {
+                            return a.GetTypes();
+                        }
+                        catch (ReflectionTypeLoadException ex) {
+                            return ex.Types.Where(t => t != null);
+                        }
+                    })
+                    .Where(t => !t.IsAbstract && !t.IsInterface)
+                    .Where(t =>
+                        t.GetInterfaces().Any(i =>
+                            i.IsGenericType &&
+                            i.GetGenericTypeDefinition() == typeof(IDbContextMigration<>) &&
+                            i.GetGenericArguments()[0] == dbContextType
+                        )
+                    )
+                    .ToList();
 
-            var migrator = new DbMigrator(configuration);
+                foreach (var migrationType in migrationTypes) {
+                    var migrationInstance = Activator.CreateInstance(migrationType);
 
-            if (migrator.GetPendingMigrations().Any()) {
-                CShowMessage.Info("Applying migrations...");
-                migrator.Update();
-            }
-            else {
-                CShowMessage.Info("No pending migrations found.");
+                    // Find the RunMigrationAsync method and invoke it
+                    var method = migrationType.GetMethod("RunMigrationAsync");
+                    if (method != null) {
+                        var task = (Task)method.Invoke(migrationInstance, new object[] { dbContext });
+                        task.GetAwaiter().GetResult(); // wait for async method
+                    }
+                }
+
             }
 
             CShowMessage.Info("Database migration has been successfully executed.");
