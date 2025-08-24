@@ -1,6 +1,5 @@
 ﻿using FerPROJ.DBHelper.DBCache;
 using FerPROJ.Design.Class;
-using FerPROJ.Design.BaseDTO;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -16,6 +15,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections;
+using FerPROJ.Design.BaseModels;
 
 namespace FerPROJ.DBHelper.DBExtensions {
     public static class DBTransactionExtensions {
@@ -254,7 +254,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             await context.SaveChangesAsync();
         }
         // DTO
-        public static async Task SaveDTOAsync<TSource, TEntity>(this DbContext context, TSource myDTO) where TSource : BaseDTO where TEntity : class {
+        public static async Task SaveDTOAsync<TSource, TEntity>(this DbContext context, TSource myDTO) where TSource : BaseModel where TEntity : class {
 
             myDTO.DateCreated = DateTime.Now;
             myDTO.CreatedBy = CStaticVariable.USERNAME;
@@ -265,7 +265,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             await context.SaveAsync(tbl);
 
         }
-        public static async Task SaveDTOAndCommitAsync<TSource, TEntity>(this DbContext context, TSource myDTO) where TSource : BaseDTO where TEntity : class {
+        public static async Task SaveDTOAndCommitAsync<TSource, TEntity>(this DbContext context, TSource myDTO) where TSource : BaseModel where TEntity : class {
 
             myDTO.DateCreated = DateTime.Now;
             myDTO.CreatedBy = CStaticVariable.USERNAME;
@@ -318,7 +318,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             await context.SaveAndCommitAsync(tbl);
 
         }
-        public static async Task SaveRangeDTOAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : BaseDTO where TEntity : class {
+        public static async Task SaveRangeDTOAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : BaseModel where TEntity : class {
 
             foreach (var item in myDTO) {
                 item.DateCreated = DateTime.Now;
@@ -331,7 +331,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             await context.SaveRangeAsync(tbl);
 
         }
-        public static async Task SaveRangeDTOAndCommitAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : BaseDTO where TEntity : class {
+        public static async Task SaveRangeDTOAndCommitAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : BaseModel where TEntity : class {
 
             foreach (var item in myDTO) {
                 item.DateCreated = DateTime.Now;
@@ -346,7 +346,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
         #endregion
 
         #region Update DTO
-        public static async Task UpdateDTOAsync<TSource, TEntity>(this DbContext context, TSource myDTO) where TSource : BaseDTO where TEntity : class {
+        public static async Task UpdateDTOAsync<TSource, TEntity>(this DbContext context, TSource myDTO) where TSource : BaseModel where TEntity : class {
 
             myDTO.DateModified = DateTime.Now;
             myDTO.ModifiedBy = CStaticVariable.USERNAME;
@@ -359,7 +359,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
 
         }
-        public static async Task UpdateDTOAndCommitAsync<TSource, TEntity>(this DbContext context, TSource myDTO) where TSource : BaseDTO where TEntity : class {
+        public static async Task UpdateDTOAndCommitAsync<TSource, TEntity>(this DbContext context, TSource myDTO) where TSource : BaseModel where TEntity : class {
 
             myDTO.DateModified = DateTime.Now;
             myDTO.ModifiedBy = CStaticVariable.USERNAME;
@@ -372,7 +372,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             await context.SaveChangesAsync();
         }
-        public static async Task UpdateRangeDTOAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : BaseDTO where TEntity : class {
+        public static async Task UpdateRangeDTOAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : BaseModel where TEntity : class {
 
             foreach (var item in myDTO) {
                 item.DateModified = DateTime.Now;
@@ -387,7 +387,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             }
 
         }
-        public static async Task UpdateRangeDTOAndCommitAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : BaseDTO where TEntity : class {
+        public static async Task UpdateRangeDTOAndCommitAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : BaseModel where TEntity : class {
 
             foreach (var item in myDTO) {
                 item.DateModified = DateTime.Now;

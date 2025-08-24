@@ -1,9 +1,9 @@
 ﻿using FerPROJ.DBHelper.Class;
 using FerPROJ.DBHelper.CRUD;
-using FerPROJ.Design.BaseDTO;
 using FerPROJ.DBHelper.DBCache;
 using FerPROJ.DBHelper.DBExtensions;
 using FerPROJ.DBHelper.Query;
+using FerPROJ.Design.BaseModels;
 using FerPROJ.Design.Class;
 using FerPROJ.Design.Controls;
 using MySql.Data.MySqlClient;
@@ -26,7 +26,7 @@ using System.Windows.Forms;
 using static FerPROJ.Design.Class.CEnum;
 
 namespace FerPROJ.DBHelper.Base {
-    public abstract class BaseDBEntityAsync<EntityContext, TModel, TEntity, TType> : IDisposable where EntityContext : DbContext where TModel : BaseDTO where TEntity : class {
+    public abstract class BaseDBEntityAsync<EntityContext, TModel, TEntity, TType> : IDisposable where EntityContext : DbContext where TModel : BaseModel where TEntity : class {
        
         #region BaseProperties
         public string _tableName { get; set; }

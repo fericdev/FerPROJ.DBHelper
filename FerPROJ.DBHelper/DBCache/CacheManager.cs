@@ -1,6 +1,6 @@
 ﻿using FerPROJ.DBHelper.Base;
 using FerPROJ.DBHelper.DBExtensions;
-using FerPROJ.Design.BaseDTO;
+using FerPROJ.Design.BaseModels;
 using FerPROJ.Design.Class;
 using System;
 using System.Collections.Generic;

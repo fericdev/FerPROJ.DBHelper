@@ -2,7 +2,7 @@
 using FerPROJ.DBHelper.CRUD;
 using FerPROJ.DBHelper.Query;
 using FerPROJ.Design.Class;
-using FerPROJ.Design.BaseDTO;
+using FerPROJ.Design.BaseModels;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using static FerPROJ.Design.Class.CEnum;
 
 namespace FerPROJ.DBHelper.Base {
-    public abstract class BaseDBEntity<EntityContext, DBConn, TSource, TType> : IDisposable where DBConn : Conn where EntityContext : DbContext where TSource : BaseDTO {
+    public abstract class BaseDBEntity<EntityContext, DBConn, TSource, TType> : IDisposable where DBConn : Conn where EntityContext : DbContext where TSource : BaseModel {
         public string _tableName { get; set; }
         public string _tableDetailsName { get; set; }
         public EntityContext _ts;
