@@ -70,28 +70,26 @@ namespace FerPROJ.DBHelper.Helper {
                 if (!dbContext.Database.Exists()) {
                     dbContext.Database.Create();
                 }
-            } 
-
-            // 2. Run migrations (DbMigrator will create its own context when needed)
-            var configuration = new DbMigrationsConfiguration {
-                AutomaticMigrationsEnabled = true,
-                AutomaticMigrationDataLossAllowed = false, // better for production
-                ContextType = dbContextType
-            };
-            try {
-                var migrator = new DbMigrator(configuration);
-
-                if (migrator.GetPendingMigrations().Any()) {
-                    CShowMessage.Info("Applying migrations...");
-                    migrator.Update();
-                }
-                else {
-                    CShowMessage.Info("No pending migrations found.");
-                }
             }
-            finally {
-                CShowMessage.Info("Database migration has been successfully executed.");
+
+            // 2. Run automatic migrations
+            var configType = typeof(DbMigrationsConfiguration<>).MakeGenericType(dbContextType);
+
+            var configuration = (DbMigrationsConfiguration)Activator.CreateInstance(configType);
+            configuration.AutomaticMigrationsEnabled = true;
+            configuration.AutomaticMigrationDataLossAllowed = false; // prevent data loss
+
+            var migrator = new DbMigrator(configuration);
+
+            if (migrator.GetPendingMigrations().Any()) {
+                CShowMessage.Info("Applying migrations...");
+                migrator.Update();
             }
+            else {
+                CShowMessage.Info("No pending migrations found.");
+            }
+
+            CShowMessage.Info("Database migration has been successfully executed.");
         }
 
     }
