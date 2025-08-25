@@ -150,7 +150,7 @@ namespace FerPROJ.DBHelper.Helper {
                 }
 
                 // Assume first property is primary key
-                var primaryKey = properties.FirstOrDefault();
+                var primaryKey = properties.FirstOrDefault(p => string.Equals(p.Name, "Id", StringComparison.OrdinalIgnoreCase));
                 if (primaryKey != null) {
                     columnsSql.Add($"PRIMARY KEY (`{primaryKey.Name}`)");
                 }
