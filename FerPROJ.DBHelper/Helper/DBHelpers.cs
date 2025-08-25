@@ -125,7 +125,7 @@ namespace FerPROJ.DBHelper.Helper {
         #endregion
 
         #region Alter Table Columns
-        public static void UpdateTableOfEntity<TEntity>(DbContext dbContext) {
+        public static void CreateOrUpdateTableOfEntity<TEntity>(DbContext dbContext) {
             // Get table name and properties
             var tableName = typeof(TEntity).Name; 
             var properties = typeof(TEntity).GetProperties();
