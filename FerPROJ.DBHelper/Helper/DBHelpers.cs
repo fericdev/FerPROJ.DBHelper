@@ -130,32 +130,64 @@ namespace FerPROJ.DBHelper.Helper {
             var tableName = typeof(TEntity).Name; 
             var properties = typeof(TEntity).GetProperties();
 
-            foreach (var prop in properties) {
-                // Determine column details
-                var columnName = prop.Name;
-                var columnType = GetMySqlColumnType(prop.PropertyType);
-                var isNullable = !IsNonNullable(prop.PropertyType);
-                var defaultValue = GetDefaultValue(prop, typeof(TEntity));
+            // Check if table exists
+            if (!IsTableExists(dbContext, tableName)) {
 
-                // Apply changes to the database
-                try {
-                    // Check if column exists
-                    if (IsColumnExists(dbContext, tableName, columnName)) {
-                        // Alter existing column
-                        dbContext.Database.ExecuteSqlCommand(
-                            $"ALTER TABLE `{tableName}` MODIFY COLUMN `{columnName}` {columnType} {(isNullable ? "NULL" : "NOT NULL")} {(defaultValue != null ? $"DEFAULT '{defaultValue}'" : "")};"
-                        );
+                // 2. Build CREATE TABLE SQL dynamically
+                var columnsSql = new List<string>();
+
+                foreach (var prop in properties) {
+                    var columnName = prop.Name;
+                    var columnType = GetMySqlColumnType(prop.PropertyType);
+                    var isNullable = !IsNonNullable(prop.PropertyType);
+                    var defaultValue = GetDefaultValue(prop, typeof(TEntity));
+
+                    string columnDef = $"`{columnName}` {columnType} {(isNullable ? "NULL" : "NOT NULL")}";
+                    if (defaultValue != null) {
+                        columnDef += $" DEFAULT '{defaultValue}'";
                     }
-                    else {
-                        // Add new column
-                        dbContext.Database.ExecuteSqlCommand(
-                            $"ALTER TABLE `{tableName}` ADD COLUMN `{columnName}` {columnType} {(isNullable ? "NULL" : "NOT NULL")} {(defaultValue != null ? $"DEFAULT '{defaultValue}'" : "")};"
-                        );
-                    }
+                    columnsSql.Add(columnDef);
                 }
-                catch (Exception ex) {
-                    CLibFilesWriter.CreateOrSetValue($"{tableName}:{columnName}", ex.Message.ToString(), parent: "DataMigrationError", encrypt: false);
-                    continue;
+
+                // Assume first property is primary key
+                var primaryKey = properties.FirstOrDefault();
+                if (primaryKey != null) {
+                    columnsSql.Add($"PRIMARY KEY (`{primaryKey.Name}`)");
+                }
+
+                var createTableSql = $"CREATE TABLE `{tableName}` ({string.Join(", ", columnsSql)});";
+
+                dbContext.Database.ExecuteSqlCommand(createTableSql);
+            }
+            else {
+
+                foreach (var prop in properties) {
+                    // Determine column details
+                    var columnName = prop.Name;
+                    var columnType = GetMySqlColumnType(prop.PropertyType);
+                    var isNullable = !IsNonNullable(prop.PropertyType);
+                    var defaultValue = GetDefaultValue(prop, typeof(TEntity));
+
+                    // Apply changes to the database
+                    try {
+                        // Check if column exists
+                        if (IsColumnExists(dbContext, tableName, columnName)) {
+                            // Alter existing column
+                            dbContext.Database.ExecuteSqlCommand(
+                                $"ALTER TABLE `{tableName}` MODIFY COLUMN `{columnName}` {columnType} {(isNullable ? "NULL" : "NOT NULL")} {(defaultValue != null ? $"DEFAULT '{defaultValue}'" : "")};"
+                            );
+                        }
+                        else {
+                            // Add new column
+                            dbContext.Database.ExecuteSqlCommand(
+                                $"ALTER TABLE `{tableName}` ADD COLUMN `{columnName}` {columnType} {(isNullable ? "NULL" : "NOT NULL")} {(defaultValue != null ? $"DEFAULT '{defaultValue}'" : "")};"
+                            );
+                        }
+                    }
+                    catch (Exception ex) {
+                        CLibFilesWriter.CreateOrSetValue($"{tableName}:{columnName}", ex.Message.ToString(), parent: "DataMigrationError", encrypt: false);
+                        continue;
+                    }
                 }
             }
         }
@@ -210,6 +242,19 @@ namespace FerPROJ.DBHelper.Helper {
 
             var count = dbContext.Database
                 .SqlQuery<int>(sql, tableName, columnName)
+                .FirstOrDefault();
+
+            return count > 0;
+        }
+        private static bool IsTableExists(DbContext dbContext, string tableName) {
+            var sql = @"
+                SELECT COUNT(*) 
+                FROM INFORMATION_SCHEMA.TABLES 
+                WHERE TABLE_SCHEMA = DATABASE() 
+                  AND TABLE_NAME = @p0;
+            ";
+            var count = dbContext.Database
+                .SqlQuery<int>(sql, tableName)
                 .FirstOrDefault();
 
             return count > 0;
