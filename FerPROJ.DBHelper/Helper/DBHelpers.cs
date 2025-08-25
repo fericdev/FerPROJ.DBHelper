@@ -78,6 +78,14 @@ namespace FerPROJ.DBHelper.Helper {
                 throw new InvalidOperationException("No DbContext type found in loaded assemblies.");
             }
 
+            // Disable model compatibility check
+            var nullInitializerType = typeof(NullDatabaseInitializer<>).MakeGenericType(GetDbContextType());
+            var nullInitializer = Activator.CreateInstance(nullInitializerType);
+            typeof(Database)
+                .GetMethod("SetInitializer", BindingFlags.Public | BindingFlags.Static)
+                .MakeGenericMethod(GetDbContextType())
+                .Invoke(null, new object[] { nullInitializer });
+
             using (var dbContext = (DbContext)Activator.CreateInstance(dbContextType)) {
 
                 // 1. Check if the database exists
@@ -126,16 +134,6 @@ namespace FerPROJ.DBHelper.Helper {
 
         #region Alter Table Columns
         public static void UpdateTableOfEntity<TEntity>(DbContext dbContext) {
-
-            // Disable model compatibility check
-            // Disable model compatibility check
-            var nullInitializerType = typeof(NullDatabaseInitializer<>).MakeGenericType(GetDbContextType());
-            var nullInitializer = Activator.CreateInstance(nullInitializerType);
-            typeof(Database)
-                .GetMethod("SetInitializer", BindingFlags.Public | BindingFlags.Static)
-                .MakeGenericMethod(GetDbContextType())
-                .Invoke(null, new object[] { nullInitializer });
-
             // Get table name and properties
             var tableName = typeof(TEntity).Name; 
             var properties = typeof(TEntity).GetProperties();
