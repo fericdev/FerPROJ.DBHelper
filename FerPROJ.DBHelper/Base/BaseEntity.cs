@@ -12,10 +12,10 @@ namespace FerPROJ.DBHelper.Base {
         public string FormId { get; set; }
         public string Name { get; set; }
         public DateTime DateCreated { get; set; }
-        public DateTime? DateModified { get; set; }
-        public DateTime? DateDeleted { get; set; }
+        public DateTime? DateModified { get; set; } = null;
+        public DateTime? DateDeleted { get; set; } = null;
         public string CreatedBy { get; set; }
-        public string ModifiedBy { get; set; }
+        public string ModifiedBy { get; set; } = string.Empty;
         public string Status { get; set; }
     }
 }

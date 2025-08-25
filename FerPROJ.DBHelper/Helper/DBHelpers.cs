@@ -16,11 +16,16 @@ using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.Helper {
     public static class DBHelpers {
+
+        #region Open Database Configuration Form
         public static void OpenDatabaseConfiguration() {
             using (var frm = new FrmConf()) {
                 frm.ShowDialog();
             }
         }
+        #endregion
+
+        #region Get DbContext Type
         public static Type GetDbContextType() {
             var assemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
 
@@ -62,18 +67,23 @@ namespace FerPROJ.DBHelper.Helper {
 
             return dbContextTypes.FirstOrDefault();
         }
+        #endregion
+
+        #region Run Database Migration
         public static void RunDatabaseMigration() {
+
+            // Find the DbContext type in the loaded assemblies
             var dbContextType = GetDbContextType();
             if (dbContextType == null) {
                 throw new InvalidOperationException("No DbContext type found in loaded assemblies.");
             }
 
             using (var dbContext = (DbContext)Activator.CreateInstance(dbContextType)) {
+
                 // 1. Check if the database exists
                 if (!dbContext.Database.Exists()) {
                     dbContext.Database.Create();
                 }
-
 
                 // 2. Run custom seeders (classes implementing IDbContextMigration<T>)
                 var migrationTypes = AppDomain.CurrentDomain
@@ -96,6 +106,7 @@ namespace FerPROJ.DBHelper.Helper {
                     )
                     .ToList();
 
+                // 3. Loop through each migration type and execute its RunMigrationAsync method
                 foreach (var migrationType in migrationTypes) {
                     var migrationInstance = Activator.CreateInstance(migrationType);
 
@@ -111,6 +122,108 @@ namespace FerPROJ.DBHelper.Helper {
 
             CShowMessage.Info("Database migration has been successfully executed.");
         }
+        #endregion
+
+        #region Alter Table Columns
+        public static void UpdateTableOfEntity<TEntity>(DbContext dbContext) {
+
+            // Disable model compatibility check
+            // Disable model compatibility check
+            var nullInitializerType = typeof(NullDatabaseInitializer<>).MakeGenericType(GetDbContextType());
+            var nullInitializer = Activator.CreateInstance(nullInitializerType);
+            typeof(Database)
+                .GetMethod("SetInitializer", BindingFlags.Public | BindingFlags.Static)
+                .MakeGenericMethod(GetDbContextType())
+                .Invoke(null, new object[] { nullInitializer });
+
+            // Get table name and properties
+            var tableName = typeof(TEntity).Name; 
+            var properties = typeof(TEntity).GetProperties();
+
+            foreach (var prop in properties) {
+                try {
+                    // Determine column details
+                    var columnName = prop.Name;
+                    var columnType = GetMySqlColumnType(prop.PropertyType);
+                    var isNullable = !IsNonNullable(prop.PropertyType);
+                    var defaultValue = GetDefaultValue(prop, typeof(TEntity));
+
+                    // Check if column exists
+                    if (IsColumnExists(dbContext, tableName, columnName)) {
+                        // Alter existing column
+                        dbContext.Database.ExecuteSqlCommand(
+                            $"ALTER TABLE `{tableName}` MODIFY COLUMN `{columnName}` {columnType} {(isNullable ? "NULL" : "NOT NULL")} {(defaultValue != null ? $"DEFAULT '{defaultValue}'" : "")};"
+                        );
+                    }
+                    else {
+                        // Add new column
+                        dbContext.Database.ExecuteSqlCommand(
+                            $"ALTER TABLE `{tableName}` ADD COLUMN `{columnName}` {columnType} {(isNullable ? "NULL" : "NOT NULL")} {(defaultValue != null ? $"DEFAULT '{defaultValue}'" : "")};"
+                        );
+                    }
+                }
+                catch (Exception ex) {
+                    CLibFilesWriter.CreateOrSetValue($"Database Migration Error in table {tableName}", ex.Message.ToString());
+                    continue;
+                }
+            }
+        }
+
+        private static string GetMySqlColumnType(Type type) {
+            type = Nullable.GetUnderlyingType(type) ?? type;
+
+            if (type == typeof(int)) return "INT";
+            if (type == typeof(long)) return "BIGINT";
+            if (type == typeof(short)) return "SMALLINT";
+            if (type == typeof(byte)) return "TINYINT UNSIGNED";
+            if (type == typeof(bool)) return "TINYINT(1)";
+            if (type == typeof(decimal)) return "DECIMAL(18,2)";
+            if (type == typeof(float)) return "FLOAT";
+            if (type == typeof(double)) return "DOUBLE";
+            if (type == typeof(string)) return "VARCHAR(255)";
+            if (type == typeof(DateTime)) return "DATETIME";
+            if (type == typeof(Guid)) return "CHAR(36)";
+            if (type == typeof(byte[])) return "BLOB";
+            // add more types if needed
+            throw new NotSupportedException($"Type {type.Name} not supported");
+        }
+
+        private static bool IsNonNullable(Type type) {
+            // If it's Nullable<T>, it's nullable
+            if (Nullable.GetUnderlyingType(type) != null)
+                return false;
+
+            // Reference types are nullable
+            if (!type.IsValueType)
+                return false;
+
+            // Value types (int, DateTime, bool, etc.) are non-nullable
+            return true;
+        }
+
+        private static object GetDefaultValue(PropertyInfo prop, Type modelType) {
+            // Create a temporary instance of the model
+            var instance = Activator.CreateInstance(modelType);
+            // Get the current value of the property
+            return prop.GetValue(instance);
+        }
+
+        private static bool IsColumnExists(DbContext dbContext, string tableName, string columnName) {
+            var sql = @"
+                SELECT COUNT(*) 
+                FROM INFORMATION_SCHEMA.COLUMNS 
+                WHERE TABLE_SCHEMA = DATABASE() 
+                  AND TABLE_NAME = @p0 
+                  AND COLUMN_NAME = @p1;
+            ";
+
+            var count = dbContext.Database
+                .SqlQuery<int>(sql, tableName, columnName)
+                .FirstOrDefault();
+
+            return count > 0;
+        }
+        #endregion
 
     }
 }
