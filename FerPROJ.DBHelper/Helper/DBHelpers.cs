@@ -141,13 +141,14 @@ namespace FerPROJ.DBHelper.Helper {
             var properties = typeof(TEntity).GetProperties();
 
             foreach (var prop in properties) {
-                try {
-                    // Determine column details
-                    var columnName = prop.Name;
-                    var columnType = GetMySqlColumnType(prop.PropertyType);
-                    var isNullable = !IsNonNullable(prop.PropertyType);
-                    var defaultValue = GetDefaultValue(prop, typeof(TEntity));
+                // Determine column details
+                var columnName = prop.Name;
+                var columnType = GetMySqlColumnType(prop.PropertyType);
+                var isNullable = !IsNonNullable(prop.PropertyType);
+                var defaultValue = GetDefaultValue(prop, typeof(TEntity));
 
+                // Apply changes to the database
+                try {
                     // Check if column exists
                     if (IsColumnExists(dbContext, tableName, columnName)) {
                         // Alter existing column
@@ -163,7 +164,7 @@ namespace FerPROJ.DBHelper.Helper {
                     }
                 }
                 catch (Exception ex) {
-                    CLibFilesWriter.CreateOrSetValue($"Database Migration Error in table {tableName}", ex.Message.ToString());
+                    CLibFilesWriter.CreateOrSetValue($"{tableName}:{columnName}", ex.Message.ToString(), parent: "DataMigrationError", encrypt: false);
                     continue;
                 }
             }
