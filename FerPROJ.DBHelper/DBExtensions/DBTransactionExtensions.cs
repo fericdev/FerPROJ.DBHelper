@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections;
 using FerPROJ.Design.BaseModels;
+using FerPROJ.DBHelper.Base;
 
 namespace FerPROJ.DBHelper.DBExtensions {
     public static class DBTransactionExtensions {
@@ -485,6 +486,29 @@ namespace FerPROJ.DBHelper.DBExtensions {
             return await context.GetByPredicateAsync(predicate);
 
         }
+        public static async Task<TEntity> GetByFormIdAsync<TEntity>(this DbContext context, Guid formId) where TEntity : class {
+            // Find the "FormId" property dynamically in the entity type
+            var keyProperty = typeof(TEntity).GetProperty("FormId");
+            if (keyProperty == null)
+                throw new InvalidOperationException($"{typeof(TEntity).Name} does not contain a 'FormId' property.");
+
+            // Create parameter expression: e =>
+            var parameter = Expression.Parameter(typeof(TEntity), "e");
+
+            // Convert Guid formId to the property type if needed
+            var idConstant = Expression.Constant(
+                Convert.ChangeType(formId, keyProperty.PropertyType),
+                keyProperty.PropertyType
+            );
+
+            // Build predicate: e => e.FormId == formId
+            var predicate = Expression.Lambda<Func<TEntity, bool>>(
+                Expression.Equal(Expression.Property(parameter, keyProperty), idConstant),
+                parameter
+            );
+
+            return await context.GetByPredicateAsync(predicate);
+        }
         public static async Task<TEntity> GetByIdAsync<TEntity, TType>(
             this DbContext context,
             TType id,
@@ -583,6 +607,32 @@ namespace FerPROJ.DBHelper.DBExtensions {
         #endregion
 
         #region Get All Method
+        public static async Task<IEnumerable<TEntity>> GetAllByFormIdAsync<TEntity>(this DbContext context, Guid formId) where TEntity : class {
+
+            // Find the "FormId" property dynamically in the entity type
+            var keyProperty = typeof(TEntity).GetProperty("FormId");
+            if (keyProperty == null)
+                throw new InvalidOperationException($"{typeof(TEntity).Name} does not contain a 'FormId' property.");
+
+            // Create parameter expression: e =>
+            var parameter = Expression.Parameter(typeof(TEntity), "e");
+
+            // Convert Guid formId to the property type if needed
+            var idConstant = Expression.Constant(
+                Convert.ChangeType(formId, keyProperty.PropertyType),
+                keyProperty.PropertyType
+            );
+
+            // Build predicate: e => e.FormId == formId
+            var predicate = Expression.Lambda<Func<TEntity, bool>>(
+                Expression.Equal(Expression.Property(parameter, keyProperty), idConstant),
+                parameter
+            );
+
+            // Assuming you already have a GetAllAsync(predicate) method
+            return await context.GetAllAsync(predicate);
+
+        }
         //
         public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, string propertyName, object propertyValue) where TEntity : class {
 
