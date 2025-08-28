@@ -27,20 +27,20 @@ namespace FerPROJ.DBHelper.Forms {
         }
 
         private void FrmConnectionSettings_Load(object sender, EventArgs e) {
-            databaseNameCustomTextBox.Text = CLibFilesReader.GetValue("DatabaseName", "DatabaseConfig");
-            portCustomTextBox.Text = CLibFilesReader.GetValue("Port", "DatabaseConfig");
-            usernameCustomTextBox.Text = CLibFilesReader.GetValue("Uid", "DatabaseConfig");
-            passwordCustomTextBox.Text = CLibFilesReader.GetValue("Pwd", "DatabaseConfig");
-            hostnameCustomTextBox.Text = CLibFilesReader.GetValue("Server", "DatabaseConfig");
-            cbSSL.Checked = CLibFilesReader.GetValue("SslMode", "DatabaseConfig") == "None";
+            databaseNameCustomTextBox.Text = CConfigurationManager.GetValue("DatabaseName", "DatabaseConfig");
+            portCustomTextBox.Text = CConfigurationManager.GetValue("Port", "DatabaseConfig");
+            usernameCustomTextBox.Text = CConfigurationManager.GetValue("Uid", "DatabaseConfig");
+            passwordCustomTextBox.Text = CConfigurationManager.GetValue("Pwd", "DatabaseConfig");
+            hostnameCustomTextBox.Text = CConfigurationManager.GetValue("Server", "DatabaseConfig");
+            cbSSL.Checked = CConfigurationManager.GetValue("SslMode", "DatabaseConfig") == "None";
         }
         private void UpdateConfigurationFile() {
-            CLibFilesWriter.CreateOrSetValue("DatabaseName", databaseNameCustomTextBox.Text, "DatabaseConfig");
-            CLibFilesWriter.CreateOrSetValue("Port", portCustomTextBox.Text, "DatabaseConfig");
-            CLibFilesWriter.CreateOrSetValue("Uid", usernameCustomTextBox.Text, "DatabaseConfig");
-            CLibFilesWriter.CreateOrSetValue("Pwd", passwordCustomTextBox.Text, "DatabaseConfig");
-            CLibFilesWriter.CreateOrSetValue("Server", hostnameCustomTextBox.Text, "DatabaseConfig");
-            CLibFilesWriter.CreateOrSetValue("SslMode", cbSSL.Checked ? "None" : "Preferred", "DatabaseConfig");
+            CConfigurationManager.CreateOrSetValue("DatabaseName", databaseNameCustomTextBox.Text, "DatabaseConfig");
+            CConfigurationManager.CreateOrSetValue("Port", portCustomTextBox.Text, "DatabaseConfig");
+            CConfigurationManager.CreateOrSetValue("Uid", usernameCustomTextBox.Text, "DatabaseConfig");
+            CConfigurationManager.CreateOrSetValue("Pwd", passwordCustomTextBox.Text, "DatabaseConfig");
+            CConfigurationManager.CreateOrSetValue("Server", hostnameCustomTextBox.Text, "DatabaseConfig");
+            CConfigurationManager.CreateOrSetValue("SslMode", cbSSL.Checked ? "None" : "Preferred", "DatabaseConfig");
             CShowMessage.Info("Database Configuration Updated Successfully!", "Info");
         }
 

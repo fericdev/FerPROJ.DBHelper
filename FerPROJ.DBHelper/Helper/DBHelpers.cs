@@ -185,7 +185,7 @@ namespace FerPROJ.DBHelper.Helper {
                         }
                     }
                     catch (Exception ex) {
-                        CLibFilesWriter.CreateOrSetValue($"{tableName}:{columnName}", ex.Message.ToString(), parent: "DataMigrationError", encrypt: false);
+                        CConfigurationManager.CreateOrSetValue($"{tableName}:{columnName}", ex.Message.ToString(), parent: "DataMigrationError", encrypt: false);
                         continue;
                     }
                 }
