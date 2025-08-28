@@ -19,7 +19,7 @@ using FerPROJ.Design.BaseModels;
 using FerPROJ.DBHelper.Base;
 
 namespace FerPROJ.DBHelper.DBExtensions {
-    public static class DBTransactionExtensions {
+    public static class DbContextExtensions {
 
         #region properties
         public static bool AllowDuplicate { get; set; }
@@ -258,10 +258,10 @@ namespace FerPROJ.DBHelper.DBExtensions {
         public static async Task SaveDTOAsync<TSource, TEntity>(this DbContext context, TSource myDTO) where TSource : BaseModel where TEntity : class {
 
             myDTO.DateCreated = DateTime.Now;
-            myDTO.CreatedBy = CStaticVariable.USERNAME;
-            myDTO.Status = CStaticVariable.ACTIVE_STATUS;
+            myDTO.CreatedBy = CAppConstants.USERNAME;
+            myDTO.Status = CAppConstants.ACTIVE_STATUS;
 
-            var tbl = new CMapping<TSource, TEntity>().GetMappingResult(myDTO);
+            var tbl = new CMappingExtension<TSource, TEntity>().GetMappingResult(myDTO);
 
             await context.SaveAsync(tbl);
 
@@ -269,10 +269,10 @@ namespace FerPROJ.DBHelper.DBExtensions {
         public static async Task SaveDTOAndCommitAsync<TSource, TEntity>(this DbContext context, TSource myDTO) where TSource : BaseModel where TEntity : class {
 
             myDTO.DateCreated = DateTime.Now;
-            myDTO.CreatedBy = CStaticVariable.USERNAME;
-            myDTO.Status = CStaticVariable.ACTIVE_STATUS;
+            myDTO.CreatedBy = CAppConstants.USERNAME;
+            myDTO.Status = CAppConstants.ACTIVE_STATUS;
 
-            var tbl = new CMapping<TSource, TEntity>().GetMappingResult(myDTO);
+            var tbl = new CMappingExtension<TSource, TEntity>().GetMappingResult(myDTO);
 
             if (!AllowDuplicate && PropertiesToCheck.Any()) {
 
@@ -323,8 +323,8 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             foreach (var item in myDTO) {
                 item.DateCreated = DateTime.Now;
-                item.CreatedBy = CStaticVariable.USERNAME;
-                item.Status = CStaticVariable.ACTIVE_STATUS;
+                item.CreatedBy = CAppConstants.USERNAME;
+                item.Status = CAppConstants.ACTIVE_STATUS;
             }
 
             var tbl = new CMappingList<TSource, TEntity>().GetMappingResultList(myDTO);
@@ -336,8 +336,8 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             foreach (var item in myDTO) {
                 item.DateCreated = DateTime.Now;
-                item.CreatedBy = CStaticVariable.USERNAME;
-                item.Status = CStaticVariable.ACTIVE_STATUS;
+                item.CreatedBy = CAppConstants.USERNAME;
+                item.Status = CAppConstants.ACTIVE_STATUS;
             }
 
             var tbl = new CMappingList<TSource, TEntity>().GetMappingResultList(myDTO);
@@ -350,9 +350,9 @@ namespace FerPROJ.DBHelper.DBExtensions {
         public static async Task UpdateDTOAsync<TSource, TEntity>(this DbContext context, TSource myDTO) where TSource : BaseModel where TEntity : class {
 
             myDTO.DateModified = DateTime.Now;
-            myDTO.ModifiedBy = CStaticVariable.USERNAME;
+            myDTO.ModifiedBy = CAppConstants.USERNAME;
 
-            var tbl = new CMapping<TSource, TEntity>().GetMappingResult(myDTO);
+            var tbl = new CMappingExtension<TSource, TEntity>().GetMappingResult(myDTO);
 
             context.Set<TEntity>().AddOrUpdate(tbl);
 
@@ -363,9 +363,9 @@ namespace FerPROJ.DBHelper.DBExtensions {
         public static async Task UpdateDTOAndCommitAsync<TSource, TEntity>(this DbContext context, TSource myDTO) where TSource : BaseModel where TEntity : class {
 
             myDTO.DateModified = DateTime.Now;
-            myDTO.ModifiedBy = CStaticVariable.USERNAME;
+            myDTO.ModifiedBy = CAppConstants.USERNAME;
 
-            var tbl = new CMapping<TSource, TEntity>().GetMappingResult(myDTO);
+            var tbl = new CMappingExtension<TSource, TEntity>().GetMappingResult(myDTO);
 
             context.Set<TEntity>().AddOrUpdate(tbl);
 
@@ -377,7 +377,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             foreach (var item in myDTO) {
                 item.DateModified = DateTime.Now;
-                item.ModifiedBy = CStaticVariable.USERNAME;
+                item.ModifiedBy = CAppConstants.USERNAME;
             }
 
             var tbl = new CMappingList<TSource, TEntity>().GetMappingResultList(myDTO);
@@ -392,7 +392,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             foreach (var item in myDTO) {
                 item.DateModified = DateTime.Now;
-                item.ModifiedBy = CStaticVariable.USERNAME;
+                item.ModifiedBy = CAppConstants.USERNAME;
             }
 
             var tbl = new CMappingList<TSource, TEntity>().GetMappingResultList(myDTO);
@@ -422,7 +422,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 throw new InvalidOperationException("Status property not found on entity.");
             }
 
-            statusProperty.SetValue(entity, CStaticVariable.IN_ACTIVE_STATUS);
+            statusProperty.SetValue(entity, CAppConstants.IN_ACTIVE_STATUS);
 
             await context.UpdateAndCommitAsync(entity);
         }
@@ -456,7 +456,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 throw new InvalidOperationException("Status property not found on entity.");
             }
 
-            statusProperty.SetValue(entity, CStaticVariable.ACTIVE_STATUS);
+            statusProperty.SetValue(entity, CAppConstants.ACTIVE_STATUS);
 
             await context.UpdateAndCommitAsync(entity);
         }
@@ -861,7 +861,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             // Check for ModifiedBy property
             var modifiedByProperty = type.GetProperty("ModifiedBy");
             if (modifiedByProperty != null && modifiedByProperty.CanWrite) {
-                modifiedByProperty.SetValue(entity, CStaticVariable.USERNAME); // Default to "Unknown" if null
+                modifiedByProperty.SetValue(entity, CAppConstants.USERNAME); // Default to "Unknown" if null
             }
         }
         private static void UpdateFieldsOfEntities<TEntity>(ICollection<TEntity> entities)

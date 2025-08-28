@@ -5,7 +5,7 @@ using FerPROJ.Design.Forms;
 
 namespace FerPROJ.DBHelper.Forms
 {
-    partial class FrmConf
+    partial class FrmDatabaseConfig
     {
         /// <summary>
         /// Required designer variable.
@@ -307,7 +307,7 @@ namespace FerPROJ.DBHelper.Forms
             this.Controls.Add(this.customPanel1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
-            this.Name = "FrmConf";
+            this.Name = "FrmDatabaseConfig";
             this.Padding = new System.Windows.Forms.Padding(5);
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Database Connection Settings";

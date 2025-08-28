@@ -7,9 +7,6 @@ using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.Query {
     public static class MySQLQueryHelper {
-        public static string GetDateRange(DateTime dtpFrom, DateTime dtpTo, string ColumnName = "DateReference") {
-            return $"{ColumnName} > '{CConvert.GetDate(dtpFrom.AddDays(-1))}' AND {ColumnName} <= '{CConvert.GetDate(dtpTo)}'";
-        }
         public static string GetDateRangeWord(DateTime dtpFrom, DateTime dtpTo) {
             return $"From {dtpFrom.ToString("MMMM dd, yyyy")} To {dtpTo.ToString("MMMM dd, yyyy")}";
         }

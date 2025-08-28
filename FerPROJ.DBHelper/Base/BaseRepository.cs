@@ -1,5 +1,4 @@
-﻿using FerPROJ.DBHelper.Class;
-using FerPROJ.DBHelper.CRUD;
+﻿using FerPROJ.DBHelper.CRUD;
 using FerPROJ.DBHelper.DBCache;
 using FerPROJ.DBHelper.DBExtensions;
 using FerPROJ.DBHelper.Query;
@@ -23,10 +22,10 @@ using System.Runtime.Remoting.Contexts;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static FerPROJ.Design.Class.CEnum;
+using static FerPROJ.Design.Class.CBaseEnums;
 
 namespace FerPROJ.DBHelper.Base {
-    public abstract class BaseDBEntityAsync<EntityContext, TModel, TEntity, TType> : IDisposable where EntityContext : DbContext where TModel : BaseModel where TEntity : class {
+    public abstract class BaseRepository<EntityContext, TModel, TEntity, TType> : IDisposable where EntityContext : DbContext where TModel : BaseModel where TEntity : class {
        
         #region BaseProperties
         public string _tableName { get; set; }
@@ -36,10 +35,10 @@ namespace FerPROJ.DBHelper.Base {
         #endregion
 
         #region ctor
-        protected BaseDBEntityAsync() {
+        protected BaseRepository() {
             _ts = NewConnection();
         }
-        protected BaseDBEntityAsync(EntityContext ts) {
+        protected BaseRepository(EntityContext ts) {
             _ts = UseConnection(ts);
         }
         #endregion
@@ -53,8 +52,8 @@ namespace FerPROJ.DBHelper.Base {
         }
         public void Dispose() {
             _ts.Dispose();
-            DBTransactionExtensions.AllowDuplicate = true;
-            DBTransactionExtensions.PropertiesToCheck = new List<string>();
+            DbContextExtensions.AllowDuplicate = true;
+            DbContextExtensions.PropertiesToCheck = new List<string>();
         }
         #endregion
 
@@ -155,16 +154,16 @@ namespace FerPROJ.DBHelper.Base {
 
                     try {
                         if (confirmation) {
-                            if (CShowMessage.Ask("Are you sure to save this data?", "Confirmation")) {
+                            if (CDialogManager.Ask("Are you sure to save this data?", "Confirmation")) {
                                 await SaveDataAsync(myDTO);
-                                CShowMessage.Info("Saved Successfully!", "Success");
+                                CDialogManager.Info("Saved Successfully!", "Success");
                                 return true;
                             }
                         }
                         else {
                             await SaveDataAsync(myDTO);
                             if (returnResult) {
-                                CShowMessage.Info("Saved Successfully!", "Success");
+                                CDialogManager.Info("Saved Successfully!", "Success");
                             }
                             return true;
                         }
@@ -257,16 +256,16 @@ namespace FerPROJ.DBHelper.Base {
                 try {
                     try {
                         if (confirmation) {
-                            if (CShowMessage.Ask("Are you sure to update this data?", "Confirmation")) {
+                            if (CDialogManager.Ask("Are you sure to update this data?", "Confirmation")) {
                                 await UpdateDataAsync(myDTO);
-                                CShowMessage.Info("Updated Successfully!", "Success");
+                                CDialogManager.Info("Updated Successfully!", "Success");
                                 return true;
                             }
                         }
                         else {
                             await UpdateDataAsync(myDTO);
                             if (returnResult) {
-                                CShowMessage.Info("Updated Successfully!", "Success");
+                                CDialogManager.Info("Updated Successfully!", "Success");
                             }
                             return true;
                         }
@@ -339,14 +338,14 @@ namespace FerPROJ.DBHelper.Base {
         }
         public async Task<bool> DeleteByIdAsync(TType id) {
             if (id == null) {
-                CShowMessage.Warning($"{nameof(id)} is null!");
+                CDialogManager.Warning($"{nameof(id)} is null!");
                 return false;
             }
             //
             try {
-                if (CShowMessage.Ask("Are you sure to delete this data?", "Confirmation")) {
+                if (CDialogManager.Ask("Are you sure to delete this data?", "Confirmation")) {
                     await DeleteDataAsync(id);
-                    CShowMessage.Info("Deleted Successfully!", "Success");
+                    CDialogManager.Info("Deleted Successfully!", "Success");
                     return true;
                 }
             }
@@ -370,7 +369,7 @@ namespace FerPROJ.DBHelper.Base {
                     var askMessage = ids.Count > 1 ? "Are you sure to delete these data's?" : "Are you sure to delete this data?";
                     var resultMessage = ids.Count > 1 ? "All the data's selected has been deleted successfully!" : "Deleted Successfully!";
                     //
-                    if (CShowMessage.Ask(askMessage, "Confirmation")) {
+                    if (CDialogManager.Ask(askMessage, "Confirmation")) {
                         foreach (var id in ids) {
                             try {
                                 await DeleteDataAsync(id);
@@ -383,10 +382,10 @@ namespace FerPROJ.DBHelper.Base {
                         }
                         trans.Commit();
                         if (sb.Length <= 0) {
-                            CShowMessage.Info(resultMessage);
+                            CDialogManager.Info(resultMessage);
                         }
                         else {
-                            CShowMessage.Warning($"The following id's has not been deleted:\n{sb.ToString()}");
+                            CDialogManager.Warning($"The following id's has not been deleted:\n{sb.ToString()}");
                         }
                     }
                 }

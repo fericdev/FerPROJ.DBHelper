@@ -53,7 +53,7 @@ namespace FerPROJ.DBHelper.Generate
                         }
                     }
                 }
-                CShowMessage.Info("Database column has been successfully generated.", "Success");
+                CDialogManager.Info("Database column has been successfully generated.", "Success");
                 CloseConnection();
             }
 

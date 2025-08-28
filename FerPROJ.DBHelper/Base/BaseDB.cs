@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.Base
 {
-    public abstract class BaseDB<DBHelper> : IDisposable where DBHelper : Conn
+    public abstract class BaseDB<DBHelper> : IDisposable where DBHelper : MySqlManager
     {
         public DBHelper _conn;
-        private Conn conn = new Conn();
+        private MySqlManager conn = new MySqlManager();
         public string _tableName { get; set; }
         public string _tableDetailsName { get;  set; }
 

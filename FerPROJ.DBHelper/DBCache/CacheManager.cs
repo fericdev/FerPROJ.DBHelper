@@ -311,7 +311,7 @@ namespace FerPROJ.DBHelper.DBCache {
 
         #region Load all Cached From DB
         public static List<Func<Task>> GetCacheLoadTasks(Type dbContextType) {
-            var baseGenericType = typeof(BaseDBEntityAsync<,,,>);
+            var baseGenericType = typeof(BaseRepository<,,,>);
 
             // List of assemblies to search, including current and referenced assemblies
             var assemblies = AppDomain.CurrentDomain.GetAssemblies()

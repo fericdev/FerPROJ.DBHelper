@@ -12,15 +12,15 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace FerPROJ.DBHelper.Forms {
-    public partial class FrmConf : Form {
-        public FrmConf() {
+    public partial class FrmDatabaseConfig : Form {
+        public FrmDatabaseConfig() {
             InitializeComponent();
         }
 
         private void saveConfigCustomButton_Click(object sender, EventArgs e) {
-            if (CShowMessage.Ask("Save?", "Confirmation")) {
+            if (CDialogManager.Ask("Save?", "Confirmation")) {
                 string sslMode = cbSSL.Checked ? "SslMode=None;" : "SslMode=Preferred;";
-                CSet.SetEntityConnectionString(hostnameCustomTextBox.Text, usernameCustomTextBox.Text, passwordCustomTextBox.Text, portCustomTextBox.Text, databaseNameCustomTextBox.Text, sslMode);
+                CAccessManager.SetEntityConnectionString(hostnameCustomTextBox.Text, usernameCustomTextBox.Text, passwordCustomTextBox.Text, portCustomTextBox.Text, databaseNameCustomTextBox.Text, sslMode);
                 UpdateConfigurationFile();
                 this.Close();
             }
@@ -41,15 +41,15 @@ namespace FerPROJ.DBHelper.Forms {
             CConfigurationManager.CreateOrSetValue("Pwd", passwordCustomTextBox.Text, "DatabaseConfig");
             CConfigurationManager.CreateOrSetValue("Server", hostnameCustomTextBox.Text, "DatabaseConfig");
             CConfigurationManager.CreateOrSetValue("SslMode", cbSSL.Checked ? "None" : "Preferred", "DatabaseConfig");
-            CShowMessage.Info("Database Configuration Updated Successfully!", "Info");
+            CDialogManager.Info("Database Configuration Updated Successfully!", "Info");
         }
 
         private void cButtonRunMigration_Click(object sender, EventArgs e) {
-            if (CShowMessage.Ask("Run Database Migration?", "Confirmation")) {
+            if (CDialogManager.Ask("Run Database Migration?", "Confirmation")) {
 
                 DBHelpers.RunDatabaseMigration();
 
-                CShowMessage.Info("Database Updated Successfully!", "Info");
+                CDialogManager.Info("Database Updated Successfully!", "Info");
             }
         }
     }

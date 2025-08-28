@@ -19,7 +19,7 @@ namespace FerPROJ.DBHelper.Helper {
 
         #region Open Database Configuration Form
         public static void OpenDatabaseConfiguration() {
-            using (var frm = new FrmConf()) {
+            using (var frm = new FrmDatabaseConfig()) {
                 frm.ShowDialog();
             }
         }
@@ -120,7 +120,7 @@ namespace FerPROJ.DBHelper.Helper {
 
             }
 
-            CShowMessage.Info("Database migration has been successfully executed.");
+            CDialogManager.Info("Database migration has been successfully executed.");
         }
         #endregion
 

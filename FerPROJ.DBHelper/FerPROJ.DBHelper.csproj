@@ -70,19 +70,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Base\BaseDB.cs" />
-    <Compile Include="Base\BaseDBEntityAsync.cs" />
+    <Compile Include="Base\BaseRepository.cs" />
     <Compile Include="Base\BaseDBEntity.cs" />
     <Compile Include="Base\BaseEntity.cs" />
-    <Compile Include="CRUD\Conn.cs" />
+    <Compile Include="CRUD\MySqlManager.cs" />
     <Compile Include="DBCache\CacheManager.cs" />
-    <Compile Include="DBExtensions\DBTransactionExtensions.cs" />
+    <Compile Include="DBExtensions\DbContextExtensions.cs" />
     <Compile Include="DBExtensions\IEnumerableExtentions.cs" />
     <Compile Include="DBExtensions\IQueryableExtensions.cs" />
-    <Compile Include="Forms\FrmConf.cs">
+    <Compile Include="Forms\FrmDatabaseConfig.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Forms\FrmConf.designer.cs">
-      <DependentUpon>FrmConf.cs</DependentUpon>
+    <Compile Include="Forms\FrmDatabaseConfig.designer.cs">
+      <DependentUpon>FrmDatabaseConfig.cs</DependentUpon>
     </Compile>
     <Compile Include="Generate\GTableClass.cs" />
     <Compile Include="Generate\ManageCreateTableClass.cs">
@@ -99,8 +99,8 @@
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Forms\FrmConf.resx">
-      <DependentUpon>FrmConf.cs</DependentUpon>
+    <EmbeddedResource Include="Forms\FrmDatabaseConfig.resx">
+      <DependentUpon>FrmDatabaseConfig.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Generate\ManageCreateTableClass.resx">
       <DependentUpon>ManageCreateTableClass.cs</DependentUpon>

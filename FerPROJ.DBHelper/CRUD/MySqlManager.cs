@@ -11,10 +11,10 @@ using System.Data.Entity;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
-using static FerPROJ.Design.Class.CEnum;
+using static FerPROJ.Design.Class.CBaseEnums;
 
 namespace FerPROJ.DBHelper.CRUD {
-    public class Conn : IDisposable {
+    public class MySqlManager : IDisposable {
         private MySqlCommand commandResult;
         private MySqlCommand commandResult2;
         private MySqlConnection connectionResult = new MySqlConnection();
@@ -25,20 +25,20 @@ namespace FerPROJ.DBHelper.CRUD {
         private string connectionString2;
         private int rowsAffected;
         private int rowsAffected2;
-        public AllowedOpenDB dbConnection = CEnum.AllowedOpenDB.One;
+        public AllowedOpenDB dbConnection = CBaseEnums.AllowedOpenDB.One;
 
-        public Conn() {
+        public MySqlManager() {
             SetNewConnection();
         }
-        public Conn(DbContext _ts) {
+        public MySqlManager(DbContext _ts) {
             connectionResult = (MySqlConnection)_ts.Database.Connection;
             if (connectionResult.State == ConnectionState.Closed) {
                 connectionResult.Open();
             }
         }
         public void SetNewConnection() {
-            this.connectionString = CStaticVariable.CONN_STRING_1 != null ? CStaticVariable.CONN_STRING_1 : CStaticVariable.ENTITY_CONNECTION_STRING;
-            this.connectionString2 = CStaticVariable.CONN_STRING_2;
+            this.connectionString = CAppConstants.CONN_STRING_1 != null ? CAppConstants.CONN_STRING_1 : CAppConstants.ENTITY_CONNECTION_STRING;
+            this.connectionString2 = CAppConstants.CONN_STRING_2;
         }
         public void CloseConnection() {
             if (dbConnection == AllowedOpenDB.One) {
@@ -53,7 +53,7 @@ namespace FerPROJ.DBHelper.CRUD {
                     connectionResult.Dispose();
                     commandResult.Dispose();
                     beginTransaction.Dispose();
-                    CStaticVariable.CONN_STRING_1 = null;
+                    CAppConstants.CONN_STRING_1 = null;
                 }
                 if (connectionResult2.State == ConnectionState.Open) {
                     connectionResult2.Close();
@@ -74,7 +74,7 @@ namespace FerPROJ.DBHelper.CRUD {
                 rowsAffected = commandResult.ExecuteNonQuery();
                 return true;
             } catch (MySqlException ex) {
-                CShowMessage.Warning(ex.Message, "Warning");
+                CDialogManager.Warning(ex.Message, "Warning");
                 CloseConnection();
                 return false;
             }
@@ -89,7 +89,7 @@ namespace FerPROJ.DBHelper.CRUD {
                 TransCommit();
                 return true;
             } catch (MySqlException ex) {
-                CShowMessage.Warning(ex.Message, "Warning");
+                CDialogManager.Warning(ex.Message, "Warning");
                 TransRollback();
                 CloseConnection();
                 return false;
@@ -131,7 +131,7 @@ namespace FerPROJ.DBHelper.CRUD {
                 TransCommit();
                 return true;
             } catch (MySqlException ex) {
-                CShowMessage.Warning(ex.Message, "Warning");
+                CDialogManager.Warning(ex.Message, "Warning");
                 TransRollback();
                 CloseConnection();
                 return false;
@@ -428,9 +428,9 @@ namespace FerPROJ.DBHelper.CRUD {
                         PropertyInfo detailsListProperty = (PropertyInfo)typeof(DTO).GetProperties().Where(c => c.PropertyType.IsGenericType && c.PropertyType.GetGenericTypeDefinition() == typeof(List<>)).FirstOrDefault();
 
                         if (detailsListProperty != null) {
-                            Conn c = new Conn();
+                            MySqlManager c = new MySqlManager();
                             Type innerType = detailsListProperty.PropertyType.GetGenericArguments()[0];
-                            MethodInfo getListDataMethod = typeof(Conn)
+                            MethodInfo getListDataMethod = typeof(MySqlManager)
                                                           .GetMethod("GetListData")
                                                           .MakeGenericMethod(innerType);
 
@@ -486,7 +486,7 @@ namespace FerPROJ.DBHelper.CRUD {
             if (myDTO.DataValidation()) {
                 string[] fieldsToExclude = null;
                 string message = null;
-                if (CShowMessage.Ask(message != null ? message : "Are you sure to save this data?", "Confirmation")) {
+                if (CDialogManager.Ask(message != null ? message : "Are you sure to save this data?", "Confirmation")) {
                     string[] columnList;
                     string[] valueList;
 
@@ -502,19 +502,19 @@ namespace FerPROJ.DBHelper.CRUD {
                     string values = string.Join(", ", valueList);
                     string insertQuery = $"INSERT INTO {tableName} ({columns}) VALUES ({values})";
                     if (ExecuteQuery(insertQuery)) {
-                        CShowMessage.Info("Saved Successfully.", "Success");
+                        CDialogManager.Info("Saved Successfully.", "Success");
                         return true;
                     }
                 }
             }
-            CShowMessage.Warning(myDTO.Error, "Warning");
+            CDialogManager.Warning(myDTO.Error, "Warning");
             return false;
 
         }
         public bool SaveManual<sDTO>(string tableName, sDTO myDTO, string[] fieldsToExclude = null) where sDTO : BaseModel {
             if (myDTO.DataValidation()) {
                 string message = null;
-                if (CShowMessage.Ask(message != null ? message : "Are you sure to save this data?", "Confirmation")) {
+                if (CDialogManager.Ask(message != null ? message : "Are you sure to save this data?", "Confirmation")) {
                     string[] columnList;
                     string[] valueList;
 
@@ -530,18 +530,18 @@ namespace FerPROJ.DBHelper.CRUD {
                     string values = string.Join(", ", valueList);
                     string insertQuery = $"INSERT INTO {tableName} ({columns}) VALUES ({values})";
                     if (ExecuteQuery(insertQuery)) {
-                        CShowMessage.Info("Saved Successfully.", "Success");
+                        CDialogManager.Info("Saved Successfully.", "Success");
                         return true;
                     }
                 }
             }
-            CShowMessage.Warning(myDTO.Error, "Warning");
+            CDialogManager.Warning(myDTO.Error, "Warning");
             return false;
         }
         public bool SaveManual<sDTO>(string tableName, sDTO myDTO, string message = null) where sDTO : BaseModel {
             if (myDTO.DataValidation()) {
                 string[] fieldsToExclude = null;
-                if (CShowMessage.Ask(message != null ? message : "Are you sure to save this data?", "Confirmation")) {
+                if (CDialogManager.Ask(message != null ? message : "Are you sure to save this data?", "Confirmation")) {
                     string[] columnList;
                     string[] valueList;
 
@@ -557,12 +557,12 @@ namespace FerPROJ.DBHelper.CRUD {
                     string values = string.Join(", ", valueList);
                     string insertQuery = $"INSERT INTO {tableName} ({columns}) VALUES ({values})";
                     if (ExecuteQuery(insertQuery)) {
-                        CShowMessage.Info("Saved Successfully.", "Success");
+                        CDialogManager.Info("Saved Successfully.", "Success");
                         return true;
                     }
                 }
             }
-            CShowMessage.Warning(myDTO.Error, "Warning");
+            CDialogManager.Warning(myDTO.Error, "Warning");
             return false;
         }
         public void SaveDetailsManual<mDTO>(string tableName, mDTO myDTO) where mDTO : BaseModel {
@@ -610,7 +610,7 @@ namespace FerPROJ.DBHelper.CRUD {
             if (myDTO.DataValidation()) {
                 string message = null;
                 string[] fieldsToExclude = null;
-                if (CShowMessage.Ask(message != null ? message : "Are you sure to update this data?", "Confirmation")) {
+                if (CDialogManager.Ask(message != null ? message : "Are you sure to update this data?", "Confirmation")) {
                     string[] columnAndValueList;
 
                     if (fieldsToExclude != null) {
@@ -622,18 +622,18 @@ namespace FerPROJ.DBHelper.CRUD {
                     string columns = string.Join(", ", columnAndValueList);
                     string insertQuery = $"UPDATE {tableName} SET {columns} {whereCondition}";
                     if (ExecuteQuery(insertQuery)) {
-                        CShowMessage.Info("Updated Successfully.", "Success");
+                        CDialogManager.Info("Updated Successfully.", "Success");
                         return true;
                     }
                 }
             }
-            CShowMessage.Warning(myDTO.Error, "Warning");
+            CDialogManager.Warning(myDTO.Error, "Warning");
             return false;
         }
         public bool UpdateManual<sDTO>(string tableName, string whereCondition, sDTO myDTO, string message = null) where sDTO : BaseModel {
             if (myDTO.DataValidation()) {
                 string[] fieldsToExclude = null;
-                if (CShowMessage.Ask(message != null ? message : "Are you sure to update this data?", "Confirmation")) {
+                if (CDialogManager.Ask(message != null ? message : "Are you sure to update this data?", "Confirmation")) {
                     string[] columnAndValueList;
 
                     if (fieldsToExclude != null) {
@@ -645,18 +645,18 @@ namespace FerPROJ.DBHelper.CRUD {
                     string columns = string.Join(", ", columnAndValueList);
                     string insertQuery = $"UPDATE {tableName} SET {columns} {whereCondition}";
                     if (ExecuteQuery(insertQuery)) {
-                        CShowMessage.Info("Updated Successfully.", "Success");
+                        CDialogManager.Info("Updated Successfully.", "Success");
                         return true;
                     }
                 }
             }
-            CShowMessage.Warning(myDTO.Error, "Warning");
+            CDialogManager.Warning(myDTO.Error, "Warning");
             return false;
         }
         public bool UpdateManual<sDTO>(string tableName, string whereCondition, sDTO myDTO, string[] fieldsToExclude = null) where sDTO : BaseModel {
             if (myDTO.DataValidation()) {
                 string message = null;
-                if (CShowMessage.Ask(message != null ? message : "Are you sure to update this data?", "Confirmation")) {
+                if (CDialogManager.Ask(message != null ? message : "Are you sure to update this data?", "Confirmation")) {
                     string[] columnAndValueList;
 
                     if (fieldsToExclude != null) {
@@ -668,17 +668,17 @@ namespace FerPROJ.DBHelper.CRUD {
                     string columns = string.Join(", ", columnAndValueList);
                     string insertQuery = $"UPDATE {tableName} SET {columns} {whereCondition}";
                     if (ExecuteQuery(insertQuery)) {
-                        CShowMessage.Info("Updated Successfully.", "Success");
+                        CDialogManager.Info("Updated Successfully.", "Success");
                         return true;
                     }
                 }
             }
-            CShowMessage.Warning(myDTO.Error, "Warning");
+            CDialogManager.Warning(myDTO.Error, "Warning");
             return false;
         }
         public bool UpdateManual<sDTO>(string tableName, string whereCondition, sDTO myDTO, string[] fieldsToExclude = null, string message = null) where sDTO : BaseModel {
             if (myDTO.DataValidation()) {
-                if (CShowMessage.Ask(message != null ? message : "Are you sure to update this data?", "Confirmation")) {
+                if (CDialogManager.Ask(message != null ? message : "Are you sure to update this data?", "Confirmation")) {
                     string[] columnAndValueList;
 
                     if (fieldsToExclude != null) {
@@ -690,12 +690,12 @@ namespace FerPROJ.DBHelper.CRUD {
                     string columns = string.Join(", ", columnAndValueList);
                     string insertQuery = $"UPDATE {tableName} SET {columns} {whereCondition}";
                     if (ExecuteQuery(insertQuery)) {
-                        CShowMessage.Info("Updated Successfully.", "Success");
+                        CDialogManager.Info("Updated Successfully.", "Success");
                         return true;
                     }
                 }
             }
-            CShowMessage.Warning(myDTO.Error, "Warning");
+            CDialogManager.Warning(myDTO.Error, "Warning");
             return false;
         }
         public bool UpdateDetailsManual<mDTO>(string tableName, string whereCondition, mDTO myDTO) where mDTO : BaseModel {
@@ -712,11 +712,11 @@ namespace FerPROJ.DBHelper.CRUD {
                 string columns = string.Join(", ", columnAndValueList);
                 string insertQuery = $"UPDATE {tableName} SET {columns} {whereCondition}";
                 if (ExecuteQuery(insertQuery)) {
-                    CShowMessage.Info("Updated Successfully.", "Success");
+                    CDialogManager.Info("Updated Successfully.", "Success");
                     return true;
                 }
             }
-            CShowMessage.Warning(myDTO.Error, "Warning");
+            CDialogManager.Warning(myDTO.Error, "Warning");
             return false;
         }
         public bool UpdateDetailsManual<mDTO>(string tableName, string whereCondition, mDTO myDTO, string[] fieldsToExclude = null) where mDTO : BaseModel {
@@ -732,16 +732,16 @@ namespace FerPROJ.DBHelper.CRUD {
                 string columns = string.Join(", ", columnAndValueList);
                 string insertQuery = $"UPDATE {tableName} SET {columns} {whereCondition}";
                 if (ExecuteQuery(insertQuery)) {
-                    CShowMessage.Info("Updated Successfully.", "Success");
+                    CDialogManager.Info("Updated Successfully.", "Success");
                     return true;
                 }
             }
-            CShowMessage.Warning(myDTO.Error, "Warning");
+            CDialogManager.Warning(myDTO.Error, "Warning");
             return false;
         }
         public bool UpdateCustom(string queryStatement) {
             if (ExecuteQuery(queryStatement)) {
-                CShowMessage.Info("Updated Successfully.", "Info");
+                CDialogManager.Info("Updated Successfully.", "Info");
                 return true;
             }
             return false;
@@ -753,10 +753,10 @@ namespace FerPROJ.DBHelper.CRUD {
             return false;
         }
         public bool DeleteManual(string tableName, string whereCondition, string message = null) {
-            if (CShowMessage.Ask(message != null ? message : "Are you sure to delete this data?", "Confirmation")) {
+            if (CDialogManager.Ask(message != null ? message : "Are you sure to delete this data?", "Confirmation")) {
                 string insertQuery = $"DELETE FROM {tableName} {whereCondition}";
                 if (ExecuteQuery(insertQuery)) {
-                    CShowMessage.Info("Deleted Successfully.", "Success");
+                    CDialogManager.Info("Deleted Successfully.", "Success");
                     return true;
                 }
             }
@@ -843,9 +843,9 @@ namespace FerPROJ.DBHelper.CRUD {
             if (dbConnection == AllowedOpenDB.Two) {
                 if (!string.IsNullOrEmpty(connectionString2)) {
                     if (queryStatement.Count > 0 && queryStatement2.Count > 0) {
-                        if (CShowMessage.Ask("Execute Transaction?", "Confirmation")) {
+                        if (CDialogManager.Ask("Execute Transaction?", "Confirmation")) {
                             if (ExecuteQuery(queryStatement, queryStatement2)) {
-                                CShowMessage.Info("Transaction has been successfully commited.", "Success");
+                                CDialogManager.Info("Transaction has been successfully commited.", "Success");
                             } else {
                                 throw new ArgumentException("Error: Save!");
                             }
@@ -860,9 +860,9 @@ namespace FerPROJ.DBHelper.CRUD {
         }
         public void SaveMultipleQuery(List<string> queryStatement) {
             if (queryStatement.Count > 0) {
-                if (CShowMessage.Ask("Execute Transaction?", "Confirmation")) {
+                if (CDialogManager.Ask("Execute Transaction?", "Confirmation")) {
                     if (ExecuteQuery(queryStatement)) {
-                        CShowMessage.Info($"Transaction has been successfully commited with {rowsAffected} rows affected.", "Success");
+                        CDialogManager.Info($"Transaction has been successfully commited with {rowsAffected} rows affected.", "Success");
                     } else {
                         throw new ArgumentException("Error: Save!");
                     }
