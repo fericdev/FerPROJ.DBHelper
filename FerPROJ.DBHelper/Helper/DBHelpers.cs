@@ -273,7 +273,7 @@ namespace FerPROJ.DBHelper.Helper {
             var host = CConfigurationManager.GetValue("Server", "DatabaseConfig");
 
             // File name format: yyyy-MM-dd_hh-mm-tt.sql (tt = AM/PM)
-            string fileName = $"{db}_{DateTime.Now.ToString("yyyy_MM_dd_hh_mm_tt")}.sql";
+            string fileName = $"{db}_{CAccessManager.CurrentDateTime()}.sql";
             string backupPath = CAccessManager.GetOrCreateEnvironmentPath(fileName, "Database Backup");
 
             // Build the mysqldump command
