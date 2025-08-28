@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Data.Entity.Migrations;
+using System.Data.SqlClient;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -258,6 +260,51 @@ namespace FerPROJ.DBHelper.Helper {
                 .FirstOrDefault();
 
             return count > 0;
+        }
+        #endregion
+
+        #region Create Backup of Database
+        public static void BackupDatabase() {
+            // Get database connection details from config
+            var db = CConfigurationManager.GetValue("DatabaseName", "DatabaseConfig");
+            var port = CConfigurationManager.GetValue("Port", "DatabaseConfig");
+            var user = CConfigurationManager.GetValue("Uid", "DatabaseConfig");
+            var pass = CConfigurationManager.GetValue("Pwd", "DatabaseConfig");
+            var host = CConfigurationManager.GetValue("Server", "DatabaseConfig");
+
+            // File name format: yyyy-MM-dd_hh-mm-tt.sql (tt = AM/PM)
+            string fileName = $"{db}_{DateTime.Now.ToString("yyyy_MM_dd_hh_mm_tt")}.sql";
+            string backupPath = CAccessManager.GetOrCreateEnvironmentPath(fileName, "Database Backup");
+
+            // Build the mysqldump command
+            string arguments = $"-h {host} -P {port} -u {user} -p{pass} --ssl-mode=DISABLED {db}";
+
+            // Create backup directory if it doesn't exist
+            ProcessStartInfo psi = new ProcessStartInfo {
+                FileName = @"C:\Program Files\MySQL\MySQL Server 5.7\bin\mysqldump.exe",
+                Arguments = arguments,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,   // ✅ Capture errors too
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            // Ensure backup directory exists
+            using (Process process = Process.Start(psi)) {
+
+                string result = process.StandardOutput.ReadToEnd();  // ✅ dump output
+                string error = process.StandardError.ReadToEnd();    // ✅ dump errors
+
+                process.WaitForExit();
+
+                if (!string.IsNullOrWhiteSpace(error)) {
+                    CConfigurationManager.CreateOrSetValue($"{db}_{CAccessManager.CurrentDateTime()}", error, parent: "DatabaseBackup", encrypt: false);
+                }
+
+                File.WriteAllText(backupPath, result);
+            }
+
+            CDialogManager.Info($"Database backup created at: {backupPath}", "Backup Successful");
         }
         #endregion
 
