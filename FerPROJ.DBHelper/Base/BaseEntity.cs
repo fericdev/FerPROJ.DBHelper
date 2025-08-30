@@ -15,7 +15,9 @@ namespace FerPROJ.DBHelper.Base {
         public DateTime? DateModified { get; set; } = null;
         public DateTime? DateDeleted { get; set; } = null;
         public string CreatedBy { get; set; }
+        public Guid CreatedById { get; set; }
         public string ModifiedBy { get; set; } = null;
+        public Guid? ModifiedById { get; set; } = null;
         public string Status { get; set; }
     }
 }

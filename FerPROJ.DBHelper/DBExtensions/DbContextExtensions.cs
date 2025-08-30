@@ -260,6 +260,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             myDTO.DateCreated = DateTime.Now;
             myDTO.CreatedBy = CAppConstants.USERNAME;
             myDTO.Status = CAppConstants.ACTIVE_STATUS;
+            myDTO.CreatedById = CAppConstants.USER_ID;
 
             var tbl = new CMappingExtension<TSource, TEntity>().GetMappingResult(myDTO);
 
@@ -271,6 +272,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             myDTO.DateCreated = DateTime.Now;
             myDTO.CreatedBy = CAppConstants.USERNAME;
             myDTO.Status = CAppConstants.ACTIVE_STATUS;
+            myDTO.CreatedById = CAppConstants.USER_ID;
 
             var tbl = new CMappingExtension<TSource, TEntity>().GetMappingResult(myDTO);
 
@@ -325,6 +327,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 item.DateCreated = DateTime.Now;
                 item.CreatedBy = CAppConstants.USERNAME;
                 item.Status = CAppConstants.ACTIVE_STATUS;
+                item.CreatedById = CAppConstants.USER_ID;
             }
 
             var tbl = new CMappingList<TSource, TEntity>().GetMappingResultList(myDTO);
@@ -338,6 +341,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 item.DateCreated = DateTime.Now;
                 item.CreatedBy = CAppConstants.USERNAME;
                 item.Status = CAppConstants.ACTIVE_STATUS;
+                item.CreatedById = CAppConstants.USER_ID;
             }
 
             var tbl = new CMappingList<TSource, TEntity>().GetMappingResultList(myDTO);
@@ -351,6 +355,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             myDTO.DateModified = DateTime.Now;
             myDTO.ModifiedBy = CAppConstants.USERNAME;
+            myDTO.ModifiedById = CAppConstants.USER_ID;
 
             var tbl = new CMappingExtension<TSource, TEntity>().GetMappingResult(myDTO);
 
@@ -364,6 +369,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             myDTO.DateModified = DateTime.Now;
             myDTO.ModifiedBy = CAppConstants.USERNAME;
+            myDTO.ModifiedById = CAppConstants.USER_ID;
 
             var tbl = new CMappingExtension<TSource, TEntity>().GetMappingResult(myDTO);
 
@@ -378,6 +384,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             foreach (var item in myDTO) {
                 item.DateModified = DateTime.Now;
                 item.ModifiedBy = CAppConstants.USERNAME;
+                item.ModifiedById = CAppConstants.USER_ID;
             }
 
             var tbl = new CMappingList<TSource, TEntity>().GetMappingResultList(myDTO);
@@ -393,6 +400,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             foreach (var item in myDTO) {
                 item.DateModified = DateTime.Now;
                 item.ModifiedBy = CAppConstants.USERNAME;
+                item.ModifiedById = CAppConstants.USER_ID;
             }
 
             var tbl = new CMappingList<TSource, TEntity>().GetMappingResultList(myDTO);
