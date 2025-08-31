@@ -494,7 +494,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             return await context.GetByPredicateAsync(predicate);
 
         }
-        public static async Task<TEntity> GetByFormIdAsync<TEntity>(this DbContext context, Guid formId) where TEntity : class {
+        public static async Task<TEntity> GetByParentIdAsync<TEntity>(this DbContext context, Guid parentId) where TEntity : class {
             // Find the "FormId" property dynamically in the entity type
             var keyProperty = typeof(TEntity).GetProperty("FormId");
             if (keyProperty == null)
@@ -505,7 +505,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             // Convert Guid formId to the property type if needed
             var idConstant = Expression.Constant(
-                Convert.ChangeType(formId, keyProperty.PropertyType),
+                Convert.ChangeType(parentId, keyProperty.PropertyType),
                 keyProperty.PropertyType
             );
 
@@ -615,19 +615,19 @@ namespace FerPROJ.DBHelper.DBExtensions {
         #endregion
 
         #region Get All Method
-        public static async Task<IEnumerable<TEntity>> GetAllByFormIdAsync<TEntity>(this DbContext context, Guid formId) where TEntity : class {
+        public static async Task<IEnumerable<TEntity>> GetAllByParentIdAsync<TEntity>(this DbContext context, Guid parentId) where TEntity : class {
 
             // Find the "FormId" property dynamically in the entity type
-            var keyProperty = typeof(TEntity).GetProperty("FormId");
+            var keyProperty = typeof(TEntity).GetProperty("parentId");
             if (keyProperty == null)
-                throw new InvalidOperationException($"{typeof(TEntity).Name} does not contain a 'FormId' property.");
+                throw new InvalidOperationException($"{typeof(TEntity).Name} does not contain a 'ParentId' property.");
 
             // Create parameter expression: e =>
             var parameter = Expression.Parameter(typeof(TEntity), "e");
 
             // Convert Guid formId to the property type if needed
             var idConstant = Expression.Constant(
-                Convert.ChangeType(formId, keyProperty.PropertyType),
+                Convert.ChangeType(parentId, keyProperty.PropertyType),
                 keyProperty.PropertyType
             );
 

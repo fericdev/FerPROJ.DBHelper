@@ -44,13 +44,13 @@ namespace FerPROJ.DBHelper.Forms {
             CDialogManager.Info("Database Configuration Updated Successfully!", "Info");
         }
 
-        private void cButtonRunMigration_Click(object sender, EventArgs e) {
+        private async void cButtonRunMigration_Click(object sender, EventArgs e) {
             if (CDialogManager.Ask("Run Database Migration?", "Confirmation")) {
                 // Backup Database
-                DBHelpers.BackupDatabase();
+                await DBHelpers.BackupDatabaseAsync();
 
                 // Run Migration
-                DBHelpers.RunDatabaseMigration();
+                await DBHelpers.RunDatabaseMigrationAsync();
 
                 // Inform User
                 CDialogManager.Info("Database Updated Successfully!", "Info");

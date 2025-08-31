@@ -72,7 +72,7 @@ namespace FerPROJ.DBHelper.Helper {
         #endregion
 
         #region Run Database Migration
-        public static void RunDatabaseMigration() {
+        public static async Task RunDatabaseMigrationAsync() {
 
             // Find the DbContext type in the loaded assemblies
             var dbContextType = GetDbContextType();
@@ -116,7 +116,7 @@ namespace FerPROJ.DBHelper.Helper {
                     var method = migrationType.GetMethod("RunMigrationAsync");
                     if (method != null) {
                         var task = (Task)method.Invoke(migrationInstance, new object[] { dbContext });
-                        task.GetAwaiter().GetResult(); // wait for async method
+                        await task; // wait for async method
                     }
                 }
 
@@ -127,7 +127,7 @@ namespace FerPROJ.DBHelper.Helper {
         #endregion
 
         #region Alter Table Columns
-        public static void CreateOrUpdateTableOfEntity<TEntity>(DbContext dbContext) {
+        public static async Task CreateOrUpdateTableOfEntityAsync<TEntity>(DbContext dbContext) {
             // Get table name and properties
             var tableName = typeof(TEntity).Name; 
             var properties = typeof(TEntity).GetProperties();
@@ -159,7 +159,7 @@ namespace FerPROJ.DBHelper.Helper {
 
                 var createTableSql = $"CREATE TABLE `{tableName}` ({string.Join(", ", columnsSql)});";
 
-                dbContext.Database.ExecuteSqlCommand(createTableSql);
+                await dbContext.Database.ExecuteSqlCommandAsync(createTableSql);
             }
             else {
 
@@ -175,13 +175,13 @@ namespace FerPROJ.DBHelper.Helper {
                         // Check if column exists
                         if (IsColumnExists(dbContext, tableName, columnName)) {
                             // Alter existing column
-                            dbContext.Database.ExecuteSqlCommand(
+                            await dbContext.Database.ExecuteSqlCommandAsync(
                                 $"ALTER TABLE `{tableName}` MODIFY COLUMN `{columnName}` {columnType} {(isNullable ? "NULL" : "NOT NULL")} {(defaultValue != null ? $"DEFAULT '{defaultValue}'" : "")};"
                             );
                         }
                         else {
                             // Add new column
-                            dbContext.Database.ExecuteSqlCommand(
+                            await dbContext.Database.ExecuteSqlCommandAsync(
                                 $"ALTER TABLE `{tableName}` ADD COLUMN `{columnName}` {columnType} {(isNullable ? "NULL" : "NOT NULL")} {(defaultValue != null ? $"DEFAULT '{defaultValue}'" : "")};"
                             );
                         }
@@ -264,7 +264,7 @@ namespace FerPROJ.DBHelper.Helper {
         #endregion
 
         #region Create Backup of Database
-        public static void BackupDatabase() {
+        public static async Task BackupDatabaseAsync() {
             // Get database connection details from config
             var db = CConfigurationManager.GetValue("DatabaseName", "DatabaseConfig");
             var port = CConfigurationManager.GetValue("Port", "DatabaseConfig");
@@ -292,8 +292,8 @@ namespace FerPROJ.DBHelper.Helper {
             // Ensure backup directory exists
             using (Process process = Process.Start(psi)) {
 
-                string result = process.StandardOutput.ReadToEnd();  // ✅ dump output
-                string error = process.StandardError.ReadToEnd();    // ✅ dump errors
+                string result = await process.StandardOutput.ReadToEndAsync();  // ✅ dump output
+                string error = await process.StandardError.ReadToEndAsync();    // ✅ dump errors
 
                 process.WaitForExit();
 

@@ -68,8 +68,8 @@ namespace FerPROJ.DBHelper.Base {
         protected virtual async Task<IEnumerable<TEntity>> GetAllAsync() {
             return await _ts.GetAllAsync<TEntity>();
         }
-        protected virtual async Task<IEnumerable<TEntity>> GetAllByFormIdAsync(Guid formId) {
-            return await _ts.GetAllByFormIdAsync<TEntity>(formId);
+        protected virtual async Task<IEnumerable<TEntity>> GetAllByParentIdAsync(Guid parentId) {
+            return await _ts.GetAllByParentIdAsync<TEntity>(parentId);
         }
         protected virtual async Task<IEnumerable<TEntity>> GetAllWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo) {
             return await _ts.GetAllWithSearchAsync<TEntity>(searchText, dateFrom, dateTo);
@@ -84,8 +84,8 @@ namespace FerPROJ.DBHelper.Base {
         public virtual async Task<TEntity> GetByIdAsync(TType id) {
             return await _ts.GetByIdAsync<TEntity, TType>(id);
         }
-        public virtual async Task<TEntity> GetByFormIdAsync(Guid formId) {
-            return await _ts.GetByFormIdAsync<TEntity>(formId);
+        public virtual async Task<TEntity> GetByParentIdAsync(Guid parentId) {
+            return await _ts.GetByParentIdAsync<TEntity>(parentId);
         }
         public virtual async Task<TEntity> GetByIdAsync(TType id, string propertyName) {
             return await _ts.GetByIdAsync<TEntity, TType>(id, propertyName);

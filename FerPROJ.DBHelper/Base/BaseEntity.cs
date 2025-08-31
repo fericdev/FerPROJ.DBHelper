@@ -9,6 +9,7 @@ namespace FerPROJ.DBHelper.Base {
     public partial class BaseEntity {
         [Key]
         public Guid Id { get; set; }
+        public Guid? ParentId { get; set; } = null;
         public string FormId { get; set; }
         public string Name { get; set; }
         public DateTime? DateCreated { get; set; } = null;
