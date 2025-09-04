@@ -13,8 +13,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Remoting.Contexts;
+using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace FerPROJ.DBHelper.Helper {
     public static class DBHelpers {
@@ -306,6 +308,129 @@ namespace FerPROJ.DBHelper.Helper {
 
             CDialogManager.Info($"Database backup created at: {backupPath}", "Backup Successful");
         }
+        #endregion
+
+        #region First Installation
+        public static async Task RunDatabaseSetupAsync() {
+            if (!string.IsNullOrEmpty(CConfigurationManager.GetValue("DatabaseSetup"))) {
+                CDialogManager.Info("MySQL setup already completed.");
+                return;
+            }
+
+            try {
+                if (!IsMySQLInstalled()) {
+                    await InstallMySQLAsync();
+                }
+                else {
+                    CDialogManager.Info("MySQL is already installed, skipping installation.");
+                }
+
+                if (!IsConnectorInstalled()) {
+                    await InstallConnectorAsync();
+                }
+                else {
+                    CDialogManager.Info("MySQL Connector is already installed, skipping installation.");
+                }
+
+                await ConfigureMySQLAsync();
+
+                CConfigurationManager.CreateOrSetValue("DatabaseSetup", "Completed");
+
+                CDialogManager.Info("MySQL setup/configuration completed successfully.");
+            }
+            catch (Exception ex) {
+                CDialogManager.Info("Setup failed: " + ex.Message);
+            }
+        }
+
+        private static bool IsMySQLInstalled() {
+            try {
+                using (ServiceController sc = new ServiceController("MySQL57")) {
+                    var status = sc.Status; // will throw if not installed
+                    return true;
+                }
+            }
+            catch {
+                return false;
+            }
+        }
+
+        // ✅ Simple check: look for connector DLL in GAC
+        private static bool IsConnectorInstalled() {
+            // Just a simple check if the MySql.Data.dll exists in GAC
+            string gacPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.Windows),
+                "Microsoft.NET", "assembly", "GAC_MSIL", "MySql.Data"
+            );
+
+            return Directory.Exists(gacPath);
+        }
+
+        private static async Task InstallMySQLAsync() {
+            var installerPath = CAccessManager.GetOrCreateEnvironmentPath("mysql-installer-5.7.44.0.msi", "MySQL Setup");
+
+            if (!File.Exists(installerPath))
+                throw new FileNotFoundException("MySQL installer not found.");
+
+            string args = $"/i \"{installerPath}\" /quiet /norestart " +
+                          "INSTALLDIR=\"C:\\MySQL\" " +
+                          "SERVICENAME=\"MySQL57\" " +
+                          "PORT=3309 " +
+                          "ROOTPASSWORD=\"RootPassword123!\" " +
+                          "ADDLOCAL=\"Server,Client\"";
+
+            await RunProcessAsync("msiexec.exe", args);
+        }
+
+        private static async Task InstallConnectorAsync() {
+            var installerPath = CAccessManager.GetOrCreateEnvironmentPath("mysql-connector-6.9.9.msi", "MySQL Setup");
+
+            if (!File.Exists(installerPath))
+                throw new FileNotFoundException("MySQL Connector installer not found.");
+
+            string args = $"/i \"{installerPath}\" /quiet /norestart";
+            await RunProcessAsync("msiexec.exe", args);
+        }
+
+        private static async Task ConfigureMySQLAsync() {
+            string sql = @"
+                CREATE USER IF NOT EXISTS 'adminserver'@'localhost' IDENTIFIED BY 'admin123!@#';
+                GRANT ALL PRIVILEGES ON *.* TO 'adminserver'@'localhost' WITH GRANT OPTION;
+                FLUSH PRIVILEGES;
+            ";
+
+            File.WriteAllText("mysql_init.sql", sql);
+
+            string mysqlPath = @"C:\MySQL\bin\mysql.exe";
+
+            if (!File.Exists(mysqlPath))
+                throw new FileNotFoundException("mysql.exe not found at " + mysqlPath);
+
+            await RunProcessAsync("cmd.exe", $"/c \"{mysqlPath} -u root -pRootPassword123! < mysql_init.sql\"");
+        }
+
+        private static async Task RunProcessAsync(string fileName, string arguments) {
+            var process = new Process {
+                StartInfo = new ProcessStartInfo {
+                    FileName = fileName,
+                    Arguments = arguments,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                }
+            };
+
+            process.Start();
+            process.WaitForExit();
+
+            string output = await process.StandardOutput.ReadToEndAsync();
+            string error = await process.StandardError.ReadToEndAsync();
+
+            if (process.ExitCode != 0)
+                throw new Exception($"Process failed: {error} {output}");
+        }
+
         #endregion
 
     }
