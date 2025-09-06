@@ -321,6 +321,36 @@ namespace FerPROJ.DBHelper.DBExtensions {
             await context.SaveAndCommitAsync(tbl);
 
         }
+        public static async Task SaveModelAndCommitAsync<TModel, TModelItem, TEntity, TEntityItem>(this DbContext context, TModel model, List<TModelItem> modelItems) 
+            where TModel : BaseModel 
+            where TModelItem : BaseModelItem
+            where TEntity: BaseEntity
+            where TEntityItem : BaseEntityItem {
+
+            // Set common properties
+            model.DateCreated = DateTime.Now;
+            model.CreatedBy = CAppConstants.USERNAME;
+            model.Status = CAppConstants.ACTIVE_STATUS;
+            model.CreatedById = CAppConstants.USER_ID;
+
+            // Set common properties for each item
+            foreach (var item in modelItems) {
+                item.ParentId = model.Id;
+            }
+
+            // Map entity from model
+            var entity = new CMappingExtension<TModel, TEntity>().GetMappingResult(model);
+
+            // Map entity items from model items
+            var entityItems = new CMappingExtensionList<TModelItem, TEntityItem>().GetMappingResultList(modelItems);
+
+            // Save main entity
+            await context.SaveAndCommitAsync(entity);
+
+            // Save entity items
+            await context.SaveRangeAndCommitAsync(entityItems);
+
+        }
         public static async Task SaveRangeDTOAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : BaseModel where TEntity : class {
 
             foreach (var item in myDTO) {
@@ -330,7 +360,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 item.CreatedById = CAppConstants.USER_ID;
             }
 
-            var tbl = new CMappingList<TSource, TEntity>().GetMappingResultList(myDTO);
+            var tbl = new CMappingExtensionList<TSource, TEntity>().GetMappingResultList(myDTO);
 
             await context.SaveRangeAsync(tbl);
 
@@ -344,7 +374,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 item.CreatedById = CAppConstants.USER_ID;
             }
 
-            var tbl = new CMappingList<TSource, TEntity>().GetMappingResultList(myDTO);
+            var tbl = new CMappingExtensionList<TSource, TEntity>().GetMappingResultList(myDTO);
 
             await context.SaveRangeAndCommitAsync(tbl);
         }
@@ -387,7 +417,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 item.ModifiedById = CAppConstants.USER_ID;
             }
 
-            var tbl = new CMappingList<TSource, TEntity>().GetMappingResultList(myDTO);
+            var tbl = new CMappingExtensionList<TSource, TEntity>().GetMappingResultList(myDTO);
 
             foreach (var item in tbl) {
                 await context.UpdateAsync(item);
@@ -403,7 +433,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 item.ModifiedById = CAppConstants.USER_ID;
             }
 
-            var tbl = new CMappingList<TSource, TEntity>().GetMappingResultList(myDTO);
+            var tbl = new CMappingExtensionList<TSource, TEntity>().GetMappingResultList(myDTO);
 
             foreach (var item in tbl) {
                 await context.UpdateAndCommitAsync(item);
@@ -494,28 +524,8 @@ namespace FerPROJ.DBHelper.DBExtensions {
             return await context.GetByPredicateAsync(predicate);
 
         }
-        public static async Task<TEntity> GetByParentIdAsync<TEntity>(this DbContext context, Guid parentId) where TEntity : class {
-            // Find the "FormId" property dynamically in the entity type
-            var keyProperty = typeof(TEntity).GetProperty("FormId");
-            if (keyProperty == null)
-                throw new InvalidOperationException($"{typeof(TEntity).Name} does not contain a 'FormId' property.");
-
-            // Create parameter expression: e =>
-            var parameter = Expression.Parameter(typeof(TEntity), "e");
-
-            // Convert Guid formId to the property type if needed
-            var idConstant = Expression.Constant(
-                Convert.ChangeType(parentId, keyProperty.PropertyType),
-                keyProperty.PropertyType
-            );
-
-            // Build predicate: e => e.FormId == formId
-            var predicate = Expression.Lambda<Func<TEntity, bool>>(
-                Expression.Equal(Expression.Property(parameter, keyProperty), idConstant),
-                parameter
-            );
-
-            return await context.GetByPredicateAsync(predicate);
+        public static async Task<TEntityItem> GetByParentIdAsync<TEntityItem>(this DbContext context, Guid parentId) where TEntityItem : BaseEntityItem {
+            return await context.GetByPredicateAsync<TEntityItem>(c=>c.ParentId == parentId);
         }
         public static async Task<TEntity> GetByIdAsync<TEntity, TType>(
             this DbContext context,
@@ -615,31 +625,9 @@ namespace FerPROJ.DBHelper.DBExtensions {
         #endregion
 
         #region Get All Method
-        public static async Task<IEnumerable<TEntity>> GetAllByParentIdAsync<TEntity>(this DbContext context, Guid parentId) where TEntity : class {
-
-            // Find the "FormId" property dynamically in the entity type
-            var keyProperty = typeof(TEntity).GetProperty("parentId");
-            if (keyProperty == null)
-                throw new InvalidOperationException($"{typeof(TEntity).Name} does not contain a 'ParentId' property.");
-
-            // Create parameter expression: e =>
-            var parameter = Expression.Parameter(typeof(TEntity), "e");
-
-            // Convert Guid formId to the property type if needed
-            var idConstant = Expression.Constant(
-                Convert.ChangeType(parentId, keyProperty.PropertyType),
-                keyProperty.PropertyType
-            );
-
-            // Build predicate: e => e.FormId == formId
-            var predicate = Expression.Lambda<Func<TEntity, bool>>(
-                Expression.Equal(Expression.Property(parameter, keyProperty), idConstant),
-                parameter
-            );
-
+        public static async Task<IEnumerable<TEntityItem>> GetAllItemsByParentIdAsync<TEntityItem>(this DbContext context, Guid parentId) where TEntityItem : BaseEntityItem {
             // Assuming you already have a GetAllAsync(predicate) method
-            return await context.GetAllAsync(predicate);
-
+            return await context.GetAllAsync<TEntityItem>(c=>c.ParentId == parentId);
         }
         //
         public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, string propertyName, object propertyValue) where TEntity : class {

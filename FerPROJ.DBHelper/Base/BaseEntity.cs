@@ -1,15 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.Base {
     public partial class BaseEntity {
         [Key]
         public Guid Id { get; set; }
-        public Guid? ParentId { get; set; } = null;
         public string FormId { get; set; }
         public string Name { get; set; }
         public DateTime? DateCreated { get; set; } = null;
@@ -20,5 +15,11 @@ namespace FerPROJ.DBHelper.Base {
         public string ModifiedBy { get; set; } = null;
         public Guid? ModifiedById { get; set; } = null;
         public string Status { get; set; }
+    }
+    public partial class BaseEntityItem {
+        [Key]
+        public Guid Id { get; set; }
+        public Guid? ParentId { get; set; }
+        public string Description { get; set; }
     }
 }

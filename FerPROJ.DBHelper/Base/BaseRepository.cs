@@ -1,4 +1,5 @@
-﻿using FerPROJ.DBHelper.CRUD;
+﻿#region namespace
+using FerPROJ.DBHelper.CRUD;
 using FerPROJ.DBHelper.DBCache;
 using FerPROJ.DBHelper.DBExtensions;
 using FerPROJ.DBHelper.Query;
@@ -23,10 +24,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static FerPROJ.Design.Class.CBaseEnums;
+#endregion
 
 namespace FerPROJ.DBHelper.Base {
     public abstract class BaseRepository<EntityContext, TModel, TEntity, TType> : IDisposable where EntityContext : DbContext where TModel : BaseModel where TEntity : class {
-       
+
         #region BaseProperties
         public string _tableName { get; set; }
         public string _tableDetailsName { get; set; }
@@ -57,6 +59,20 @@ namespace FerPROJ.DBHelper.Base {
         }
         #endregion
 
+        #region Base GET for Model
+        public virtual async Task<TModel> GetPrepareModelAsync(TModel model = null, string prefix = "Form#") {
+            if (model == null) {
+                model = Activator.CreateInstance<TModel>();
+            }
+            model.FormId = await GetGeneratedIDAsync(prefix, false);
+            return model;
+        }
+        public virtual async Task<TModel> GetPrepareModelByIdAsync(TType id) {
+            var entity = await GetByIdAsync(id);
+            return entity.ToDestination<TModel>();
+        }
+        #endregion
+
         #region Base GetDBEntity Method
         //
         public async Task<string> GetGeneratedIDAsync(string prefix, bool withSlash = true) {
@@ -68,13 +84,10 @@ namespace FerPROJ.DBHelper.Base {
         protected virtual async Task<IEnumerable<TEntity>> GetAllAsync() {
             return await _ts.GetAllAsync<TEntity>();
         }
-        protected virtual async Task<IEnumerable<TEntity>> GetAllByParentIdAsync(Guid parentId) {
-            return await _ts.GetAllByParentIdAsync<TEntity>(parentId);
-        }
         protected virtual async Task<IEnumerable<TEntity>> GetAllWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo) {
             return await _ts.GetAllWithSearchAsync<TEntity>(searchText, dateFrom, dateTo);
         }
-        protected virtual async Task<IEnumerable<TModel>> GetAllDTOWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo) {
+        protected virtual async Task<IEnumerable<TModel>> GetAllModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo) {
             var query = await _ts.GetAllWithSearchAsync<TEntity>(searchText, dateFrom, dateTo);
             return query.ToDestination<TModel>();
         }
@@ -83,9 +96,6 @@ namespace FerPROJ.DBHelper.Base {
         }
         public virtual async Task<TEntity> GetByIdAsync(TType id) {
             return await _ts.GetByIdAsync<TEntity, TType>(id);
-        }
-        public virtual async Task<TEntity> GetByParentIdAsync(Guid parentId) {
-            return await _ts.GetByParentIdAsync<TEntity>(parentId);
         }
         public virtual async Task<TEntity> GetByIdAsync(TType id, string propertyName) {
             return await _ts.GetByIdAsync<TEntity, TType>(id, propertyName);
@@ -414,5 +424,133 @@ namespace FerPROJ.DBHelper.Base {
         #endregion
 
     }
+    public abstract class BaseItemRepository<EntityContext, TModel, TModelItem, TEntity, TEntityItem> : BaseRepository<EntityContext, TModel, TEntity, Guid> where EntityContext : DbContext where TModel : BaseModel where TEntity : BaseEntity where TModelItem : BaseModelItem where TEntityItem : BaseEntityItem {
+
+        #region ctor
+        protected BaseItemRepository() : base() { }
+        protected BaseItemRepository(EntityContext ts) : base(ts) { }
+        #endregion
+
+        #region Base GET for Model Item
+        public virtual async Task<List<TModelItem>> GetPrepareModelItemsByParentIdAsync(Guid parentId) {
+            var entities = await GetAllItemsByParentIdAsync(parentId);
+            return entities.ToDestination<TModelItem>();
+        }
+        #endregion
+
+        #region Base GET for Item
+        public virtual async Task<IEnumerable<TEntityItem>> GetAllItemsByParentIdAsync(Guid parentId) {
+            return await _ts.GetAllItemsByParentIdAsync<TEntityItem>(parentId);
+        }
+        public virtual async Task<TEntityItem> GetItemByParentIdAsync(Guid parentId) {
+            return await _ts.GetByParentIdAsync<TEntityItem>(parentId);
+        }
+        #endregion
+
+        #region Base SAVE for Item
+        protected async virtual Task SaveDataAsync(TModel model, List<TModelItem> modelItems) {
+            await _ts.SaveModelAndCommitAsync<TModel, TModelItem, TEntity, TEntityItem>(model, modelItems);
+        }
+        public async Task<bool> SaveModelAsync(TModel model, List<TModelItem> modelItems, bool enabledValidation = false, bool confirmation = true, bool returnResult = true) {
+            if (model == null) {
+                throw new ArgumentNullException($"{nameof(model)} is null!");
+            }
+            if (enabledValidation) {
+                if (!model.DataValidation()) {
+
+                    var sb = new StringBuilder();
+                    if (!string.IsNullOrEmpty(model.Error)) {
+                        sb.AppendLine("Error 1: " + model.Error);
+                    }
+                    if (!string.IsNullOrEmpty(model.ErrorMessage)) {
+                        sb.AppendLine("Error 2: " + model.ErrorMessage);
+                    }
+                    if (model.ErrorMessages.Length > 0) {
+                        sb.AppendLine("Error 3: " + model.ErrorMessages.ToString());
+                    }
+
+                    throw new ArgumentException(sb.ToString());
+                }
+            }
+            if (!model.Success) {
+                throw new ArgumentException(model.Error);
+            }
+            //
+            try {
+                try {
+
+                    try {
+                        if (confirmation) {
+                            if (CDialogManager.Ask("Are you sure to save this data?", "Confirmation")) {
+                                await SaveDataAsync(model, modelItems);
+                                CDialogManager.Info("Saved Successfully!", "Success");
+                                return true;
+                            }
+                        }
+                        else {
+                            await SaveDataAsync(model, modelItems);
+                            if (returnResult) {
+                                CDialogManager.Info("Saved Successfully!", "Success");
+                            }
+                            return true;
+                        }
+                    }
+                    catch (DbEntityValidationException ex) {
+                        var sb = new StringBuilder();
+
+                        if (ex.EntityValidationErrors.Count() == 1) {
+                            var validationResult = ex.EntityValidationErrors.FirstOrDefault();
+
+                            if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
+                                // Loop through the ValidationErrors and build the error message
+                                foreach (var validationError in validationResult.ValidationErrors) {
+                                    //sb.AppendLine($"Field: {validationError.PropertyName}, Error: {validationError.ErrorMessage}\n");
+                                    sb.AppendLine($"{validationError.ErrorMessage}");
+                                }
+                            }
+                        }
+                        throw new ArgumentException(sb.ToString());
+                    }
+                }
+                catch (DbUpdateException ex) {
+                    var sb = new StringBuilder();
+                    // Check for inner exceptions (usually this is where the real database error lies)
+                    var innerEx = ex.InnerException;
+                    int innerLevel = 1;
+
+                    while (innerEx != null) {
+                        sb.AppendLine($"Inner Exception Level {innerLevel}: {innerEx.Message}\n");
+
+                        // If it's a SqlException (or MySqlException), get more detailed information
+                        if (innerEx is MySqlException mySqlEx) {
+                            sb.AppendLine($"SQL Error Code: {mySqlEx.Number}\n");
+                        }
+                        else if (innerEx is System.Data.SqlClient.SqlException sqlEx) {
+                            sb.AppendLine($"SQL Error Code: {sqlEx.Number}\n");
+                        }
+
+                        // Move to the next inner exception
+                        innerEx = innerEx.InnerException;
+                        innerLevel++;
+                    }
+
+                    // Optionally include information about the entities involved in the update exception
+                    if (ex.Entries != null && ex.Entries.Count() > 0) {
+                        sb.AppendLine("\nEntities involved in the exception:");
+                        foreach (var entry in ex.Entries) {
+                            sb.AppendLine($"TableName: {entry.Entity.GetType().Name}, Operation: {entry.State}");
+                        }
+                    }
+
+                    throw new ArgumentException(sb.ToString());
+                }
+            }
+            catch (Exception ex) {
+                throw ex;
+            }
+            return false;
+        }
+        #endregion
+
+    }
 }
-                            

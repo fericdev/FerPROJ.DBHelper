@@ -129,10 +129,15 @@ namespace FerPROJ.DBHelper.Helper {
         #endregion
 
         #region Alter Table Columns
-        public static async Task CreateOrUpdateTableOfEntityAsync<TEntity>(DbContext dbContext) {
+        public static async Task CreateOrUpdateTableOfEntityAsync<TEntity>(DbContext dbContext, List<string> excludedProperties = null) {
             // Get table name and properties
             var tableName = typeof(TEntity).Name; 
             var properties = typeof(TEntity).GetProperties();
+
+            // Exclude specified properties
+            if (excludedProperties != null) {
+                properties = properties.Where(p => !excludedProperties.Contains(p.Name)).ToArray();
+            }
 
             // Check if table exists
             if (!IsTableExists(dbContext, tableName)) {
@@ -140,6 +145,7 @@ namespace FerPROJ.DBHelper.Helper {
                 // 2. Build CREATE TABLE SQL dynamically
                 var columnsSql = new List<string>();
 
+                // Add columns
                 foreach (var prop in properties) {
                     var columnName = prop.Name;
                     var columnType = GetMySqlColumnType(prop.PropertyType);
@@ -158,13 +164,14 @@ namespace FerPROJ.DBHelper.Helper {
                 if (primaryKey != null) {
                     columnsSql.Add($"PRIMARY KEY (`{primaryKey.Name}`)");
                 }
-
+                // Final CREATE TABLE SQL
                 var createTableSql = $"CREATE TABLE `{tableName}` ({string.Join(", ", columnsSql)});";
-
+                // Execute the CREATE TABLE command
                 await dbContext.Database.ExecuteSqlCommandAsync(createTableSql);
             }
             else {
 
+                // Table exists, alter columns as needed
                 foreach (var prop in properties) {
                     // Determine column details
                     var columnName = prop.Name;
