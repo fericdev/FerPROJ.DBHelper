@@ -552,5 +552,109 @@ namespace FerPROJ.DBHelper.Base {
         }
         #endregion
 
+        #region Base UPDATE for Item
+        protected async virtual Task UpdateDataAsync(TModel model, List<TModelItem> modelItems) {
+            await _ts.UpdateModelAndCommitAsync<TModel, TModelItem, TEntity, TEntityItem>(model, modelItems);
+        }
+        public async Task<bool> UpdateModelAsync(TModel model, List<TModelItem> modelItems, bool enabledValidation = false, bool confirmation = true, bool returnResult = true) {
+            if (model == null) {
+                throw new ArgumentNullException($"{nameof(model)} is null!");
+            }
+            if (enabledValidation) {
+                if (!model.DataValidation()) {
+
+                    var sb = new StringBuilder();
+                    if (!string.IsNullOrEmpty(model.Error)) {
+                        sb.AppendLine("Error 1: " + model.Error);
+                    }
+                    if (!string.IsNullOrEmpty(model.ErrorMessage)) {
+                        sb.AppendLine("Error 2: " + model.ErrorMessage);
+                    }
+                    if (model.ErrorMessages.Length > 0) {
+                        sb.AppendLine("Error 3: " + model.ErrorMessages.ToString());
+                    }
+
+                    throw new ArgumentException(sb.ToString());
+                }
+            }
+            if (!model.Success) {
+                throw new ArgumentException(model.Error);
+            }
+            //
+            try {
+                try {
+                    try {
+                        if (confirmation) {
+                            if (CDialogManager.Ask("Are you sure to update this data?", "Confirmation")) {
+                                await UpdateDataAsync(model, modelItems);
+                                CDialogManager.Info("Updated Successfully!", "Success");
+                                return true;
+                            }
+                        }
+                        else {
+                            await UpdateDataAsync(model, modelItems);
+                            if (returnResult) {
+                                CDialogManager.Info("Updated Successfully!", "Success");
+                            }
+                            return true;
+                        }
+                    }
+                    catch (DbEntityValidationException ex) {
+                        var sb = new StringBuilder();
+
+                        if (ex.EntityValidationErrors.Count() == 1) {
+                            var validationResult = ex.EntityValidationErrors.FirstOrDefault();
+
+                            if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
+                                // Loop through the ValidationErrors and build the error message
+                                foreach (var validationError in validationResult.ValidationErrors) {
+                                    //sb.AppendLine($"Field: {validationError.PropertyName}, Error: {validationError.ErrorMessage}\n");
+                                    sb.AppendLine($"{validationError.ErrorMessage}");
+                                }
+                            }
+                        }
+                        throw new ArgumentException(sb.ToString());
+                    }
+                }
+                catch (DbUpdateException ex) {
+                    var sb = new StringBuilder();
+                    // Check for inner exceptions (usually this is where the real database error lies)
+                    var innerEx = ex.InnerException;
+                    int innerLevel = 1;
+
+                    while (innerEx != null) {
+                        sb.AppendLine($"Inner Exception Level {innerLevel}: {innerEx.Message}\n");
+
+                        // If it's a SqlException (or MySqlException), get more detailed information
+                        if (innerEx is MySqlException mySqlEx) {
+                            sb.AppendLine($"SQL Error Code: {mySqlEx.Number}\n");
+                        }
+                        else if (innerEx is System.Data.SqlClient.SqlException sqlEx) {
+                            sb.AppendLine($"SQL Error Code: {sqlEx.Number}\n");
+                        }
+
+                        // Move to the next inner exception
+                        innerEx = innerEx.InnerException;
+                        innerLevel++;
+                    }
+
+                    // Optionally include information about the entities involved in the update exception
+                    if (ex.Entries != null && ex.Entries.Count() > 0) {
+                        sb.AppendLine("\nEntities involved in the exception:");
+                        foreach (var entry in ex.Entries) {
+                            sb.AppendLine($"TableName: {entry.Entity.GetType().Name}, Operation: {entry.State}");
+                        }
+                    }
+
+                    throw new ArgumentException(sb.ToString());
+                }
+            }
+            catch (Exception ex) {
+                throw ex;
+            }
+            return false;
+        }
+        #endregion
+
     }
 }

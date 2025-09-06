@@ -409,6 +409,35 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             await context.SaveChangesAsync();
         }
+        public static async Task UpdateModelAndCommitAsync<TModel, TModelItem, TEntity, TEntityItem>(this DbContext context, TModel model, List<TModelItem> modelItems)
+            where TModel : BaseModel
+            where TModelItem : BaseModelItem
+            where TEntity : BaseEntity
+            where TEntityItem : BaseEntityItem {
+
+            // Set common properties
+            model.DateModified = DateTime.Now;
+            model.ModifiedBy = CAppConstants.USERNAME;
+            model.ModifiedById = CAppConstants.USER_ID;
+
+            // Set common properties for each item
+            foreach (var item in modelItems) {
+                item.ParentId = model.Id;
+            }
+
+            // Map entity from model
+            var entity = new CMappingExtension<TModel, TEntity>().GetMappingResult(model);
+
+            // Map entity items from model items
+            var entityItems = new CMappingExtensionList<TModelItem, TEntityItem>().GetMappingResultList(modelItems);
+
+            // Save main entity
+            await context.UpdateAndCommitAsync(entity);
+
+            // Save entity items
+            await context.UpdateRangeAndCommitAsync(entityItems);
+
+        }
         public static async Task UpdateRangeDTOAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : BaseModel where TEntity : class {
 
             foreach (var item in myDTO) {
