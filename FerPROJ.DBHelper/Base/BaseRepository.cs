@@ -656,5 +656,19 @@ namespace FerPROJ.DBHelper.Base {
         }
         #endregion
 
+        #region Base DELETE for Item
+
+        protected override async Task DeleteDataAsync(Guid id) {
+            var tbl = await _ts.GetByIdAsync<TEntity, Guid>(id);
+            //
+            if (tbl == null) {
+                return;
+            }
+            var items = await _ts.GetAllItemsByParentIdAsync<TEntityItem>(id);
+            await _ts.RemoveRangeAndCommitAsync(items);
+            await _ts.RemoveAndCommitAsync(tbl);
+        }
+        #endregion
+
     }
 }
