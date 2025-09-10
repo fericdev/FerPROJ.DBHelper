@@ -362,9 +362,6 @@ namespace FerPROJ.DBHelper.Base {
             catch (Exception ex) {
                 throw ex;
             }
-            finally {
-                _ts.Dispose();
-            }
             return false;
         }
         public async Task DeleteMultipleDataByIdsAsync(List<TType> ids) {
@@ -402,9 +399,6 @@ namespace FerPROJ.DBHelper.Base {
                 catch (Exception ex) {
                     trans.Rollback();
                     throw ex;
-                }
-                finally {
-                    _ts.Dispose();
                 }
             }
         }
