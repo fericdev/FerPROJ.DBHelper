@@ -14,12 +14,8 @@ using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Migrations;
 using System.Data.Entity.Validation;
 using System.Drawing;
-using System.Dynamic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.Remoting.Contexts;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -27,31 +23,28 @@ using static FerPROJ.Design.Class.CBaseEnums;
 #endregion
 
 namespace FerPROJ.DBHelper.Base {
-    public abstract class BaseRepository<EntityContext, TModel, TEntity, TType> : IDisposable where EntityContext : DbContext where TModel : BaseModel where TEntity : class {
+
+    public abstract class BaseRepository<EntityContext, TModel, TEntity, TType> : IDisposable
+        where EntityContext : DbContext
+        where TModel : BaseModel
+        where TEntity : class {
 
         #region BaseProperties
-        public string _tableName { get; set; }
-        public string _tableDetailsName { get; set; }
         public bool AllowDuplicate { get; set; }
+
         public EntityContext _ts;
         #endregion
 
         #region ctor
         protected BaseRepository() {
-            _ts = NewConnection();
+            _ts = Activator.CreateInstance<EntityContext>();
         }
         protected BaseRepository(EntityContext ts) {
-            _ts = UseConnection(ts);
+            _ts = ts;
         }
         #endregion
 
-        #region CreateConnection
-        private EntityContext NewConnection() {
-            return Activator.CreateInstance<EntityContext>();
-        }
-        private EntityContext UseConnection(EntityContext useConn) {
-            return useConn;
-        }
+        #region IDisposable
         public void Dispose() {
             _ts.Dispose();
             DbContextExtensions.AllowDuplicate = true;
@@ -61,12 +54,12 @@ namespace FerPROJ.DBHelper.Base {
 
         #region Base GET for Model
         public virtual async Task<TModel> GetPrepareModelAsync(TModel model = null, string prefix = "Form#") {
-            if (model == null) {
+            if (model == null)
                 model = Activator.CreateInstance<TModel>();
-            }
             model.FormId = await GetGeneratedIDAsync(prefix, false);
             return model;
         }
+
         public virtual async Task<TModel> GetPrepareModelByIdAsync(TType id) {
             var entity = await GetByIdAsync(id);
             return entity.ToDestination<TModel>();
@@ -74,284 +67,229 @@ namespace FerPROJ.DBHelper.Base {
         #endregion
 
         #region Base GetDBEntity Method
-        //
         public async Task<string> GetGeneratedIDAsync(string prefix, bool withSlash = true) {
             return await _ts.GetGeneratedIDAsync<TEntity>(prefix, withSlash);
         }
+
         public async Task<string> GetGeneratedIDAsync(string prefix, bool withSlash, Expression<Func<TEntity, bool>> whereCondition) {
             return await _ts.GetGeneratedIDAsync(prefix, withSlash, whereCondition);
         }
+
         protected virtual async Task<IEnumerable<TEntity>> GetAllAsync() {
             return await _ts.GetAllAsync<TEntity>();
         }
+
         protected virtual async Task<IEnumerable<TEntity>> GetAllWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo) {
             return await _ts.GetAllWithSearchAsync<TEntity>(searchText, dateFrom, dateTo);
         }
+
         protected virtual async Task<IEnumerable<TModel>> GetAllModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo) {
             var query = await _ts.GetAllWithSearchAsync<TEntity>(searchText, dateFrom, dateTo);
             return query.ToDestination<TModel>();
         }
+
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> whereCondition) {
             return await _ts.GetAllAsync(whereCondition);
         }
+
         public virtual async Task<TEntity> GetByIdAsync(TType id) {
             return await _ts.GetByIdAsync<TEntity, TType>(id);
         }
+
         public virtual async Task<TEntity> GetByIdAsync(TType id, string propertyName) {
             return await _ts.GetByIdAsync<TEntity, TType>(id, propertyName);
         }
+
         public virtual async Task<TEntity> GetByPropertyAsync<TValueType>(TValueType propertyValue, string propertyName) {
             return await _ts.GetByIdAsync<TEntity, TValueType>(propertyValue, propertyName);
         }
+
         public virtual async Task<TEntity> GetByPredicateAsync(Expression<Func<TEntity, bool>> predicate) {
             return await _ts.GetByPredicateAsync(predicate);
         }
         #endregion
 
         #region Base Load Methods
-        // Load
         public virtual async Task LoadComboBoxAsync(CComboBoxKrypton cmb, string cmbName, string cmbValue, Expression<Func<TEntity, bool>> whereCondition = null) {
-            var listItems = whereCondition != null ? await _ts.GetAllAsync(whereCondition) : await _ts.GetAllAsync<TEntity>();
+            var listItems = whereCondition != null
+                ? await _ts.GetAllAsync(whereCondition)
+                : await _ts.GetAllAsync<TEntity>();
             cmb.FillComboBox(cmbName, cmbValue, listItems);
-        }
-        public virtual async Task LoadComboBoxAsync(CComboBoxKrypton cmb, Func<TEntity, string> cmbName, string cmbValue, Expression<Func<TEntity, bool>> whereCondition = null) {
-            var listItems = whereCondition != null ? await _ts.GetAllAsync(whereCondition) : await _ts.GetAllAsync<TEntity>();
-            cmb.FillComboBox(cmbName, cmbValue, listItems);
-        }
-        public virtual async Task LoadComboBoxByEntityAsync<T>(CComboBoxKrypton cmb, string cmbName, string cmbValue, Expression<Func<T, bool>> whereCondition = null) where T : class {
-            var listItems = whereCondition != null ? await _ts.GetAllAsync(whereCondition) : await _ts.GetAllAsync<T>();
-            cmb.FillComboBox(cmbName, cmbValue, listItems);
-        }
-        public virtual async Task LoadComboBoxByEntityAsync<T>(CComboBoxKrypton cmb, Func<T, string> cmbName, string cmbValue, Expression<Func<T, bool>> whereCondition = null) where T : class {
-            var listItems = whereCondition != null ? await _ts.GetAllAsync(whereCondition) : await _ts.GetAllAsync<T>();
-            cmb.FillComboBox<T>(cmbName, cmbValue, listItems);
         }
 
+        public virtual async Task LoadComboBoxAsync(CComboBoxKrypton cmb, Func<TEntity, string> cmbName, string cmbValue, Expression<Func<TEntity, bool>> whereCondition = null) {
+            var listItems = whereCondition != null
+                ? await _ts.GetAllAsync(whereCondition)
+                : await _ts.GetAllAsync<TEntity>();
+            cmb.FillComboBox(cmbName, cmbValue, listItems);
+        }
+
+        public virtual async Task LoadComboBoxByEntityAsync<T>(CComboBoxKrypton cmb, string cmbName, string cmbValue, Expression<Func<T, bool>> whereCondition = null) where T : class {
+            var listItems = whereCondition != null
+                ? await _ts.GetAllAsync(whereCondition)
+                : await _ts.GetAllAsync<T>();
+            cmb.FillComboBox(cmbName, cmbValue, listItems);
+        }
+
+        public virtual async Task LoadComboBoxByEntityAsync<T>(CComboBoxKrypton cmb, Func<T, string> cmbName, string cmbValue, Expression<Func<T, bool>> whereCondition = null) where T : class {
+            var listItems = whereCondition != null
+                ? await _ts.GetAllAsync(whereCondition)
+                : await _ts.GetAllAsync<T>();
+            cmb.FillComboBox<T>(cmbName, cmbValue, listItems);
+        }
         #endregion
 
         #region Base DTO CRUD
-        //
         protected async virtual Task SaveDataAsync(TModel myDTO) {
             await _ts.SaveDTOAndCommitAsync<TModel, TEntity>(myDTO);
         }
+
         public async Task<bool> SaveDTOAsync(TModel myDTO, bool enabledValidation = false, bool confirmation = true, bool returnResult = true) {
-            if (myDTO == null) {
+            if (myDTO == null)
                 throw new ArgumentNullException($"{nameof(myDTO)} is null!");
-            }
-            if (enabledValidation) {
-                if (!myDTO.DataValidation()) {
 
-                    var sb = new StringBuilder();
-                    if (!string.IsNullOrEmpty(myDTO.Error)) {
-                        sb.AppendLine("Error 1: " + myDTO.Error);
-                    }
-                    if (!string.IsNullOrEmpty(myDTO.ErrorMessage)) {
-                        sb.AppendLine("Error 2: " + myDTO.ErrorMessage);
-                    }
-                    if (myDTO.ErrorMessages.Length > 0) {
-                        sb.AppendLine("Error 3: " + myDTO.ErrorMessages.ToString());
-                    }
-
-                    throw new ArgumentException(sb.ToString());
-                }
+            if (enabledValidation && !myDTO.DataValidation()) {
+                var sb = new StringBuilder();
+                if (!string.IsNullOrEmpty(myDTO.Error))
+                    sb.AppendLine("Error 1: " + myDTO.Error);
+                if (!string.IsNullOrEmpty(myDTO.ErrorMessage))
+                    sb.AppendLine("Error 2: " + myDTO.ErrorMessage);
+                if (myDTO.ErrorMessages.Length > 0)
+                    sb.AppendLine("Error 3: " + myDTO.ErrorMessages.ToString());
+                throw new ArgumentException(sb.ToString());
             }
-            if (!myDTO.Success) {
+
+            if (!myDTO.Success)
                 throw new ArgumentException(myDTO.Error);
-            }
-            //
+
             try {
-                try {
-
-                    try {
-                        if (confirmation) {
-                            if (CDialogManager.Ask("Are you sure to save this data?", "Confirmation")) {
-                                await SaveDataAsync(myDTO);
-                                CDialogManager.Info("Saved Successfully!", "Success");
-                                return true;
-                            }
-                        }
-                        else {
-                            await SaveDataAsync(myDTO);
-                            if (returnResult) {
-                                CDialogManager.Info("Saved Successfully!", "Success");
-                            }
-                            return true;
-                        }
-                    }
-                    catch (DbEntityValidationException ex) {
-                        var sb = new StringBuilder();
-
-                        if (ex.EntityValidationErrors.Count() == 1) {
-                            var validationResult = ex.EntityValidationErrors.FirstOrDefault();
-
-                            if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
-                                // Loop through the ValidationErrors and build the error message
-                                foreach (var validationError in validationResult.ValidationErrors) {
-                                    //sb.AppendLine($"Field: {validationError.PropertyName}, Error: {validationError.ErrorMessage}\n");
-                                    sb.AppendLine($"{validationError.ErrorMessage}");
-                                }
-                            }
-                        }
-                        throw new ArgumentException(sb.ToString());
+                if (confirmation) {
+                    if (CDialogManager.Ask("Are you sure to save this data?", "Confirmation")) {
+                        await SaveDataAsync(myDTO);
+                        CDialogManager.Info("Saved Successfully!", "Success");
+                        return true;
                     }
                 }
-                catch (DbUpdateException ex) {
-                    var sb = new StringBuilder();
-                    // Check for inner exceptions (usually this is where the real database error lies)
-                    var innerEx = ex.InnerException;
-                    int innerLevel = 1;
-
-                    while (innerEx != null) {
-                        sb.AppendLine($"Inner Exception Level {innerLevel}: {innerEx.Message}\n");
-
-                        // If it's a SqlException (or MySqlException), get more detailed information
-                        if (innerEx is MySqlException mySqlEx) {
-                            sb.AppendLine($"SQL Error Code: {mySqlEx.Number}\n");
-                        }
-                        else if (innerEx is System.Data.SqlClient.SqlException sqlEx) {
-                            sb.AppendLine($"SQL Error Code: {sqlEx.Number}\n");
-                        }
-
-                        // Move to the next inner exception
-                        innerEx = innerEx.InnerException;
-                        innerLevel++;
-                    }
-
-                    // Optionally include information about the entities involved in the update exception
-                    if (ex.Entries != null && ex.Entries.Count() > 0) {
-                        sb.AppendLine("\nEntities involved in the exception:");
-                        foreach (var entry in ex.Entries) {
-                            sb.AppendLine($"TableName: {entry.Entity.GetType().Name}, Operation: {entry.State}");
-                        }
-                    }
-
-                    throw new ArgumentException(sb.ToString());
+                else {
+                    await SaveDataAsync(myDTO);
+                    if (returnResult)
+                        CDialogManager.Info("Saved Successfully!", "Success");
+                    return true;
                 }
             }
-            catch (Exception ex) {
-                throw ex;
+            catch (DbEntityValidationException ex) {
+                var sb = new StringBuilder();
+                var validationResult = ex.EntityValidationErrors.FirstOrDefault();
+                if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
+                    foreach (var validationError in validationResult.ValidationErrors)
+                        sb.AppendLine($"{validationError.ErrorMessage}");
+                }
+                throw new ArgumentException(sb.ToString());
+            }
+            catch (DbUpdateException ex) {
+                var sb = new StringBuilder();
+                var innerEx = ex.InnerException;
+                int innerLevel = 1;
+                while (innerEx != null) {
+                    sb.AppendLine($"Inner Exception Level {innerLevel}: {innerEx.Message}\n");
+                    if (innerEx is MySqlException mySqlEx)
+                        sb.AppendLine($"SQL Error Code: {mySqlEx.Number}\n");
+                    else if (innerEx is System.Data.SqlClient.SqlException sqlEx)
+                        sb.AppendLine($"SQL Error Code: {sqlEx.Number}\n");
+                    innerEx = innerEx.InnerException;
+                    innerLevel++;
+                }
+                if (ex.Entries != null && ex.Entries.Any()) {
+                    sb.AppendLine("\nEntities involved in the exception:");
+                    foreach (var entry in ex.Entries)
+                        sb.AppendLine($"TableName: {entry.Entity.GetType().Name}, Operation: {entry.State}");
+                }
+                throw new ArgumentException(sb.ToString());
             }
             return false;
         }
-        //
+
         protected async virtual Task UpdateDataAsync(TModel myDTO) {
             await _ts.UpdateDTOAndCommitAsync<TModel, TEntity>(myDTO);
         }
+
         public async Task<bool> UpdateDTOAsync(TModel myDTO, bool enabledValidation = false, bool confirmation = true, bool returnResult = true) {
-            if (myDTO == null) {
+            if (myDTO == null)
                 throw new ArgumentNullException($"{nameof(myDTO)} is null!");
-            }
-            if (enabledValidation) {
-                if (!myDTO.DataValidation()) {
 
-                    var sb = new StringBuilder();
-                    if (!string.IsNullOrEmpty(myDTO.Error)) {
-                        sb.AppendLine("Error 1: " + myDTO.Error);
-                    }
-                    if (!string.IsNullOrEmpty(myDTO.ErrorMessage)) {
-                        sb.AppendLine("Error 2: " + myDTO.ErrorMessage);
-                    }
-                    if (myDTO.ErrorMessages.Length > 0) {
-                        sb.AppendLine("Error 3: " + myDTO.ErrorMessages.ToString());
-                    }
-
-                    throw new ArgumentException(sb.ToString());
-                }
+            if (enabledValidation && !myDTO.DataValidation()) {
+                var sb = new StringBuilder();
+                if (!string.IsNullOrEmpty(myDTO.Error))
+                    sb.AppendLine("Error 1: " + myDTO.Error);
+                if (!string.IsNullOrEmpty(myDTO.ErrorMessage))
+                    sb.AppendLine("Error 2: " + myDTO.ErrorMessage);
+                if (myDTO.ErrorMessages.Length > 0)
+                    sb.AppendLine("Error 3: " + myDTO.ErrorMessages.ToString());
+                throw new ArgumentException(sb.ToString());
             }
-            if (!myDTO.Success) {
+
+            if (!myDTO.Success)
                 throw new ArgumentException(myDTO.Error);
-            }
-            //
+
             try {
-                try {
-                    try {
-                        if (confirmation) {
-                            if (CDialogManager.Ask("Are you sure to update this data?", "Confirmation")) {
-                                await UpdateDataAsync(myDTO);
-                                CDialogManager.Info("Updated Successfully!", "Success");
-                                return true;
-                            }
-                        }
-                        else {
-                            await UpdateDataAsync(myDTO);
-                            if (returnResult) {
-                                CDialogManager.Info("Updated Successfully!", "Success");
-                            }
-                            return true;
-                        }
-                    }
-                    catch (DbEntityValidationException ex) {
-                        //
-                        var sb = new StringBuilder();
-
-                        if (ex.EntityValidationErrors.Count() == 1) {
-                            var validationResult = ex.EntityValidationErrors.FirstOrDefault();
-
-                            if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
-                                // Loop through the ValidationErrors and build the error message
-                                foreach (var validationError in validationResult.ValidationErrors) {
-                                    //sb.AppendLine($"Field: {validationError.PropertyName}, Error: {validationError.ErrorMessage}\n");
-                                    sb.AppendLine($"{validationError.ErrorMessage}");
-                                }
-                            }
-                        }
-
-                        throw new ArgumentException(sb.ToString());
+                if (confirmation) {
+                    if (CDialogManager.Ask("Are you sure to update this data?", "Confirmation")) {
+                        await UpdateDataAsync(myDTO);
+                        CDialogManager.Info("Updated Successfully!", "Success");
+                        return true;
                     }
                 }
-                catch (DbUpdateException ex) {
-                    var sb = new StringBuilder();
-                    // Check for inner exceptions (usually this is where the real database error lies)
-                    var innerEx = ex.InnerException;
-                    int innerLevel = 1;
-
-                    while (innerEx != null) {
-                        sb.AppendLine($"Error Level {innerLevel}: {innerEx.Message}\n");
-
-                        // If it's a SqlException (or MySqlException), get more detailed information
-                        if (innerEx is MySqlException mySqlEx) {
-                            sb.AppendLine($"SQL Error Code: {mySqlEx.Number}\n");
-                        }
-                        else if (innerEx is System.Data.SqlClient.SqlException sqlEx) {
-                            sb.AppendLine($"SQL Error Code: {sqlEx.Number}\n");
-                        }
-
-                        // Move to the next inner exception
-                        innerEx = innerEx.InnerException;
-                        innerLevel++;
-                    }
-
-                    // Optionally include information about the entities involved in the update exception
-                    if (ex.Entries != null && ex.Entries.Count() > 0) {
-                        sb.AppendLine("Tables involved in the exception:");
-                        foreach (var entry in ex.Entries) {
-                            sb.AppendLine($"TableName: {entry.Entity.GetType().Name}\nOperation: {entry.State}");
-                        }
-                    }
-
-                    throw new ArgumentException(sb.ToString());
+                else {
+                    await UpdateDataAsync(myDTO);
+                    if (returnResult)
+                        CDialogManager.Info("Updated Successfully!", "Success");
+                    return true;
                 }
             }
-            catch (Exception ex) {
-                throw ex;
+            catch (DbEntityValidationException ex) {
+                var sb = new StringBuilder();
+                var validationResult = ex.EntityValidationErrors.FirstOrDefault();
+                if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
+                    foreach (var validationError in validationResult.ValidationErrors)
+                        sb.AppendLine($"{validationError.ErrorMessage}");
+                }
+                throw new ArgumentException(sb.ToString());
+            }
+            catch (DbUpdateException ex) {
+                var sb = new StringBuilder();
+                var innerEx = ex.InnerException;
+                int innerLevel = 1;
+                while (innerEx != null) {
+                    sb.AppendLine($"Error Level {innerLevel}: {innerEx.Message}\n");
+                    if (innerEx is MySqlException mySqlEx)
+                        sb.AppendLine($"SQL Error Code: {mySqlEx.Number}\n");
+                    else if (innerEx is System.Data.SqlClient.SqlException sqlEx)
+                        sb.AppendLine($"SQL Error Code: {sqlEx.Number}\n");
+                    innerEx = innerEx.InnerException;
+                    innerLevel++;
+                }
+                if (ex.Entries != null && ex.Entries.Any()) {
+                    sb.AppendLine("Tables involved in the exception:");
+                    foreach (var entry in ex.Entries)
+                        sb.AppendLine($"TableName: {entry.Entity.GetType().Name}\nOperation: {entry.State}");
+                }
+                throw new ArgumentException(sb.ToString());
             }
             return false;
         }
-        //
+
         protected async virtual Task DeleteDataAsync(TType id) {
             var tbl = await _ts.GetByIdAsync<TEntity, TType>(id);
-            //
-            if (tbl == null) {
+            if (tbl == null)
                 return;
-            }
             await _ts.RemoveAndCommitAsync(tbl);
         }
+
         public async Task<bool> DeleteByIdAsync(TType id) {
             if (id == null) {
                 CDialogManager.Warning($"{nameof(id)} is null!");
                 return false;
             }
-            //
             try {
                 if (CDialogManager.Ask("Are you sure to delete this data?", "Confirmation")) {
                     await DeleteDataAsync(id);
@@ -364,36 +302,32 @@ namespace FerPROJ.DBHelper.Base {
             }
             return false;
         }
+
         public async Task DeleteMultipleDataByIdsAsync(List<TType> ids) {
-            if (ids.Count <= 0) {
+            if (ids == null || ids.Count <= 0)
                 throw new ArgumentException($"{nameof(ids)} is null!");
-            }
-            //
+
             using (var trans = _ts.Database.BeginTransaction()) {
                 try {
-                    //
                     var sb = new StringBuilder();
                     var askMessage = ids.Count > 1 ? "Are you sure to delete these data's?" : "Are you sure to delete this data?";
                     var resultMessage = ids.Count > 1 ? "All the data's selected has been deleted successfully!" : "Deleted Successfully!";
-                    //
+
                     if (CDialogManager.Ask(askMessage, "Confirmation")) {
                         foreach (var id in ids) {
                             try {
                                 await DeleteDataAsync(id);
                             }
                             catch (Exception) {
-                                //
                                 sb.AppendLine(id.ToString());
                                 continue;
                             }
                         }
                         trans.Commit();
-                        if (sb.Length <= 0) {
+                        if (sb.Length <= 0)
                             CDialogManager.Info(resultMessage);
-                        }
-                        else {
-                            CDialogManager.Warning($"The following id's has not been deleted:\n{sb.ToString()}");
-                        }
+                        else
+                            CDialogManager.Warning($"The following id's has not been deleted:\n{sb}");
                     }
                 }
                 catch (Exception ex) {
@@ -416,9 +350,15 @@ namespace FerPROJ.DBHelper.Base {
             await _ts.SaveAllToCacheAsync(entities);
         }
         #endregion
-
     }
-    public abstract class BaseItemRepository<EntityContext, TModel, TModelItem, TEntity, TEntityItem> : BaseRepository<EntityContext, TModel, TEntity, Guid> where EntityContext : DbContext where TModel : BaseModel where TEntity : BaseEntity where TModelItem : BaseModelItem where TEntityItem : BaseEntityItem {
+
+    public abstract class BaseItemRepository<EntityContext, TModel, TModelItem, TEntity, TEntityItem> :
+        BaseRepository<EntityContext, TModel, TEntity, Guid>
+        where EntityContext : DbContext
+        where TModel : BaseModel
+        where TEntity : BaseEntity
+        where TModelItem : BaseModelItem
+        where TEntityItem : BaseEntityItem {
 
         #region ctor
         protected BaseItemRepository() : base() { }
@@ -436,6 +376,7 @@ namespace FerPROJ.DBHelper.Base {
         public virtual async Task<IEnumerable<TEntityItem>> GetAllItemsByParentIdAsync(Guid parentId) {
             return await _ts.GetAllItemsByParentIdAsync<TEntityItem>(parentId);
         }
+
         public virtual async Task<TEntityItem> GetItemByParentIdAsync(Guid parentId) {
             return await _ts.GetByParentIdAsync<TEntityItem>(parentId);
         }
@@ -445,102 +386,68 @@ namespace FerPROJ.DBHelper.Base {
         protected async virtual Task SaveDataAsync(TModel model, List<TModelItem> modelItems) {
             await _ts.SaveModelAndCommitAsync<TModel, TModelItem, TEntity, TEntityItem>(model, modelItems);
         }
+
         public async Task<bool> SaveModelAsync(TModel model, List<TModelItem> modelItems, bool enabledValidation = false, bool confirmation = true, bool returnResult = true) {
-            if (model == null) {
+            if (model == null)
                 throw new ArgumentNullException($"{nameof(model)} is null!");
-            }
-            if (enabledValidation) {
-                if (!model.DataValidation()) {
 
-                    var sb = new StringBuilder();
-                    if (!string.IsNullOrEmpty(model.Error)) {
-                        sb.AppendLine("Error 1: " + model.Error);
-                    }
-                    if (!string.IsNullOrEmpty(model.ErrorMessage)) {
-                        sb.AppendLine("Error 2: " + model.ErrorMessage);
-                    }
-                    if (model.ErrorMessages.Length > 0) {
-                        sb.AppendLine("Error 3: " + model.ErrorMessages.ToString());
-                    }
-
-                    throw new ArgumentException(sb.ToString());
-                }
+            if (enabledValidation && !model.DataValidation()) {
+                var sb = new StringBuilder();
+                if (!string.IsNullOrEmpty(model.Error))
+                    sb.AppendLine("Error 1: " + model.Error);
+                if (!string.IsNullOrEmpty(model.ErrorMessage))
+                    sb.AppendLine("Error 2: " + model.ErrorMessage);
+                if (model.ErrorMessages.Length > 0)
+                    sb.AppendLine("Error 3: " + model.ErrorMessages.ToString());
+                throw new ArgumentException(sb.ToString());
             }
-            if (!model.Success) {
+
+            if (!model.Success)
                 throw new ArgumentException(model.Error);
-            }
-            //
+
             try {
-                try {
-
-                    try {
-                        if (confirmation) {
-                            if (CDialogManager.Ask("Are you sure to save this data?", "Confirmation")) {
-                                await SaveDataAsync(model, modelItems);
-                                CDialogManager.Info("Saved Successfully!", "Success");
-                                return true;
-                            }
-                        }
-                        else {
-                            await SaveDataAsync(model, modelItems);
-                            if (returnResult) {
-                                CDialogManager.Info("Saved Successfully!", "Success");
-                            }
-                            return true;
-                        }
-                    }
-                    catch (DbEntityValidationException ex) {
-                        var sb = new StringBuilder();
-
-                        if (ex.EntityValidationErrors.Count() == 1) {
-                            var validationResult = ex.EntityValidationErrors.FirstOrDefault();
-
-                            if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
-                                // Loop through the ValidationErrors and build the error message
-                                foreach (var validationError in validationResult.ValidationErrors) {
-                                    //sb.AppendLine($"Field: {validationError.PropertyName}, Error: {validationError.ErrorMessage}\n");
-                                    sb.AppendLine($"{validationError.ErrorMessage}");
-                                }
-                            }
-                        }
-                        throw new ArgumentException(sb.ToString());
+                if (confirmation) {
+                    if (CDialogManager.Ask("Are you sure to save this data?", "Confirmation")) {
+                        await SaveDataAsync(model, modelItems);
+                        CDialogManager.Info("Saved Successfully!", "Success");
+                        return true;
                     }
                 }
-                catch (DbUpdateException ex) {
-                    var sb = new StringBuilder();
-                    // Check for inner exceptions (usually this is where the real database error lies)
-                    var innerEx = ex.InnerException;
-                    int innerLevel = 1;
-
-                    while (innerEx != null) {
-                        sb.AppendLine($"Inner Exception Level {innerLevel}: {innerEx.Message}\n");
-
-                        // If it's a SqlException (or MySqlException), get more detailed information
-                        if (innerEx is MySqlException mySqlEx) {
-                            sb.AppendLine($"SQL Error Code: {mySqlEx.Number}\n");
-                        }
-                        else if (innerEx is System.Data.SqlClient.SqlException sqlEx) {
-                            sb.AppendLine($"SQL Error Code: {sqlEx.Number}\n");
-                        }
-
-                        // Move to the next inner exception
-                        innerEx = innerEx.InnerException;
-                        innerLevel++;
-                    }
-
-                    // Optionally include information about the entities involved in the update exception
-                    if (ex.Entries != null && ex.Entries.Count() > 0) {
-                        sb.AppendLine("\nEntities involved in the exception:");
-                        foreach (var entry in ex.Entries) {
-                            sb.AppendLine($"TableName: {entry.Entity.GetType().Name}, Operation: {entry.State}");
-                        }
-                    }
-
-                    throw new ArgumentException(sb.ToString());
+                else {
+                    await SaveDataAsync(model, modelItems);
+                    if (returnResult)
+                        CDialogManager.Info("Saved Successfully!", "Success");
+                    return true;
                 }
             }
-            catch (Exception ex) {
-                throw ex;
+            catch (DbEntityValidationException ex) {
+                var sb = new StringBuilder();
+                var validationResult = ex.EntityValidationErrors.FirstOrDefault();
+                if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
+                    foreach (var validationError in validationResult.ValidationErrors)
+                        sb.AppendLine($"{validationError.ErrorMessage}");
+                }
+                throw new ArgumentException(sb.ToString());
+            }
+            catch (DbUpdateException ex) {
+                var sb = new StringBuilder();
+                var innerEx = ex.InnerException;
+                int innerLevel = 1;
+                while (innerEx != null) {
+                    sb.AppendLine($"Inner Exception Level {innerLevel}: {innerEx.Message}\n");
+                    if (innerEx is MySqlException mySqlEx)
+                        sb.AppendLine($"SQL Error Code: {mySqlEx.Number}\n");
+                    else if (innerEx is System.Data.SqlClient.SqlException sqlEx)
+                        sb.AppendLine($"SQL Error Code: {sqlEx.Number}\n");
+                    innerEx = innerEx.InnerException;
+                    innerLevel++;
+                }
+                if (ex.Entries != null && ex.Entries.Any()) {
+                    sb.AppendLine("\nEntities involved in the exception:");
+                    foreach (var entry in ex.Entries)
+                        sb.AppendLine($"TableName: {entry.Entity.GetType().Name}, Operation: {entry.State}");
+                }
+                throw new ArgumentException(sb.ToString());
             }
             return false;
         }
@@ -550,119 +457,82 @@ namespace FerPROJ.DBHelper.Base {
         protected async virtual Task UpdateDataAsync(TModel model, List<TModelItem> modelItems) {
             await _ts.UpdateModelAndCommitAsync<TModel, TModelItem, TEntity, TEntityItem>(model, modelItems);
         }
+
         public async Task<bool> UpdateModelAsync(TModel model, List<TModelItem> modelItems, bool enabledValidation = false, bool confirmation = true, bool returnResult = true) {
-            if (model == null) {
+            if (model == null)
                 throw new ArgumentNullException($"{nameof(model)} is null!");
-            }
-            if (enabledValidation) {
-                if (!model.DataValidation()) {
 
-                    var sb = new StringBuilder();
-                    if (!string.IsNullOrEmpty(model.Error)) {
-                        sb.AppendLine("Error 1: " + model.Error);
-                    }
-                    if (!string.IsNullOrEmpty(model.ErrorMessage)) {
-                        sb.AppendLine("Error 2: " + model.ErrorMessage);
-                    }
-                    if (model.ErrorMessages.Length > 0) {
-                        sb.AppendLine("Error 3: " + model.ErrorMessages.ToString());
-                    }
-
-                    throw new ArgumentException(sb.ToString());
-                }
+            if (enabledValidation && !model.DataValidation()) {
+                var sb = new StringBuilder();
+                if (!string.IsNullOrEmpty(model.Error))
+                    sb.AppendLine("Error 1: " + model.Error);
+                if (!string.IsNullOrEmpty(model.ErrorMessage))
+                    sb.AppendLine("Error 2: " + model.ErrorMessage);
+                if (model.ErrorMessages.Length > 0)
+                    sb.AppendLine("Error 3: " + model.ErrorMessages.ToString());
+                throw new ArgumentException(sb.ToString());
             }
-            if (!model.Success) {
+
+            if (!model.Success)
                 throw new ArgumentException(model.Error);
-            }
-            //
+
             try {
-                try {
-                    try {
-                        if (confirmation) {
-                            if (CDialogManager.Ask("Are you sure to update this data?", "Confirmation")) {
-                                await UpdateDataAsync(model, modelItems);
-                                CDialogManager.Info("Updated Successfully!", "Success");
-                                return true;
-                            }
-                        }
-                        else {
-                            await UpdateDataAsync(model, modelItems);
-                            if (returnResult) {
-                                CDialogManager.Info("Updated Successfully!", "Success");
-                            }
-                            return true;
-                        }
-                    }
-                    catch (DbEntityValidationException ex) {
-                        var sb = new StringBuilder();
-
-                        if (ex.EntityValidationErrors.Count() == 1) {
-                            var validationResult = ex.EntityValidationErrors.FirstOrDefault();
-
-                            if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
-                                // Loop through the ValidationErrors and build the error message
-                                foreach (var validationError in validationResult.ValidationErrors) {
-                                    //sb.AppendLine($"Field: {validationError.PropertyName}, Error: {validationError.ErrorMessage}\n");
-                                    sb.AppendLine($"{validationError.ErrorMessage}");
-                                }
-                            }
-                        }
-                        throw new ArgumentException(sb.ToString());
+                if (confirmation) {
+                    if (CDialogManager.Ask("Are you sure to update this data?", "Confirmation")) {
+                        await UpdateDataAsync(model, modelItems);
+                        CDialogManager.Info("Updated Successfully!", "Success");
+                        return true;
                     }
                 }
-                catch (DbUpdateException ex) {
-                    var sb = new StringBuilder();
-                    // Check for inner exceptions (usually this is where the real database error lies)
-                    var innerEx = ex.InnerException;
-                    int innerLevel = 1;
-
-                    while (innerEx != null) {
-                        sb.AppendLine($"Inner Exception Level {innerLevel}: {innerEx.Message}\n");
-
-                        // If it's a SqlException (or MySqlException), get more detailed information
-                        if (innerEx is MySqlException mySqlEx) {
-                            sb.AppendLine($"SQL Error Code: {mySqlEx.Number}\n");
-                        }
-                        else if (innerEx is System.Data.SqlClient.SqlException sqlEx) {
-                            sb.AppendLine($"SQL Error Code: {sqlEx.Number}\n");
-                        }
-
-                        // Move to the next inner exception
-                        innerEx = innerEx.InnerException;
-                        innerLevel++;
-                    }
-
-                    // Optionally include information about the entities involved in the update exception
-                    if (ex.Entries != null && ex.Entries.Count() > 0) {
-                        sb.AppendLine("\nEntities involved in the exception:");
-                        foreach (var entry in ex.Entries) {
-                            sb.AppendLine($"TableName: {entry.Entity.GetType().Name}, Operation: {entry.State}");
-                        }
-                    }
-
-                    throw new ArgumentException(sb.ToString());
+                else {
+                    await UpdateDataAsync(model, modelItems);
+                    if (returnResult)
+                        CDialogManager.Info("Updated Successfully!", "Success");
+                    return true;
                 }
             }
-            catch (Exception ex) {
-                throw ex;
+            catch (DbEntityValidationException ex) {
+                var sb = new StringBuilder();
+                var validationResult = ex.EntityValidationErrors.FirstOrDefault();
+                if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
+                    foreach (var validationError in validationResult.ValidationErrors)
+                        sb.AppendLine($"{validationError.ErrorMessage}");
+                }
+                throw new ArgumentException(sb.ToString());
+            }
+            catch (DbUpdateException ex) {
+                var sb = new StringBuilder();
+                var innerEx = ex.InnerException;
+                int innerLevel = 1;
+                while (innerEx != null) {
+                    sb.AppendLine($"Inner Exception Level {innerLevel}: {innerEx.Message}\n");
+                    if (innerEx is MySqlException mySqlEx)
+                        sb.AppendLine($"SQL Error Code: {mySqlEx.Number}\n");
+                    else if (innerEx is System.Data.SqlClient.SqlException sqlEx)
+                        sb.AppendLine($"SQL Error Code: {sqlEx.Number}\n");
+                    innerEx = innerEx.InnerException;
+                    innerLevel++;
+                }
+                if (ex.Entries != null && ex.Entries.Any()) {
+                    sb.AppendLine("\nEntities involved in the exception:");
+                    foreach (var entry in ex.Entries)
+                        sb.AppendLine($"TableName: {entry.Entity.GetType().Name}, Operation: {entry.State}");
+                }
+                throw new ArgumentException(sb.ToString());
             }
             return false;
         }
         #endregion
 
         #region Base DELETE for Item
-
         protected override async Task DeleteDataAsync(Guid id) {
             var tbl = await _ts.GetByIdAsync<TEntity, Guid>(id);
-            //
-            if (tbl == null) {
+            if (tbl == null)
                 return;
-            }
             var items = await _ts.GetAllItemsByParentIdAsync<TEntityItem>(id);
             await _ts.RemoveRangeAndCommitAsync(items);
             await _ts.RemoveAndCommitAsync(tbl);
         }
         #endregion
-
     }
 }
