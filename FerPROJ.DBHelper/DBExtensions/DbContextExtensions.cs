@@ -689,7 +689,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             // If no property filter is provided or the property does not exist, return all entities
             return await context.GetAllAsync(whereCondition);
         }
-        public static async Task<IEnumerable<TEntity>> GetAllWithSearchAsync<TEntity>(this DbContext context, string searchText, DateTime? dateFrom, DateTime? dateTo, bool isCached = true) where TEntity : class {
+        public static async Task<IEnumerable<TEntity>> GetAllWithSearchAsync<TEntity>(this DbContext context, string searchText, DateTime? dateFrom, DateTime? dateTo, int dataLimit = 100, bool isCached = true) where TEntity : class {
 
             var cachedData = await CacheManager.GetAllEnumerableCacheAsync<TEntity>();
 
@@ -700,6 +700,8 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 result = cachedData.SearchText(searchText);
 
                 if (result != null) {
+
+                    result = result.Take(dataLimit);
 
                     return result.ToList();
 
@@ -712,7 +714,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             query = query.SearchText(searchText);
 
-            query = query.Take(100);
+            query = query.Take(dataLimit);
 
             return await query.ToListAsync();
         }
