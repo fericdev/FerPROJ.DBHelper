@@ -53,9 +53,10 @@ namespace FerPROJ.DBHelper.Base {
         #endregion
 
         #region Base GET for Model
-        public virtual async Task<TModel> GetPrepareModelAsync(TModel model = null, string prefix = "Form#") {
-            if (model == null)
+        public virtual async Task<TModel> GetPrepareModelAsync(TModel model = null, string prefix = "FRM#") {
+            if (model == null) {
                 model = Activator.CreateInstance<TModel>();
+            }
             model.FormId = await GetGeneratedIDAsync(prefix, false);
             return model;
         }
