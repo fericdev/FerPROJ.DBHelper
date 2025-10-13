@@ -48,7 +48,7 @@ namespace FerPROJ.DBHelper.Forms.List {
             return false;
         }
         protected override async Task<bool> DeleteItemAsync() {
-            if (userModelCDatagridview.GetSelectedValue(Id.Index, out Form_IdTrack)) {
+            if (userModelCDatagridview.GetSelectedValue(UserID.Index, out Form_IdTrack)) {
                 using (var repo = new UserRepository()) {
                     return await repo.DeleteByIdAsync(Form_IdTrack.ToGuid());
                 }
