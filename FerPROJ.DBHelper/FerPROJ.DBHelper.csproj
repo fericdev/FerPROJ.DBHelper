@@ -71,6 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Base\BaseDB.cs" />
+    <Compile Include="Base\BaseDbContext.cs" />
     <Compile Include="Base\BaseRepository.cs" />
     <Compile Include="Base\BaseDBEntity.cs" />
     <Compile Include="Base\BaseEntity.cs" />
@@ -79,6 +80,26 @@
     <Compile Include="DBExtensions\DbContextExtensions.cs" />
     <Compile Include="DBExtensions\IEnumerableExtentions.cs" />
     <Compile Include="DBExtensions\IQueryableExtensions.cs" />
+    <Compile Include="Entity\Users\User.cs" />
+    <Compile Include="Entity\Users\UserMigrations.cs" />
+    <Compile Include="Forms\FrmLogin.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FrmLogin.Designer.cs">
+      <DependentUpon>FrmLogin.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\List\ListUser.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\List\ListUser.Designer.cs">
+      <DependentUpon>ListUser.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\Manage\ManageUser.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Manage\ManageUser.Designer.cs">
+      <DependentUpon>ManageUser.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\FrmDatabaseConfig.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -94,17 +115,36 @@
     </Compile>
     <Compile Include="Helper\DBHelpers.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Query\MySQLQueryHelper.cs" />
+    <Compile Include="Repository\UserRepository.cs" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Forms\FrmLogin.resx">
+      <DependentUpon>FrmLogin.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\List\ListUser.resx">
+      <DependentUpon>ListUser.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Manage\ManageUser.resx">
+      <DependentUpon>ManageUser.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\FrmDatabaseConfig.resx">
       <DependentUpon>FrmDatabaseConfig.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Generate\ManageCreateTableClass.resx">
       <DependentUpon>ManageCreateTableClass.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -115,6 +155,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="Properties\DataSources\FerPROJ.Design.Models.UserModel.datasource" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\login-bg.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -66,7 +66,7 @@ namespace FerPROJ.DBHelper.Helper {
 
             if (dbContextTypes.Count > 1) {
                 // If you have multiple DbContexts, you can filter by namespace or name here:
-                return dbContextTypes.FirstOrDefault(t => t.Name == "BECMSDbContext");
+                return dbContextTypes.FirstOrDefault(t => t.Name == "BaseDbContext");
             }
 
             return dbContextTypes.FirstOrDefault();
