@@ -76,7 +76,7 @@ namespace FerPROJ.DBHelper.Base {
             return await _ts.GetGeneratedIDAsync(prefix, withSlash, whereCondition);
         }
 
-        protected virtual async Task<IEnumerable<TEntity>> GetAllAsync() {
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync() {
             return await _ts.GetAllAsync<TEntity>();
         }
 
