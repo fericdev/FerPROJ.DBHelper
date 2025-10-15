@@ -142,6 +142,7 @@ namespace FerPROJ.DBHelper.Base {
 
         #region Base DTO CRUD
         protected async virtual Task SaveDataAsync(TModel myDTO) {
+            myDTO.Id = Guid.NewGuid();
             await _ts.SaveDTOAndCommitAsync<TModel, TEntity>(myDTO);
         }
 
@@ -385,6 +386,7 @@ namespace FerPROJ.DBHelper.Base {
 
         #region Base SAVE for Item
         protected async virtual Task SaveDataAsync(TModel model, List<TModelItem> modelItems) {
+            model.Id = Guid.NewGuid();
             await _ts.SaveModelAndCommitAsync<TModel, TModelItem, TEntity, TEntityItem>(model, modelItems);
         }
 
