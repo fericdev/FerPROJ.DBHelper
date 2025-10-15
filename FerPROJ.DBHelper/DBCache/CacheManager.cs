@@ -5,6 +5,7 @@ using FerPROJ.Design.Class;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Caching;
@@ -310,8 +311,29 @@ namespace FerPROJ.DBHelper.DBCache {
         #endregion
 
         #region Load all Cached From DB
-        public static List<Func<Task>> GetCacheLoadTasks(Type dbContextType) {
+        public static List<Func<Task>> GetCacheLoadTasks(Type dbContextType, params string[] assembliesToLoad) {
             var baseGenericType = typeof(BaseRepository<,,,>);
+
+            var allAssemblies = assembliesToLoad.ToList();
+            allAssemblies.Add("FerPROJ.DBHelper");
+
+            var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            foreach (var file in allAssemblies) {
+                // Support both file names (e.g., "LMS.Repository.dll") and short names ("LMS.Repository")
+                var fileName = file.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) ? file : file + ".dll";
+                var path = Path.Combine(baseDir, fileName);
+
+                if (File.Exists(path)) {
+                    var asmName = Path.GetFileNameWithoutExtension(fileName);
+                    if (!AppDomain.CurrentDomain.GetAssemblies()
+                        .Any(a => a.GetName().Name.Equals(asmName, StringComparison.OrdinalIgnoreCase))) {
+                        Assembly.LoadFrom(path);
+                    }
+                }
+                else {
+                    Console.WriteLine($"⚠️ Assembly not found: {path}");
+                }
+            }
 
             // List of assemblies to search, including current and referenced assemblies
             var assemblies = AppDomain.CurrentDomain.GetAssemblies()
