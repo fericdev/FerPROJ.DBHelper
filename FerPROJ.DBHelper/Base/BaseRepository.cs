@@ -65,6 +65,10 @@ namespace FerPROJ.DBHelper.Base {
             var entity = await GetByIdAsync(id);
             return entity.ToDestination<TModel>();
         }
+        public virtual async Task<TModel> GetPrepareModelByPredicateAsync(Expression<Func<TEntity, bool>> predicate) {
+            var entity = await GetByPredicateAsync(predicate);
+            return entity.ToDestination<TModel>();
+        }
         #endregion
 
         #region Base GetDBEntity Method
