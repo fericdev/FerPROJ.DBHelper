@@ -1,4 +1,4 @@
-﻿using FerPROJ.DBHelper.Base;
+﻿using FerPROJ.DBHelper.DBCrud;
 using FerPROJ.DBHelper.DBExtensions;
 using FerPROJ.DBHelper.Helper;
 using FerPROJ.Design.Class;
@@ -17,7 +17,7 @@ namespace FerPROJ.DBHelper.Entity.Users {
         }
 
         public async Task RunMigrationAsync(BaseDbContext dbContext) {
-            await DBHelpers.CreateOrUpdateTableOfEntityAsync<User>(dbContext);
+            await DbContextHelper.CreateOrUpdateTableOfEntityAsync<User>(dbContext);
             var passowrd = CEncryptionManager.EncryptText("adminpassword");
 
             if (!dbContext.Users.Any(u => u.UserName == "adminusername")) {

@@ -1,4 +1,4 @@
-﻿using FerPROJ.DBHelper.Base;
+﻿using FerPROJ.DBHelper.DBCrud;
 using FerPROJ.DBHelper.DBExtensions;
 using FerPROJ.Design.BaseModels;
 using FerPROJ.Design.Class;

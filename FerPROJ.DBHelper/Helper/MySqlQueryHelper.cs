@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.Query {
-    public static class MySQLQueryHelper {
+    public static class MySqlQueryHelper {
         public static string GetDateRangeWord(DateTime dtpFrom, DateTime dtpTo) {
             return $"From {dtpFrom.ToString("MMMM dd, yyyy")} To {dtpTo.ToString("MMMM dd, yyyy")}";
         }

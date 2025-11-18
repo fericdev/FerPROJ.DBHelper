@@ -16,7 +16,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections;
 using FerPROJ.Design.BaseModels;
-using FerPROJ.DBHelper.Base;
+using FerPROJ.DBHelper.Entity;
 
 namespace FerPROJ.DBHelper.DBExtensions {
     public static class DbContextExtensions {

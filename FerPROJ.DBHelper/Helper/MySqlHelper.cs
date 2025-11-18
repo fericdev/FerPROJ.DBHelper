@@ -14,7 +14,7 @@ using System.Windows.Forms;
 using static FerPROJ.Design.Class.CBaseEnums;
 
 namespace FerPROJ.DBHelper.CRUD {
-    public class MySqlManager : IDisposable {
+    public class MySqlHelper : IDisposable {
         private MySqlCommand commandResult;
         private MySqlCommand commandResult2;
         private MySqlConnection connectionResult = new MySqlConnection();
@@ -27,10 +27,10 @@ namespace FerPROJ.DBHelper.CRUD {
         private int rowsAffected2;
         public AllowedOpenDB dbConnection = CBaseEnums.AllowedOpenDB.One;
 
-        public MySqlManager() {
+        public MySqlHelper() {
             SetNewConnection();
         }
-        public MySqlManager(DbContext _ts) {
+        public MySqlHelper(DbContext _ts) {
             connectionResult = (MySqlConnection)_ts.Database.Connection;
             if (connectionResult.State == ConnectionState.Closed) {
                 connectionResult.Open();
@@ -428,9 +428,9 @@ namespace FerPROJ.DBHelper.CRUD {
                         PropertyInfo detailsListProperty = (PropertyInfo)typeof(DTO).GetProperties().Where(c => c.PropertyType.IsGenericType && c.PropertyType.GetGenericTypeDefinition() == typeof(List<>)).FirstOrDefault();
 
                         if (detailsListProperty != null) {
-                            MySqlManager c = new MySqlManager();
+                            MySqlHelper c = new MySqlHelper();
                             Type innerType = detailsListProperty.PropertyType.GetGenericArguments()[0];
-                            MethodInfo getListDataMethod = typeof(MySqlManager)
+                            MethodInfo getListDataMethod = typeof(MySqlHelper)
                                                           .GetMethod("GetListData")
                                                           .MakeGenericMethod(innerType);
 

@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FerPROJ.DBHelper.Base {
+namespace FerPROJ.DBHelper.DBCrud {
     public partial class BaseDbContext : DbContext {
         public BaseDbContext() : base("name=BaseDbConnection") {
             Database.Connection.ConnectionString = CAppConstants.ENTITY_CONNECTION_STRING;

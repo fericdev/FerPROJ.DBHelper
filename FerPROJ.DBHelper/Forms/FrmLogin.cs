@@ -40,7 +40,7 @@ namespace FerPROJ.DBHelper.Forms {
             Application.Exit();
         }
         protected override void InitializeKeyboardShortcuts() {
-            keyboardShortcuts[Keys.F1] = DBHelpers.OpenDatabaseConfiguration;
+            keyboardShortcuts[Keys.F1] = DbContextHelper.OpenDatabaseConfiguration;
         }
     }
 }

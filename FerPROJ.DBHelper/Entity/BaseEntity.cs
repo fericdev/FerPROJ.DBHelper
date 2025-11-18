@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace FerPROJ.DBHelper.Base {
+namespace FerPROJ.DBHelper.Entity {
     public partial class BaseEntity {
         [Key]
         public Guid Id { get; set; }

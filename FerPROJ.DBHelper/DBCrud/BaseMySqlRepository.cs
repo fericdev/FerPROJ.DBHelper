@@ -11,26 +11,26 @@ using System.Text;
 using System.Threading.Tasks;
 using static FerPROJ.Design.Class.CBaseEnums;
 
-namespace FerPROJ.DBHelper.Base {
-    public abstract class BaseDBEntity<EntityContext, DBConn, TSource, TType> : IDisposable where DBConn : MySqlManager where EntityContext : DbContext where TSource : BaseModel {
+namespace FerPROJ.DBHelper.DBCrud {
+    public abstract class BaseMySqlRepository<EntityContext, DBConn, TSource, TType> : IDisposable where DBConn : MySqlHelper where EntityContext : DbContext where TSource : BaseModel {
         public string _tableName { get; set; }
         public string _tableDetailsName { get; set; }
         public EntityContext _ts;
         public DBConn _conn;
-        private MySqlManager conn = new MySqlManager();
-        private MySqlManager entityConn;
+        private MySqlHelper conn = new MySqlHelper();
+        private MySqlHelper entityConn;
 
-        protected BaseDBEntity() {
+        protected BaseMySqlRepository() {
             _ts = NewConnection();
             _conn = UseConnectionDBEntity(_ts);
             SetTables();
         }
-        protected BaseDBEntity(EntityContext ts) {
+        protected BaseMySqlRepository(EntityContext ts) {
             _ts = UseConnection(ts);
             _conn = UseConnectionDBEntity(ts);
             SetTables();
         }
-        protected BaseDBEntity(DBConn conn) {
+        protected BaseMySqlRepository(DBConn conn) {
             _conn = UseConnectionDB(conn);
             SetTables();
         }
@@ -44,7 +44,7 @@ namespace FerPROJ.DBHelper.Base {
             return useConn;
         }
         private DBConn UseConnectionDBEntity(EntityContext useConn) {
-            entityConn = new MySqlManager(useConn);
+            entityConn = new MySqlHelper(useConn);
             return (DBConn)entityConn;
         }
         public void Dispose() {
@@ -99,7 +99,7 @@ namespace FerPROJ.DBHelper.Base {
         //
         public string SelectAll<T>(string search) where T : new() {
             var columnToSearch = CAccessManager.GetMemberName<T>();
-            return $"SELECT * FROM {_tableName} WHERE {MySQLQueryHelper.GetMultipleSearchLIKE(search, columnToSearch)}";
+            return $"SELECT * FROM {_tableName} WHERE {MySqlQueryHelper.GetMultipleSearchLIKE(search, columnToSearch)}";
         }
         public string SelectAll() {
             return $"SELECT * FROM {_tableName}";
@@ -109,7 +109,7 @@ namespace FerPROJ.DBHelper.Base {
         }
         public string SelectAllDetails<T>(string search) where T : new() {
             var columnToSearch = CAccessManager.GetMemberName<T>();
-            return $"SELECT * FROM {_tableDetailsName} WHERE {MySQLQueryHelper.GetMultipleSearchLIKE(search, columnToSearch)}";
+            return $"SELECT * FROM {_tableDetailsName} WHERE {MySqlQueryHelper.GetMultipleSearchLIKE(search, columnToSearch)}";
         }
         public string OrderBy(string columnName = "DateReference", Sort sort = Sort.DESC) {
             return $" ORDER BY {columnName} {sort}";

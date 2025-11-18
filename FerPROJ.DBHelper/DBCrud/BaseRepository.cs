@@ -1,8 +1,7 @@
 ﻿#region namespace
-using FerPROJ.DBHelper.CRUD;
 using FerPROJ.DBHelper.DBCache;
 using FerPROJ.DBHelper.DBExtensions;
-using FerPROJ.DBHelper.Query;
+using FerPROJ.DBHelper.Entity;
 using FerPROJ.Design.BaseModels;
 using FerPROJ.Design.Class;
 using FerPROJ.Design.Controls;
@@ -22,7 +21,7 @@ using System.Windows.Forms;
 using static FerPROJ.Design.Class.CBaseEnums;
 #endregion
 
-namespace FerPROJ.DBHelper.Base {
+namespace FerPROJ.DBHelper.DBCrud {
 
     public abstract class BaseRepository<EntityContext, TModel, TEntity, TType> : IDisposable
         where EntityContext : DbContext

@@ -1,5 +1,4 @@
-﻿using FerPROJ.DBHelper.Base;
-using FerPROJ.DBHelper.Forms;
+﻿using FerPROJ.DBHelper.Forms;
 using FerPROJ.Design.Class;
 using FerPROJ.Design.Interface;
 using MySql.Data.Entity;
@@ -19,7 +18,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace FerPROJ.DBHelper.Helper {
-    public static class DBHelpers {
+    public static class DbContextHelper {
 
         #region Open Database Configuration Form
         public static void OpenDatabaseConfiguration() {

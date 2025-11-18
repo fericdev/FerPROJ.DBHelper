@@ -47,10 +47,10 @@ namespace FerPROJ.DBHelper.Forms {
         private async void cButtonRunMigration_Click(object sender, EventArgs e) {
             if (CDialogManager.Ask("Run Database Migration?", "Confirmation")) {
                 // Backup Database
-                await DBHelpers.BackupDatabaseAsync();
+                await DbContextHelper.BackupDatabaseAsync();
 
                 // Run Migration
-                await DBHelpers.RunDatabaseMigrationAsync();
+                await DbContextHelper.RunDatabaseMigrationAsync();
 
                 // Inform User
                 CDialogManager.Info("Database Updated Successfully!", "Info");
