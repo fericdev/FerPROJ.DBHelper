@@ -319,7 +319,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(960, 447);
-            this.CurrentFormMode = FerPROJ.Design.Forms.FrmManageKrypton.FormMode.Add;
+            this.CurrentFormMode = Design.Class.CBaseEnums.FormMode.Add;
             this.HideFooter = true;
             this.HideHeader = true;
             this.Name = "FrmLogin";

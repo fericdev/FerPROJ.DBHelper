@@ -293,7 +293,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(531, 401);
-            this.CurrentFormMode = FerPROJ.Design.Forms.FrmManageKrypton.FormMode.Add;
+            this.CurrentFormMode = Design.Class.CBaseEnums.FormMode.Add;
             this.Name = "ManageUser";
             this.Text = "ManageUser";
             this.basePnl2.ResumeLayout(false);

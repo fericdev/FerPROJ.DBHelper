@@ -11,6 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static FerPROJ.Design.Class.CBaseEnums;
 
 namespace FerPROJ.DBHelper.Forms.Manage {
     public partial class ManageUser : FrmManageKrypton {
