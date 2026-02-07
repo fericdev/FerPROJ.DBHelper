@@ -114,32 +114,32 @@ namespace FerPROJ.DBHelper.DBCrud {
         #endregion
 
         #region Base Load Methods
-        public virtual async Task LoadComboBoxAsync(CComboBoxKrypton cmb, string cmbName, string cmbValue, Expression<Func<TEntity, bool>> whereCondition = null) {
+        public virtual async Task LoadComboBoxAsync(CComboBoxKrypton cmb, string cmbName, string cmbValue, Expression<Func<TEntity, bool>> whereCondition = null, bool assignSelectedValue = false) {
             var listItems = whereCondition != null
                 ? await _ts.GetAllAsync(whereCondition)
                 : await _ts.GetAllAsync<TEntity>();
-            cmb.FillComboBox(cmbName, cmbValue, listItems);
+            cmb.FillComboBox(cmbName, cmbValue, listItems, assignSelectedValue);
         }
 
-        public virtual async Task LoadComboBoxAsync(CComboBoxKrypton cmb, Func<TEntity, string> cmbName, string cmbValue, Expression<Func<TEntity, bool>> whereCondition = null) {
+        public virtual async Task LoadComboBoxAsync(CComboBoxKrypton cmb, Func<TEntity, string> cmbName, string cmbValue, Expression<Func<TEntity, bool>> whereCondition = null, bool assignSelectedValue = false) {
             var listItems = whereCondition != null
                 ? await _ts.GetAllAsync(whereCondition)
                 : await _ts.GetAllAsync<TEntity>();
-            cmb.FillComboBox(cmbName, cmbValue, listItems);
+            cmb.FillComboBox(cmbName, cmbValue, listItems, assignSelectedValue);
         }
 
-        public virtual async Task LoadComboBoxByEntityAsync<T>(CComboBoxKrypton cmb, string cmbName, string cmbValue, Expression<Func<T, bool>> whereCondition = null) where T : class {
+        public virtual async Task LoadComboBoxByEntityAsync<T>(CComboBoxKrypton cmb, string cmbName, string cmbValue, Expression<Func<T, bool>> whereCondition = null, bool assignSelectedValue = false) where T : class {
             var listItems = whereCondition != null
                 ? await _ts.GetAllAsync(whereCondition)
                 : await _ts.GetAllAsync<T>();
-            cmb.FillComboBox(cmbName, cmbValue, listItems);
+            cmb.FillComboBox(cmbName, cmbValue, listItems, assignSelectedValue);
         }
 
-        public virtual async Task LoadComboBoxByEntityAsync<T>(CComboBoxKrypton cmb, Func<T, string> cmbName, string cmbValue, Expression<Func<T, bool>> whereCondition = null) where T : class {
+        public virtual async Task LoadComboBoxByEntityAsync<T>(CComboBoxKrypton cmb, Func<T, string> cmbName, string cmbValue, Expression<Func<T, bool>> whereCondition = null, bool assignSelectedValue = false) where T : class {
             var listItems = whereCondition != null
                 ? await _ts.GetAllAsync(whereCondition)
                 : await _ts.GetAllAsync<T>();
-            cmb.FillComboBox<T>(cmbName, cmbValue, listItems);
+            cmb.FillComboBox<T>(cmbName, cmbValue, listItems, assignSelectedValue);
         }
         #endregion
 
