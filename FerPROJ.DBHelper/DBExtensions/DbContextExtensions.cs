@@ -656,7 +656,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
         #region Get All Method
         public static async Task<IEnumerable<TEntityItem>> GetAllItemsByParentIdAsync<TEntityItem>(this DbContext context, Guid parentId) where TEntityItem : BaseEntityItem {
             // Assuming you already have a GetAllAsync(predicate) method
-            return await context.GetAllAsync<TEntityItem>(c=>c.ParentId == parentId);
+            return await context.GetAllAsync<TEntityItem>(c=>c.ParentId == parentId, isCached: false);
         }
         //
         public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, string propertyName, object propertyValue) where TEntity : class {
