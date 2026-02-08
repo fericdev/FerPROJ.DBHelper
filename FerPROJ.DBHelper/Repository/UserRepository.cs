@@ -46,6 +46,7 @@ namespace FerPROJ.DBHelper.Repository {
 
             CAppConstants.USERNAME = entity.UserName;
             CAppConstants.USER_ID = entity.Id;
+            CAppConstants.NAME = entity.Name;
 
             return true;
 
