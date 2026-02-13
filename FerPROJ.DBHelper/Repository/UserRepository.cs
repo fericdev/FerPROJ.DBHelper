@@ -51,5 +51,24 @@ namespace FerPROJ.DBHelper.Repository {
             return true;
 
         }
+        public async Task<bool> CheckCredentialsAsync() {
+
+            var username = CConfigurationManager.GetValue("username", "rememberme");
+
+            var entity = await GetByPredicateAsync(c => c.UserName == username);
+
+            if (entity == null) {
+                CDialogManager.Warning("Invalid username or password.");
+                return false;
+            }
+
+            CAppConstants.USERNAME = entity.UserName;
+            CAppConstants.USER_ID = entity.Id;
+            CAppConstants.NAME = entity.Name;
+
+            return true;
+
+        }
+
     }
 }

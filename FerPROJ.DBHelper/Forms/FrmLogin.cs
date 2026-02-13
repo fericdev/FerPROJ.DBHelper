@@ -22,6 +22,7 @@ namespace FerPROJ.DBHelper.Forms {
         protected override async Task LoadComponentsAsync() {
             userModelBindingSource.DataSource = userModel;
             userModel.UserName = CConfigurationManager.GetRememberedUsername(cbRememberMe, userNameCTextBoxKrypton);
+            CConfigurationManager.SkipLogin(cbSkipLogin);
             await Task.CompletedTask;
         }
         private async void cButtonLogin_Click(object sender, EventArgs e) {
