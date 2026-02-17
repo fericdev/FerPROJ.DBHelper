@@ -1,5 +1,6 @@
 ﻿using FerPROJ.DBHelper.Forms;
 using FerPROJ.Design.Class;
+using FerPROJ.Design.Forms;
 using FerPROJ.Design.Interface;
 using MySql.Data.Entity;
 using System;
@@ -74,6 +75,8 @@ namespace FerPROJ.DBHelper.Helper {
 
         #region Run Database Migration
         public static async Task RunDatabaseMigrationAsync() {
+            await FrmSplasherLoading.ShowSplashAsync();
+            FrmSplasherLoading.SetLoadingText(0);
 
             // Find the DbContext type in the loaded assemblies
             var dbContextType = GetDbContextType();
@@ -87,6 +90,8 @@ namespace FerPROJ.DBHelper.Helper {
                 if (!dbContext.Database.Exists()) {
                     dbContext.Database.Create();
                 }
+
+                FrmSplasherLoading.SetLoadingText(50);
 
                 // 2. Run custom seeders (classes implementing IDbContextMigration<T>)
                 var migrationTypes = AppDomain.CurrentDomain
@@ -109,8 +114,13 @@ namespace FerPROJ.DBHelper.Helper {
                     )
                     .ToList();
 
+                var totalMigrations = migrationTypes.Count;
+
                 // 3. Loop through each migration type and execute its RunMigrationAsync method
                 foreach (var migrationType in migrationTypes) {
+
+                    FrmSplasherLoading.SetLoadingText(50 + (int)((migrationTypes.IndexOf(migrationType) + 1) / (double)totalMigrations * 50));
+
                     var migrationInstance = Activator.CreateInstance(migrationType);
 
                     // Find the RunMigrationAsync method and invoke it
@@ -120,7 +130,8 @@ namespace FerPROJ.DBHelper.Helper {
                         await task; // wait for async method
                     }
                 }
-
+                FrmSplasherLoading.SetLoadingText(100);
+                FrmSplasherLoading.CloseSplash();
             }
 
             CDialogManager.Info("Database migration has been successfully executed.");
