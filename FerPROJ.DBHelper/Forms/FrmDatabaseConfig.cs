@@ -56,5 +56,15 @@ namespace FerPROJ.DBHelper.Forms {
                 CDialogManager.Info("Database Updated Successfully!", "Info");
             }
         }
+
+        private async void cButtonRunSetup_Click(object sender, EventArgs e) {
+            if (CDialogManager.Ask("Run MySQL Setup?", "Confirmation")) {
+                // Run Migration
+                await DbContextHelper.RunDatabaseSetupAsync();
+
+                // Inform User
+                CDialogManager.Info("MySQL Setup Completed!", "Success");
+            }
+        }
     }
 }

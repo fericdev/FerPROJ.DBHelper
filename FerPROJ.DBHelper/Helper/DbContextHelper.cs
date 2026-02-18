@@ -390,11 +390,11 @@ namespace FerPROJ.DBHelper.Helper {
                 throw new FileNotFoundException("MySQL installer not found.");
 
             string args = $"/i \"{installerPath}\" /quiet /norestart " +
-                          "INSTALLDIR=\"C:\\MySQL\" " +
-                          "SERVICENAME=\"MySQL57\" " +
-                          "PORT=3309 " +
-                          "ROOTPASSWORD=\"RootPassword123!\" " +
-                          "ADDLOCAL=\"Server,Client\"";
+                          $"INSTALLDIR=\"C:\\Program Files\\MySQL\" " +
+                          $"SERVICENAME=\"MySQL57\" " +
+                          $"PORT=3309 " +
+                          $"ROOTPASSWORD=\"RootPassword123!\" " +
+                          $"ADDLOCAL=\"Server,Client\"";
 
             await RunProcessAsync("msiexec.exe", args);
         }
@@ -418,12 +418,31 @@ namespace FerPROJ.DBHelper.Helper {
 
             File.WriteAllText("mysql_init.sql", sql);
 
-            string mysqlPath = @"C:\MySQL\bin\mysql.exe";
+            string[] mysqlPaths = new string[]
+            {
+                @"C:\MySQL\bin\mysql.exe",
+                @"C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql.exe",
+                @"C:\Program Files (x86)\MySQL\MySQL Server 5.7\bin\mysql.exe"
+            };
 
-            if (!File.Exists(mysqlPath))
-                throw new FileNotFoundException("mysql.exe not found at " + mysqlPath);
+            var mysqlPathFound = string.Empty;
 
-            await RunProcessAsync("cmd.exe", $"/c \"{mysqlPath} -u root -pRootPassword123! < mysql_init.sql\"");
+            foreach (var path in mysqlPaths) {
+                if (File.Exists(path)) {
+                    mysqlPathFound = path;
+                    break;
+                }
+                else {
+                    CDialogManager.Info($"Location path: {path}", "Not Found");
+                }
+            }
+
+            if (!mysqlPathFound.IsNullOrEmpty()) {
+                await RunProcessAsync("cmd.exe", $"/c \"\"{mysqlPathFound}\" -h localhost -P 3309 -u root -pRootPassword123! < mysql_init.sql\"");
+            }
+            else {
+                CDialogManager.Info("No MySQL executable found.", "Error");
+            }
         }
 
         private static async Task RunProcessAsync(string fileName, string arguments) {
