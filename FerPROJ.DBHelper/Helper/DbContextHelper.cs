@@ -351,6 +351,13 @@ namespace FerPROJ.DBHelper.Helper {
 
                 await ConfigureMySQLAsync();
 
+                if (!IsMySQLQueryBrowserInstalled()) {
+                    await InstallMySQLBrowserAsync();
+                }
+                else {
+                    CDialogManager.Info("MySQL Browser is already installed, skipping installation.");
+                }
+
                 CConfigurationManager.CreateOrSetValue("DatabaseSetup", "Completed");
 
                 CDialogManager.Info("MySQL setup/configuration completed successfully.");
@@ -382,9 +389,23 @@ namespace FerPROJ.DBHelper.Helper {
 
             return Directory.Exists(gacPath);
         }
+        private static bool IsMySQLQueryBrowserInstalled() {
+            string[] possiblePaths = new[]
+            {
+                @"C:\Program Files\MySQL\MySQL Query Browser 1.1.20\MySQLQueryBrowser.exe",
+                @"C:\Program Files (x86)\MySQL\MySQL Query Browser 1.1.20\MySQLQueryBrowser.exe"
+            };
+
+            foreach (var path in possiblePaths) {
+                if (File.Exists(path))
+                    return true;
+            }
+
+            return false;
+        }
 
         private static async Task InstallMySQLAsync() {
-            var installerPath = CAccessManager.GetOrCreateEnvironmentPath("mysql-installer-5.7.44.0.msi", "MySQL Setup");
+            var installerPath = CAccessManager.GetOrCreateEnvironmentPath("mysql-installer-community-5.7.44.0.msi", "MySQL Setup");
 
             if (!File.Exists(installerPath))
                 throw new FileNotFoundException("MySQL installer not found.");
@@ -404,6 +425,15 @@ namespace FerPROJ.DBHelper.Helper {
 
             if (!File.Exists(installerPath))
                 throw new FileNotFoundException("MySQL Connector installer not found.");
+
+            string args = $"/i \"{installerPath}\" /quiet /norestart";
+            await RunProcessAsync("msiexec.exe", args);
+        }
+        private static async Task InstallMySQLBrowserAsync() {
+            var installerPath = CAccessManager.GetOrCreateEnvironmentPath("mysql-query-browser-1.1.20-win.msi", "MySQL Setup");
+
+            if (!File.Exists(installerPath))
+                throw new FileNotFoundException("MySQL Query Browser not found.");
 
             string args = $"/i \"{installerPath}\" /quiet /norestart";
             await RunProcessAsync("msiexec.exe", args);
