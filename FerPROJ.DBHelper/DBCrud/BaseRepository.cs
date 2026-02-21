@@ -59,7 +59,9 @@ namespace FerPROJ.DBHelper.DBCrud {
             model.FormId = await GetGeneratedIDAsync(prefix, false);
             return model;
         }
-
+        public virtual async Task<TModel> GetPrepareModelByEntityAsync(TEntity entity) {
+            return entity.ToDestination<TModel>();
+        }
         public virtual async Task<TModel> GetPrepareModelByIdAsync(TType id) {
             var entity = await GetByIdAsync(id);
             return entity.ToDestination<TModel>();
