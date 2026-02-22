@@ -49,13 +49,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
                     if (!propertyValue.HasValue)
                         continue;
 
-                    // Check if the property is within the date range
-                    bool isAfterStart = !dateFrom.HasValue || propertyValue > dateFrom.Value.AddDays(-1);
-                    bool isBeforeEnd = !dateTo.HasValue || propertyValue < dateTo.Value.AddDays(1);
-
-                    if (isAfterStart && isBeforeEnd) {
-                        return true; // Property is within range
-                    }
+                    return propertyValue.SearchForDate(dateFrom, dateTo);
 
                 }
 
@@ -215,29 +209,15 @@ namespace FerPROJ.DBHelper.DBExtensions {
             Func<TEntity, Task<TResult>> selector,
             Func<TResult, bool> filter,
             int dataLimit = 100) {
-            // Use Parallel Processing
-            var tasks = source
-                .Select(async item => (Result: await selector(item), IsValid: false))
-                .ToList();
 
-            // Await all the tasks to complete
+            source = source.Take(dataLimit);
+
+            var tasks = source.Select(selector);
+
             var results = await Task.WhenAll(tasks);
 
-            // Filter and take only the limited number of items
-            return results
-                .Select(t => t.Result)
-                .Where(filter)
-                .Take(dataLimit);
+            return results.Where(filter).ToList();
         }
-
-        public static IEnumerable<TEntity> DataLimit<TEntity>(
-            this IEnumerable<TEntity> source,
-            int dataLimit) {
-
-            return source.Take(dataLimit);
-
-        }
-
         #endregion
 
     }

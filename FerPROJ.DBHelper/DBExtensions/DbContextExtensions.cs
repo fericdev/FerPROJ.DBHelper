@@ -697,7 +697,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
                 var result = cachedData.SearchDateRange(dateFrom, dateTo);
 
-                result = cachedData.SearchText(searchText);
+                result = result.SearchText(searchText);
 
                 if (result != null) {
 
