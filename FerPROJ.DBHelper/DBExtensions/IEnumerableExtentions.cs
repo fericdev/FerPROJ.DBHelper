@@ -208,15 +208,15 @@ namespace FerPROJ.DBHelper.DBExtensions {
             this IEnumerable<TEntity> source,
             Func<TEntity, Task<TResult>> selector,
             Func<TResult, bool> filter,
-            int dataLimit = 100) {
-
-            source = source.Take(dataLimit);
+            int dataLimit) {
 
             var tasks = source.Select(selector);
 
             var results = await Task.WhenAll(tasks);
 
-            return results.Where(filter).ToList();
+            return results.Where(filter)
+                          .Take(dataLimit)
+                          .ToList();
         }
         #endregion
 
