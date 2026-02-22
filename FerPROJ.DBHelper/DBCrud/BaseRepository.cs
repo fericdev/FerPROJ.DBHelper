@@ -88,10 +88,25 @@ namespace FerPROJ.DBHelper.DBCrud {
         protected virtual async Task<IEnumerable<TEntity>> GetAllWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int dataLimit = 100) {
             return await _ts.GetAllWithSearchAsync<TEntity>(searchText, dateFrom, dateTo, dataLimit);
         }
+        public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int dateLimit = 100) {
 
-        protected virtual async Task<IEnumerable<TModel>> GetAllModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo) {
-            var query = await _ts.GetAllWithSearchAsync<TEntity>(searchText, dateFrom, dateTo);
-            return query.ToDestination<TModel>();
+            var query = await GetAllWithSearchAsync(searchText, dateFrom, dateTo, dateLimit);
+
+            return await query.SelectListAsync(async c => {
+
+                return await GetPrepareModelByEntityAsync(c);
+
+            });
+        }
+        public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(Expression<Func<TEntity, bool>> whereCondition, string searchText, DateTime? dateFrom, DateTime? dateTo, int dateLimit = 100) {
+
+            var query = await GetAllAsync(whereCondition);
+
+            return await query.SelectListAsync(async c => {
+
+                return await GetPrepareModelByEntityAsync(c);
+
+            }, c => c.SearchFor(searchText, dateFrom, dateTo, "DateCreated"), dateLimit);
         }
 
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> whereCondition) {
