@@ -85,10 +85,10 @@ namespace FerPROJ.DBHelper.DBCrud {
             return await _ts.GetAllAsync<TEntity>();
         }
 
-        protected virtual async Task<IEnumerable<TEntity>> GetAllWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int dataLimit = 100) {
+        protected virtual async Task<IEnumerable<TEntity>> GetAllWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int dataLimit = int.MaxValue) {
             return await _ts.GetAllWithSearchAsync<TEntity>(searchText, dateFrom, dateTo, dataLimit);
         }
-        public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int dateLimit = 100) {
+        public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int dateLimit = int.MaxValue) {
 
             var query = await GetAllWithSearchAsync(searchText, dateFrom, dateTo, dateLimit);
 
@@ -98,7 +98,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             });
         }
-        public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(Expression<Func<TEntity, bool>> whereCondition, string searchText, DateTime? dateFrom, DateTime? dateTo, int dateLimit = 100) {
+        public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(Expression<Func<TEntity, bool>> whereCondition, string searchText, DateTime? dateFrom, DateTime? dateTo, int dateLimit = int.MaxValue) {
 
             var query = await GetAllAsync(whereCondition);
 
