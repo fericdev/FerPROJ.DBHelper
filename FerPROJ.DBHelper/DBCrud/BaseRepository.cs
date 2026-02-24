@@ -90,13 +90,13 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int dateLimit = int.MaxValue) {
 
-            var query = await GetAllWithSearchAsync(searchText, dateFrom, dateTo, dateLimit);
+            var query = await GetAllWithSearchAsync(null, dateFrom, dateTo, dateLimit);
 
             return await query.SelectListAsync(async c => {
 
                 return await GetPrepareModelByEntityAsync(c);
 
-            });
+            }, c => c.SearchForText(searchText), dateLimit);
         }
         public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(Expression<Func<TEntity, bool>> whereCondition, string searchText, DateTime? dateFrom, DateTime? dateTo, int dateLimit = int.MaxValue) {
 

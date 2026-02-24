@@ -25,8 +25,8 @@ namespace FerPROJ.DBHelper.Forms.List {
         }
         protected override async Task RefreshDataAsync() {
             using(var repo = new UserRepository()) {
-                var users = repo.GetViewAsync(searchValue, dateFrom, dateTo);
-                await userModelBindingSource.LoadDataAsync(users);
+                var users = repo.GetViewModelWithSearchAsync(searchValue, dateFrom, dateTo);
+                await userModelBindingSource.LoadDataAsync(users, ComboBoxKryptonPage, ComboBoxKryptonDataLimit, dataPage, dataLimit);
             }
         }
         protected override async Task<bool> AddNewItemAsync() {

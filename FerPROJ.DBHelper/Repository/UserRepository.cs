@@ -11,28 +11,13 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.Repository {
-    public partial class UserRepository : BaseRepository<BaseDbContext, UserModel, User, Guid>, IModelViewAsync<UserModel> {
+    public partial class UserRepository : BaseRepository<BaseDbContext, UserModel, User, Guid> {
         public UserRepository() {
         }
 
         public UserRepository(BaseDbContext ts) : base(ts) {
         }
 
-        public async Task<IEnumerable<UserModel>> GetViewAsync(string searchText = "", DateTime? dateFrom = null, DateTime? dateTo = null, int dataLimit = 100) {
-            var query = await GetAllWithSearchAsync(searchText, dateFrom, dateTo, dataLimit);
-
-            var result = await query.SelectListAsync(async c => {
-
-                var model = c.ToDestination<UserModel>();
-
-                await Task.CompletedTask;
-
-                return model;
-
-            });
-
-            return result;
-        }
         public async Task<bool> CheckCredentialsAsync(UserModel model) {
 
             model.Password = CEncryptionManager.EncryptText(model.Password);
