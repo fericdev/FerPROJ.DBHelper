@@ -54,9 +54,13 @@ namespace FerPROJ.DBHelper.DBExtensions {
         }
 
         private static Expression BuildDateExpression<T>(ParameterExpression param, DateTime? dateFrom, DateTime? dateTo, string propertyName) {
+            
             var property = Expression.Property(param, propertyName);
+            
             Expression greaterThanOrEqual = null;
             Expression lessThanOrEqual = null;
+
+            dateFrom = dateFrom.HasValue && dateFrom.Value.Date == DateTime.Today ? null : dateFrom;
 
             // Handle non-nullable DateTime properties
             if (property.Type == typeof(DateTime)) {
