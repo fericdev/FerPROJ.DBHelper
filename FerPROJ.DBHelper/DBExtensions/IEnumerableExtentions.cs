@@ -49,7 +49,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
                     if (!propertyValue.HasValue)
                         continue;
 
-                    return propertyValue.SearchForDate(dateFrom, dateTo);
+                    return propertyValue.Value.SearchForDate(dateFrom, dateTo);
 
                 }
 

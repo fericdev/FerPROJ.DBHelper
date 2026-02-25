@@ -106,7 +106,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
                 return await GetPrepareModelByEntityAsync(c);
 
-            }, c => c.SearchFor(searchText, dateFrom, dateTo, "DateCreated"), dateLimit);
+            }, c => c.SearchFor(searchText, dateFrom, dateTo, d => d.DateCreated), dateLimit);
         }
 
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> whereCondition) {
