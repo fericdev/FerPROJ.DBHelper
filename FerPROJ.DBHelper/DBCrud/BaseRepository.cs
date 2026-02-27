@@ -64,11 +64,11 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task<TModel> GetPrepareModelByIdAsync(TType id) {
             var entity = await GetByIdAsync(id);
-            return entity.ToDestination<TModel>();
+            return await GetPrepareModelByEntityAsync(entity);
         }
         public virtual async Task<TModel> GetPrepareModelByPredicateAsync(Expression<Func<TEntity, bool>> predicate) {
             var entity = await GetByPredicateAsync(predicate);
-            return entity.ToDestination<TModel>();
+            return await GetPrepareModelByEntityAsync(entity);
         }
         #endregion
 
