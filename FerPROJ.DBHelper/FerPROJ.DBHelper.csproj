@@ -73,6 +73,7 @@
     <Compile Include="DBCrud\BaseDbContext.cs" />
     <Compile Include="DBCrud\BaseRepository.cs" />
     <Compile Include="DBCrud\BaseMySqlRepository.cs" />
+    <Compile Include="DBCrud\BaseRepositoryHelper.cs" />
     <Compile Include="Entity\BaseEntity.cs" />
     <Compile Include="Helper\MySqlHelper.cs" />
     <Compile Include="DBCache\CacheManager.cs" />
