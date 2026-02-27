@@ -311,7 +311,7 @@ namespace FerPROJ.DBHelper.DBCache {
         #endregion
 
         #region Load all Cached From DB
-        public static List<Func<Task>> GetCacheLoadTasks(Type dbContextType, params string[] assembliesToLoad) {
+        public static List<Func<Task>> GetCacheLoadTasks(params string[] assembliesToLoad) {
             var baseGenericType = typeof(BaseRepository<,,,>);
 
             var allAssemblies = assembliesToLoad.ToList();
@@ -353,7 +353,7 @@ namespace FerPROJ.DBHelper.DBCache {
                 if (method != null) {
                     // Create a new instance of DbContext dynamically inside each task
                     tasks.Add(async () => {
-                        using (var freshDbContext = (DbContext)Activator.CreateInstance(dbContextType)) {
+                        using (var freshDbContext = (DbContext)Activator.CreateInstance(CAppConstants.DbContextType)) {
                             var instance = Activator.CreateInstance(type, freshDbContext);
                             await (Task)method.Invoke(instance, null);
                         }
