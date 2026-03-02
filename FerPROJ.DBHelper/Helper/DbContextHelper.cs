@@ -11,6 +11,7 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.Remoting.Contexts;
 using System.ServiceProcess;
@@ -139,14 +140,20 @@ namespace FerPROJ.DBHelper.Helper {
         #endregion
 
         #region Alter Table Columns
-        public static async Task CreateOrUpdateTableOfEntityAsync<TEntity>(DbContext dbContext, List<string> excludedProperties = null) {
+        public static async Task CreateOrUpdateTableOfEntityAsync<TEntity>(DbContext dbContext, params Expression<Func<TEntity, object>>[] excludeProperties) {
             // Get table name and properties
             var tableName = typeof(TEntity).Name; 
             var properties = typeof(TEntity).GetProperties();
 
             // Exclude specified properties
-            if (excludedProperties != null) {
-                properties = properties.Where(p => !excludedProperties.Contains(p.Name)).ToArray();
+            if (excludeProperties != null && excludeProperties.Length > 0) {
+                var excludedNames = excludeProperties
+                    .Select(GetPropertyName)
+                    .ToHashSet();
+
+                properties = properties
+                    .Where(p => !excludedNames.Contains(p.Name))
+                    .ToArray();
             }
 
             // Check if table exists
@@ -279,6 +286,17 @@ namespace FerPROJ.DBHelper.Helper {
                 .FirstOrDefault();
 
             return count > 0;
+        }
+        private static string GetPropertyName<TEntity>(
+            Expression<Func<TEntity, object>> expression) {
+            if (expression.Body is MemberExpression member)
+                return member.Member.Name;
+
+            if (expression.Body is UnaryExpression unary &&
+                unary.Operand is MemberExpression unaryMember)
+                return unaryMember.Member.Name;
+
+            throw new ArgumentException("Invalid property expression");
         }
         #endregion
 
