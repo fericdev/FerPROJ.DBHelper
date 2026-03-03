@@ -191,7 +191,9 @@ namespace FerPROJ.DBHelper.DBCache {
             }
 
             // Save the updated list to the cache
-            await Task.Run(() => _cache.Set(key, existingList, DateTimeOffset.MaxValue));
+            _cache.Set(key, existingList, DateTimeOffset.MaxValue);
+
+            await Task.CompletedTask;
         }
 
         public async static Task RemoveAllFromCacheAsync<TEntity>(this DbContext dbContext, List<TEntity> values) where TEntity : class {
@@ -216,8 +218,9 @@ namespace FerPROJ.DBHelper.DBCache {
             }
 
             // Save the updated list to the cache
-            await Task.Run(() => _cache.Set(key, existingList, DateTimeOffset.MaxValue));
+            _cache.Set(key, existingList, DateTimeOffset.MaxValue);
 
+            await Task.CompletedTask;
         }
 
 
