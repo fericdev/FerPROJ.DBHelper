@@ -353,7 +353,7 @@ namespace FerPROJ.DBHelper.DBCache {
                 if (method != null) {
                     // Create a new instance of DbContext dynamically inside each task
                     tasks.Add(async () => {
-                        using (var freshDbContext = (DbContext)Activator.CreateInstance(CAppConstants.DbContextType)) {
+                        using (var freshDbContext = (DbContext)Activator.CreateInstance(CAppConstants.DB_CONTEXT_TYPE)) {
                             var instance = Activator.CreateInstance(type, freshDbContext);
                             await (Task)method.Invoke(instance, null);
                         }
