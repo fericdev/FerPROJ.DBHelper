@@ -253,10 +253,21 @@ namespace FerPROJ.DBHelper.Helper {
         }
 
         private static object GetDefaultValue(PropertyInfo prop, Type modelType) {
-            // Create a temporary instance of the model
+
             var instance = Activator.CreateInstance(modelType);
-            // Get the current value of the property
-            return prop.GetValue(instance);
+
+            var value = prop.GetValue(instance);
+
+            // Get CLR default for the property type
+            var defaultValue = prop.PropertyType.IsValueType
+                ? Activator.CreateInstance(prop.PropertyType)
+                : null;
+
+            // If the value equals the CLR default, treat it as "no default"
+            if (Equals(value, defaultValue))
+                return null;
+
+            return value;
         }
 
         private static bool IsColumnExists(DbContext dbContext, string tableName, string columnName) {
