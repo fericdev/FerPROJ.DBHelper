@@ -391,13 +391,12 @@ namespace FerPROJ.DBHelper.DBCrud {
         protected BaseItemRepository(EntityContext ts) : base(ts) { }
         #endregion
 
+        #region Base GET for Model Item
         public override async Task<TModel> GetPrepareModelByEntityAsync(TEntity entity) {
             var model = await base.GetPrepareModelByEntityAsync(entity);
             model.Items = await GetPrepareModelItemsByParentIdAsync(entity.Id);
             return model;
         }
-
-        #region Base GET for Model Item
         public virtual async Task<List<TModelItem>> GetPrepareModelItemsByParentIdAsync(Guid parentId) {
             
             var entities = await GetAllItemsByParentIdAsync(parentId);
