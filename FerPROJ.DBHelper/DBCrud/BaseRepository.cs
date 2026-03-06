@@ -381,7 +381,7 @@ namespace FerPROJ.DBHelper.DBCrud {
     public abstract class BaseItemRepository<EntityContext, TModel, TModelItem, TEntity, TEntityItem> :
         BaseRepository<EntityContext, TModel, TEntity, Guid>
         where EntityContext : DbContext
-        where TModel : BaseModel
+        where TModel : BaseModel<TModelItem>
         where TEntity : BaseEntity
         where TModelItem : BaseModelItem
         where TEntityItem : BaseEntityItem {
@@ -390,6 +390,12 @@ namespace FerPROJ.DBHelper.DBCrud {
         protected BaseItemRepository() : base() { }
         protected BaseItemRepository(EntityContext ts) : base(ts) { }
         #endregion
+
+        public override async Task<TModel> GetPrepareModelByEntityAsync(TEntity entity) {
+            var model = await base.GetPrepareModelByEntityAsync(entity);
+            model.Items = await GetPrepareModelItemsByParentIdAsync(entity.Id);
+            return model;
+        }
 
         #region Base GET for Model Item
         public virtual async Task<List<TModelItem>> GetPrepareModelItemsByParentIdAsync(Guid parentId) {
