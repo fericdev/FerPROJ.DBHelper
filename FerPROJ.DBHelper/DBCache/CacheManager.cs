@@ -71,7 +71,14 @@ namespace FerPROJ.DBHelper.DBCache {
             }
             else {
 
-                var primaryKey = dbContext.GetPrimaryKeyOfDbContext<TEntity>();
+                PropertyInfo primaryKey = null;
+
+                if (dbContext == null) {
+                    primaryKey = typeof(TEntity).GetPropertyInfo("Id");
+                }
+                else {
+                    primaryKey = dbContext.GetPrimaryKeyOfDbContext<TEntity>();
+                }
 
                 if (primaryKey == null) {
                     return;
@@ -310,6 +317,23 @@ namespace FerPROJ.DBHelper.DBCache {
         public async static Task<IQueryable<TEntity>> GetAllQueryableCacheAsync<TEntity>() where TEntity : class {
             var result = await GetAllListCacheAsync<TEntity>();
             return result?.AsQueryable();
+        }
+        #endregion
+
+        #region Get or Create
+        public async static Task<List<TEntity>> GetOrCreateListCacheAsync<TEntity>(IEnumerable<Task<TEntity>> values) where TEntity : class {
+            var cacheList = await GetAllListCacheAsync<TEntity>();
+
+            if (cacheList == null) {
+
+                var valuesResult = await Task.WhenAll(values);
+
+                await SaveAllToCacheAsync(null, valuesResult);
+
+                cacheList = await GetAllListCacheAsync<TEntity>();
+            }
+
+            return cacheList;
         }
         #endregion
 

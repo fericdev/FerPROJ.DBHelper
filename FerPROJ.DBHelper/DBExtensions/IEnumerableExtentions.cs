@@ -196,11 +196,11 @@ namespace FerPROJ.DBHelper.DBExtensions {
         #region Select 
         public static async Task<IEnumerable<TResult>> SelectListAsync<TEntity, TResult>(
             this IEnumerable<TEntity> source,
-            Func<TEntity, Task<TResult>> selector) {
+            Func<TEntity, Task<TResult>> selector) where TResult : class {
 
             var tasks = source.Select(selector); // Creates tasks for each item in the collection
 
-            return await Task.WhenAll(tasks);    // Waits for all tasks to complete and returns the results
+            return await CacheManager.GetOrCreateListCacheAsync(tasks);
 
         }
 
@@ -208,15 +208,14 @@ namespace FerPROJ.DBHelper.DBExtensions {
             this IEnumerable<TEntity> source,
             Func<TEntity, Task<TResult>> selector,
             Func<TResult, bool> filter,
-            int dataLimit) {
+            int dataLimit) where TResult : class {
 
             var tasks = source.Select(selector);
 
-            var results = await Task.WhenAll(tasks);
+            var results = await CacheManager.GetOrCreateListCacheAsync(tasks);
 
             return results.Where(filter)
-                          .Take(dataLimit)
-                          .ToList();
+                          .Take(dataLimit);
         }
         #endregion
 
