@@ -3,8 +3,10 @@ using FerPROJ.DBHelper.DBExtensions;
 using FerPROJ.Design.BaseModels;
 using FerPROJ.Design.Class;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -16,6 +18,7 @@ namespace FerPROJ.DBHelper.DBCache {
     public static class CacheManager {
 
         private static MemoryCache _cache = MemoryCache.Default;
+        private static readonly ConcurrentDictionary<string, (DateTime LastUpdate, TimeSpan LastDuration)> _updateTracker = new ConcurrentDictionary<string, (DateTime LastUpdate, TimeSpan LastDuration)>();
 
         #region Save
         public async static Task SaveToCacheAsync<TEntity>(this DbContext dbContext, TEntity value) where TEntity : class {
@@ -322,21 +325,50 @@ namespace FerPROJ.DBHelper.DBCache {
 
         #region Get or Create
         public async static Task<List<TEntity>> GetOrCreateListCacheAsync<TEntity>(IEnumerable<Func<Task<TEntity>>> values) where TEntity : class {
+            
+            var key = typeof(TEntity).Name;
 
-            var results = await GetAllListCacheAsync<TEntity>();
-
-            if (results.IsNullOrEmpty()) {
+            if (ShouldUpdate(key)) {
 
                 var factories = values.ToList();
 
+                var sw = Stopwatch.StartNew();
+
                 var tasks = factories.Select(f => f());
 
-                var valuesResult = await Task.WhenAll(tasks);
+                var results = await Task.WhenAll(tasks);
 
-                await SaveAllToCacheAsync(null, valuesResult);
+                sw.Stop();
+
+                await SaveAllToCacheAsync(null, results);
+
+                // Record how long the update took for next cooldown
+                RecordUpdate(key, sw.Elapsed);
             }
 
             return await GetAllListCacheAsync<TEntity>();
+        }
+        private static bool ShouldUpdate(string key) {
+            var now = DateTime.Now;
+
+            if (!_updateTracker.TryGetValue(key, out var info)) {
+                // First time: allow update
+                _updateTracker[key] = (now, TimeSpan.Zero);
+                return true;
+            }
+
+            var cooldown = info.LastDuration > TimeSpan.Zero
+                ? info.LastDuration // dynamic cooldown based on last duration
+                : TimeSpan.FromSeconds(5); // fallback default
+
+            if (info.LastUpdate + cooldown <= now) {
+                return true; // enough time passed
+            }
+
+            return false; // still in cooldown
+        }
+        private static void RecordUpdate(string key, TimeSpan duration) {
+            _updateTracker[key] = (DateTime.Now, duration);
         }
         #endregion
 
