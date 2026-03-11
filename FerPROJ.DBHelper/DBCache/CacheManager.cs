@@ -323,15 +323,20 @@ namespace FerPROJ.DBHelper.DBCache {
         #region Get or Create
         public async static Task<List<TEntity>> GetOrCreateListCacheAsync<TEntity>(IEnumerable<Func<Task<TEntity>>> values) where TEntity : class {
 
-            var factories = values.ToList();
+            var results = await GetAllListCacheAsync<TEntity>();
 
-            var tasks = factories.Select(f => f());
+            if (results.IsNullOrEmpty()) {
 
-            var valuesResult = await Task.WhenAll(tasks);
+                var factories = values.ToList();
 
-            await SaveAllToCacheAsync(null, valuesResult);
+                var tasks = factories.Select(f => f());
 
-            return valuesResult.ToList();
+                var valuesResult = await Task.WhenAll(tasks);
+
+                await SaveAllToCacheAsync(null, valuesResult);
+            }
+
+            return await GetAllListCacheAsync<TEntity>();
         }
         #endregion
 
