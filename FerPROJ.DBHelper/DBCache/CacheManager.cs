@@ -219,7 +219,7 @@ namespace FerPROJ.DBHelper.DBCache {
                 return;
             }
             else {
-                foreach (var value in values) { 
+                foreach (var value in values) {
                     existingList.Remove(value);
                 }
             }
@@ -322,32 +322,16 @@ namespace FerPROJ.DBHelper.DBCache {
 
         #region Get or Create
         public async static Task<List<TEntity>> GetOrCreateListCacheAsync<TEntity>(IEnumerable<Func<Task<TEntity>>> values) where TEntity : class {
-            var cacheList = await GetAllListCacheAsync<TEntity>();
 
-            if (cacheList == null) {
+            var factories = values.ToList();
 
-                var factories = values.ToList();
+            var tasks = factories.Select(f => f());
 
-                var tasks = factories.Select(f => f());
+            var valuesResult = await Task.WhenAll(tasks);
 
-                var valuesResult = await Task.WhenAll(tasks);
+            await SaveAllToCacheAsync(null, valuesResult);
 
-                await SaveAllToCacheAsync(null, valuesResult);
-            }
-            else {
-                 _ = Task.Run(async () => {
-
-                    var factories = values.ToList();
-
-                    var tasks = factories.Select(f => f());
-
-                    var valuesResult = await Task.WhenAll(tasks);
-
-                    await SaveAllToCacheAsync(null, valuesResult);
-                });
-            }
-
-            return await GetAllListCacheAsync<TEntity>(); ;
+            return valuesResult.ToList();
         }
         #endregion
 
