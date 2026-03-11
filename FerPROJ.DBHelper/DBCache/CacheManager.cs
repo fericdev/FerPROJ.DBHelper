@@ -353,21 +353,21 @@ namespace FerPROJ.DBHelper.DBCache {
 
             if (!_updateTracker.TryGetValue(key, out var info)) {
                 // First time: allow update
-                _updateTracker[key] = (now, TimeSpan.Zero);
+                _updateTracker[key] = (now, TimeSpan.FromSeconds(5));
                 return true;
             }
 
-            var cooldown = info.LastDuration > TimeSpan.Zero
-                ? info.LastDuration // dynamic cooldown based on last duration
-                : TimeSpan.FromSeconds(5); // fallback default
-
-            if (info.LastUpdate + cooldown <= now) {
+            if (info.LastUpdate + info.LastDuration <= now) {
                 return true; // enough time passed
             }
 
             return false; // still in cooldown
         }
         private static void RecordUpdate(string key, TimeSpan duration) {
+            // Add a small buffer to the duration to prevent immediate re-updates
+            duration = duration.Add(TimeSpan.FromSeconds(5));
+
+            // Update the tracker with the current time and the duration of the update
             _updateTracker[key] = (DateTime.Now, duration);
         }
         #endregion
