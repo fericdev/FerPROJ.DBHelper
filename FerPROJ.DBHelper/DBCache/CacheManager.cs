@@ -329,11 +329,9 @@ namespace FerPROJ.DBHelper.DBCache {
                 var valuesResult = await Task.WhenAll(values);
 
                 await SaveAllToCacheAsync(null, valuesResult);
-
-                cacheList = await GetAllListCacheAsync<TEntity>();
             }
 
-            return cacheList;
+            return await GetAllListCacheAsync<TEntity>(); ;
         }
         #endregion
 
