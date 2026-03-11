@@ -282,7 +282,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
                 // Validate that all properties exist
                 foreach (var prop in PropertiesToCheck) {
-                    if (!entityType.GetProperties().Any(c=>c.Name.SearchFor(prop))) {
+                    if (!entityType.GetProperties().Any(c => c.Name.SearchFor(prop))) {
                         throw new ArgumentException($"Property '{prop}' does not exist on entity type '{entityType.Name}'.");
                     }
                 }
@@ -294,7 +294,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 Expression finalExpression = null;
 
                 foreach (var prop in PropertiesToCheck) {
-                    var propertyInfo = entityType.GetProperties().FirstOrDefault(c=>c.Name.SearchFor(prop));
+                    var propertyInfo = entityType.GetProperties().FirstOrDefault(c => c.Name.SearchFor(prop));
                     var propertyAccess = Expression.Property(parameter, propertyInfo);
 
                     var propertyValue = propertyInfo.GetValue(tbl);
@@ -321,10 +321,10 @@ namespace FerPROJ.DBHelper.DBExtensions {
             await context.SaveAndCommitAsync(tbl);
 
         }
-        public static async Task SaveModelAndCommitAsync<TModel, TModelItem, TEntity, TEntityItem>(this DbContext context, TModel model, List<TModelItem> modelItems) 
-            where TModel : BaseModel 
+        public static async Task SaveModelAndCommitAsync<TModel, TModelItem, TEntity, TEntityItem>(this DbContext context, TModel model, List<TModelItem> modelItems)
+            where TModel : BaseModel
             where TModelItem : BaseModelItem
-            where TEntity: BaseEntity
+            where TEntity : BaseEntity
             where TEntityItem : BaseEntityItem {
 
             // Set common properties
@@ -554,7 +554,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
         }
         public static async Task<TEntityItem> GetByParentIdAsync<TEntityItem>(this DbContext context, Guid parentId) where TEntityItem : BaseEntityItem {
-            return await context.GetByPredicateAsync<TEntityItem>(c=>c.ParentId == parentId);
+            return await context.GetByPredicateAsync<TEntityItem>(c => c.ParentId == parentId);
         }
         public static async Task<TEntity> GetByIdAsync<TEntity, TType>(
             this DbContext context,
@@ -622,7 +622,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             // Return the new ID with the format "<prefix>-00<count>"
             return withSlash ? $"{prefix}-00{count}" : $"{prefix}{count}";
         }
-        public static async Task<string> GetGeneratedIDAsync<TEntity>(this DbContext context, string prefix, bool withSlash, Expression<Func<TEntity, bool>> whereCondition) where TEntity : class{
+        public static async Task<string> GetGeneratedIDAsync<TEntity>(this DbContext context, string prefix, bool withSlash, Expression<Func<TEntity, bool>> whereCondition) where TEntity : class {
             // Use the first 3 letters of the class name as default prefix if none is provided
             if (string.IsNullOrEmpty(prefix)) {
                 prefix = typeof(TEntity).Name.Substring(2, 3).ToUpper();
@@ -656,7 +656,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
         #region Get All Method
         public static async Task<IEnumerable<TEntityItem>> GetAllItemsByParentIdAsync<TEntityItem>(this DbContext context, Guid parentId) where TEntityItem : BaseEntityItem {
             // Assuming you already have a GetAllAsync(predicate) method
-            return await context.GetAllAsync<TEntityItem>(c=>c.ParentId == parentId, isCached: false);
+            return await context.GetAllAsync<TEntityItem>(c => c.ParentId == parentId, isCached: false);
         }
         //
         public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, string propertyName, object propertyValue) where TEntity : class {
@@ -758,7 +758,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
                 var deletedIds = cachedIds.Except(pkeyValues).ToList();
 
-                if(deletedIds.Count > 0) {
+                if (deletedIds.Count > 0) {
 
                     await context.RemoveAllByIdsFromCacheAsync<TEntity>(deletedIds);
 
