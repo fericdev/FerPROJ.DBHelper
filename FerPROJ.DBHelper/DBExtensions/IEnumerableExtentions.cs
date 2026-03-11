@@ -198,9 +198,10 @@ namespace FerPROJ.DBHelper.DBExtensions {
             this IEnumerable<TEntity> source,
             Func<TEntity, Task<TResult>> selector) where TResult : class {
 
-            var tasks = source.Select(selector); // Creates tasks for each item in the collection
+            var taskFactories = source.Select(entity =>
+                new Func<Task<TResult>>(() => selector(entity)));
 
-            return await CacheManager.GetOrCreateListCacheAsync(tasks);
+            return await CacheManager.GetOrCreateListCacheAsync(taskFactories);
 
         }
 
@@ -210,9 +211,10 @@ namespace FerPROJ.DBHelper.DBExtensions {
             Func<TResult, bool> filter,
             int dataLimit) where TResult : class {
 
-            var tasks = source.Select(selector);
+            var taskFactories = source.Select(entity =>
+                new Func<Task<TResult>>(() => selector(entity)));
 
-            var results = await CacheManager.GetOrCreateListCacheAsync(tasks);
+            var results = await CacheManager.GetOrCreateListCacheAsync(taskFactories);
 
             return results.Where(filter)
                           .Take(dataLimit);
