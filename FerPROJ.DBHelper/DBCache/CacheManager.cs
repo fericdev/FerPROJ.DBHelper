@@ -2,6 +2,7 @@
 using FerPROJ.DBHelper.DBExtensions;
 using FerPROJ.Design.BaseModels;
 using FerPROJ.Design.Class;
+using FerPROJ.Design.Forms;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -57,68 +58,61 @@ namespace FerPROJ.DBHelper.DBCache {
 
             Console.WriteLine($"Cache Cleared and Saved: {key} TIME: {DateTime.Now.TimeOfDay} Count: {existingList.Count}");
         }
-        public async static Task SaveAllToCacheAsync<TEntity>(this DbContext dbContext, List<TEntity> values) where TEntity : class {
-
-            if (values.Count <= 0) {
+        public async static Task SaveAllToCacheAsync<TEntity>(
+            this DbContext dbContext,
+            List<TEntity> values) where TEntity : class {
+            if (values.Count == 0)
                 return;
-            }
 
             string key = typeof(TEntity).Name;
 
-            // Get the current cached list of TEntity
-            var existingList = await GetAllListCacheAsync<TEntity>();
+            var existingList = await GetAllListCacheAsync<TEntity>() ?? new List<TEntity>();
 
-            // If there's no existing list, create a new one
-            if (existingList == null) {
-                existingList = new List<TEntity>();
-            }
-            else {
+            PropertyInfo primaryKey;
 
-                PropertyInfo primaryKey = null;
+            if (dbContext == null)
+                primaryKey = typeof(TEntity).GetProperty("Id");
+            else
+                primaryKey = dbContext.GetPrimaryKeyOfDbContext<TEntity>();
 
-                if (dbContext == null) {
-                    primaryKey = typeof(TEntity).GetPropertyInfo("Id");
+            if (primaryKey == null)
+                return;
+
+            // Build lookup of new keys
+            var newKeySet = new HashSet<object>(
+                values.Select(v => primaryKey.GetValue(v))
+            );
+
+            // Remove items no longer present
+            existingList.RemoveAll(x =>
+            {
+                var keyValue = primaryKey.GetValue(x);
+                return !newKeySet.Contains(keyValue);
+            });
+
+            // Build dictionary for fast lookup
+            var existingDict = existingList.ToDictionary(
+                x => primaryKey.GetValue(x),
+                x => x
+            );
+
+            foreach (var value in values) {
+                var pk = primaryKey.GetValue(value);
+
+                if (existingDict.ContainsKey(pk)) {
+                    // Replace existing
+                    var index = existingList.IndexOf(existingDict[pk]);
+                    existingList[index] = value;
                 }
                 else {
-                    primaryKey = dbContext.GetPrimaryKeyOfDbContext<TEntity>();
-                }
-
-                if (primaryKey == null) {
-                    return;
-                }
-
-                // Prepare a list to store items to remove
-                var itemsToRemove = new List<TEntity>();
-
-                // Identify the items to remove without modifying the collection during iteration
-                foreach (var value in values) {
-
-                    var primaryValue = primaryKey.GetValue(value);
-
-                    var existingValue = existingList.FirstOrDefault(x => primaryKey.GetValue(x).Equals(primaryValue));
-
-                    if (existingValue != null) {
-
-                        itemsToRemove.Add(existingValue);
-
-                    }
-                }
-
-                // Remove identified items after the iteration
-                foreach (var item in itemsToRemove) {
-
-                    existingList.Remove(item);
-
+                    // Add new
+                    existingList.Add(value);
                 }
             }
 
-            // Add the new values to the existing list
-            existingList.AddRange(values);
-
-            // Save the updated list to the cache
             _cache.Set(key, existingList, DateTimeOffset.MaxValue);
 
-            Console.WriteLine($"Cache Cleared and Saved: {key} TIME: {DateTime.Now.TimeOfDay} Count: {existingList.Count}");
+            Console.WriteLine($"Cache Synced: {key} TIME: {DateTime.Now.TimeOfDay} Count: {existingList.Count}");
         }
 
         public async static Task SaveAllToCacheAsync<TEntity>(this DbContext dbContext, IEnumerable<TEntity> values) where TEntity : class {
@@ -330,6 +324,8 @@ namespace FerPROJ.DBHelper.DBCache {
 
             if (ShouldUpdate(key)) {
 
+                await FrmSplasherLoading.ShowSplashAsync();
+
                 var factories = values.ToList();
 
                 var sw = Stopwatch.StartNew();
@@ -338,12 +334,15 @@ namespace FerPROJ.DBHelper.DBCache {
 
                 var results = await Task.WhenAll(tasks);
 
+                FrmSplasherLoading.CloseSplash();
+
                 sw.Stop();
 
                 await SaveAllToCacheAsync(null, results);
 
-                // Record how long the update took for next cooldown
                 RecordUpdate(key, sw.Elapsed);
+
+                return results.ToList();
             }
 
             return await GetAllListCacheAsync<TEntity>();
