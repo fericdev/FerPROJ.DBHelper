@@ -338,7 +338,6 @@ namespace FerPROJ.DBHelper.DBCache {
 
                 RecordUpdate(key, sw.Elapsed);
 
-                return results.ToList();
             }
 
             return await GetAllListCacheAsync<TEntity>();
