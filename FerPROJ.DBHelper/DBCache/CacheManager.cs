@@ -381,7 +381,7 @@ namespace FerPROJ.DBHelper.DBCache {
         }
         private static void RecordUpdate(string key, TimeSpan duration) {
             // Add a small buffer to the duration to prevent immediate re-updates
-            duration = duration.Add(TimeSpan.FromSeconds(5));
+            duration = duration.Add(TimeSpan.FromSeconds(10));
 
             // Update the tracker with the current time and the duration of the update
             _updateTracker[key] = (DateTime.Now, duration);
