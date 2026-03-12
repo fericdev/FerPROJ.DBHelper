@@ -324,8 +324,6 @@ namespace FerPROJ.DBHelper.DBCache {
 
             if (ShouldUpdate(key)) {
 
-                await FrmSplasherLoading.ShowSplashAsync();
-
                 var factories = values.ToList();
 
                 var sw = Stopwatch.StartNew();
@@ -333,8 +331,6 @@ namespace FerPROJ.DBHelper.DBCache {
                 var tasks = factories.Select(f => f());
 
                 var results = await Task.WhenAll(tasks);
-
-                FrmSplasherLoading.CloseSplash();
 
                 sw.Stop();
 
