@@ -306,9 +306,11 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         protected async virtual Task DeleteDataAsync(TType id) {
             var tbl = await _ts.GetByIdAsync<TEntity, TType>(id);
+            var model = await CacheManager.GetCacheByPredicateAsync<TModel>(c => c.Id.Equals(id));
             if (tbl == null)
                 return;
             await _ts.RemoveAndCommitAsync(tbl);
+            await CacheManager.RemoveFromCacheAsync(null, model);
         }
 
         public async Task<bool> DeleteByIdAsync(TType id) {
@@ -398,12 +400,12 @@ namespace FerPROJ.DBHelper.DBCrud {
             return model;
         }
         public virtual async Task<List<TModelItem>> GetPrepareModelItemsByParentIdAsync(Guid parentId) {
-            
+
             var entities = await GetAllItemsByParentIdAsync(parentId);
 
             var modelItems = new List<TModelItem>();
 
-            foreach (var entity in entities) { 
+            foreach (var entity in entities) {
 
                 var modelItem = await GetPrepareModelItemByEntityAsync(entity);
 
@@ -573,11 +575,13 @@ namespace FerPROJ.DBHelper.DBCrud {
         #region Base DELETE for Item
         protected override async Task DeleteDataAsync(Guid id) {
             var tbl = await _ts.GetByIdAsync<TEntity, Guid>(id);
+            var items = await _ts.GetAllItemsByParentIdAsync<TEntityItem>(id);
+            var model = await CacheManager.GetCacheByPredicateAsync<TModel>(c => c.Id.Equals(id));
             if (tbl == null)
                 return;
-            var items = await _ts.GetAllItemsByParentIdAsync<TEntityItem>(id);
             await _ts.RemoveRangeAndCommitAsync(items);
             await _ts.RemoveAndCommitAsync(tbl);
+            await CacheManager.RemoveFromCacheAsync(null, model);
         }
         #endregion
     }
