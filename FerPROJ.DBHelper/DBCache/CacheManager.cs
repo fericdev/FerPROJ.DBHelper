@@ -19,7 +19,6 @@ namespace FerPROJ.DBHelper.DBCache {
     public static class CacheManager {
 
         private static MemoryCache _cache = MemoryCache.Default;
-        private static readonly ConcurrentDictionary<string, (DateTime LastUpdate, TimeSpan LastDuration)> _updateTracker = new ConcurrentDictionary<string, (DateTime LastUpdate, TimeSpan LastDuration)>();
 
         #region Save
         public async static Task SaveToCacheAsync<TEntity>(this DbContext dbContext, TEntity value) where TEntity : class {
@@ -341,50 +340,14 @@ namespace FerPROJ.DBHelper.DBCache {
 
         #region Get or Create
         public async static Task<List<TEntity>> GetOrCreateListCacheAsync<TEntity>(IEnumerable<Func<Task<TEntity>>> values) where TEntity : class {
-            
-            var key = typeof(TEntity).Name;
 
-            if (ShouldUpdate(key)) {
+            var factories = values.ToList();
 
-                var factories = values.ToList();
+            var tasks = factories.Select(f => f());
 
-                var sw = Stopwatch.StartNew();
+            var results = await Task.WhenAll(tasks);
 
-                var tasks = factories.Select(f => f());
-
-                var results = await Task.WhenAll(tasks);
-
-                sw.Stop();
-
-                await SaveAllToCacheAsync(null, results);
-
-                RecordUpdate(key, sw.Elapsed);
-
-            }
-
-            return await GetAllListCacheAsync<TEntity>();
-        }
-        private static bool ShouldUpdate(string key) {
-            var now = DateTime.Now;
-
-            if (!_updateTracker.TryGetValue(key, out var info)) {
-                // First time: allow update
-                _updateTracker[key] = (now, TimeSpan.FromSeconds(5));
-                return true;
-            }
-
-            if (info.LastUpdate + info.LastDuration <= now) {
-                return true; // enough time passed
-            }
-
-            return false; // still in cooldown
-        }
-        private static void RecordUpdate(string key, TimeSpan duration) {
-            // Add a small buffer to the duration to prevent immediate re-updates
-            duration = duration.Add(TimeSpan.FromSeconds(10));
-
-            // Update the tracker with the current time and the duration of the update
-            _updateTracker[key] = (DateTime.Now, duration);
+            return results.ToList();
         }
         #endregion
 
