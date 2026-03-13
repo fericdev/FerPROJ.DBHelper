@@ -90,7 +90,9 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int dataLimit = int.MaxValue) {
 
-            var query = await GetAllWithSearchAsync(null, dateFrom, dateTo, dataLimit);
+            var query = await GetAllWithSearchAsync(null, dateFrom, dateTo);
+
+            query = query.OrderByProperty("DateCreated", false);
 
             var result = await query.SelectListAsync(async c => {
 
@@ -98,11 +100,13 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             }, c => c.SearchForText(searchText), dataLimit);
 
-            return result.OrderByDescending(c => c.DateCreated);
+            return result;
         }
         public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(Expression<Func<TEntity, bool>> whereCondition, string searchText, DateTime? dateFrom, DateTime? dateTo, int dataLimit = int.MaxValue) {
 
             var query = await GetAllAsync(whereCondition);
+
+            query = query.OrderByProperty("DateCreated", false);
 
             var result = await query.SelectListAsync(async c => {
 
@@ -110,7 +114,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             }, c => c.SearchFor(searchText, dateFrom, dateTo, d => d.DateCreated), dataLimit);
 
-            return result.OrderByDescending(c => c.DateCreated);
+            return result;
         }
         public virtual async Task<(IEnumerable<TModel> ModelItems, int TotalCount)> GetViewModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int page, int dataLimit = int.MaxValue) {
 

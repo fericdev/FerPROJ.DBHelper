@@ -227,12 +227,13 @@ namespace FerPROJ.DBHelper.DBExtensions {
             Func<TResult, bool> filter,
             int dataLimit) {
 
-            var tasks =  source.Select(selector);
+            source = source.Take(dataLimit);
+
+            var tasks = source.Select(selector);
 
             var results = await Task.WhenAll(tasks);
 
-            return results.Where(filter)
-                          .Take(dataLimit);
+            return results.Where(filter);
         }
         public static async Task<IEnumerable<TResult>> SelectListAsync<TEntity, TResult>(
             this IEnumerable<TEntity> source,
