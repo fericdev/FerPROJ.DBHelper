@@ -193,6 +193,21 @@ namespace FerPROJ.DBHelper.DBExtensions {
         }
         #endregion
 
+        #region Get Orderby 
+        public static IEnumerable<T> OrderByProperty<T>(this IEnumerable<T> source, string propertyName, bool ascending = true) {
+
+            var property = typeof(T).GetPropertyInfo(propertyName);
+
+            if (property == null) {
+                throw new ArgumentException($"Property '{propertyName}' not found on type '{typeof(T).Name}'.");
+            }
+
+            return ascending
+                ? source.OrderBy(x => property.GetValue(x))
+                : source.OrderByDescending(x => property.GetValue(x));
+        }
+        #endregion
+
         #region Select 
         public static async Task<IEnumerable<TResult>> SelectListAsync<TEntity, TResult>(
             this IEnumerable<TEntity> source,
@@ -239,21 +254,6 @@ namespace FerPROJ.DBHelper.DBExtensions {
             var results = await Task.WhenAll(tasks);
 
             return results.Where(filter);
-        }
-        #endregion
-
-        #region Orderby 
-        public static IEnumerable<T> OrderByProperty<T>(this IEnumerable<T> source, string propertyName, bool ascending = true) {
-
-            var property = typeof(T).GetPropertyInfo(propertyName);
-
-            if (property == null) {
-                throw new ArgumentException($"Property '{propertyName}' not found on type '{typeof(T).Name}'.");
-            }
-
-            return ascending
-                ? source.OrderBy(x => property.GetValue(x))
-                : source.OrderByDescending(x => property.GetValue(x));
         }
         #endregion
 
