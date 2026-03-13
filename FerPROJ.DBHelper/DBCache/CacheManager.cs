@@ -338,19 +338,6 @@ namespace FerPROJ.DBHelper.DBCache {
         }
         #endregion
 
-        #region Get or Create
-        public async static Task<List<TEntity>> GetOrCreateListCacheAsync<TEntity>(IEnumerable<Func<Task<TEntity>>> values) where TEntity : class {
-
-            var factories = values.ToList();
-
-            var tasks = factories.Select(f => f());
-
-            var results = await Task.WhenAll(tasks);
-
-            return results.ToList();
-        }
-        #endregion
-
         #region Load all Cached From DB
         public static List<Func<Task>> GetCacheLoadTasks(params string[] assembliesToLoad) {
             var baseGenericType = typeof(BaseRepository<,,,>);
