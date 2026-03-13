@@ -116,6 +116,10 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             var query = await GetAllWithSearchAsync(null, dateFrom, dateTo, int.MaxValue);
 
+            dataLimit = !searchText.IsNullOrEmpty() || 
+                        !dateFrom.IsNullOrEmpty() || 
+                        !dateTo.IsNullOrEmpty() ? int.MaxValue : dataLimit;
+
             query = query.OrderByProperty("DateCreated", false);
 
             var result = await query.SelectListAsync(async c => {
@@ -131,6 +135,10 @@ namespace FerPROJ.DBHelper.DBCrud {
             var query = await GetAllAsync(whereCondition);
 
             query = query.OrderByProperty("DateCreated", false);
+
+            dataLimit = !searchText.IsNullOrEmpty() ||
+                        !dateFrom.IsNullOrEmpty() ||
+                        !dateTo.IsNullOrEmpty() ? int.MaxValue : dataLimit;
 
             var result = await query.SelectListAsync(async c => {
 
