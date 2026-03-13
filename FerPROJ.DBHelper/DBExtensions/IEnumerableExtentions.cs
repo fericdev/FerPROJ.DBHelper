@@ -219,6 +219,27 @@ namespace FerPROJ.DBHelper.DBExtensions {
             return results.Where(filter)
                           .Take(dataLimit);
         }
+        public static async Task<IEnumerable<TResult>> SelectListAsync<TEntity, TResult>(
+            this IEnumerable<TEntity> source,
+            Func<TEntity, Task<TResult>> selector,
+            Func<TResult, bool> filter,
+            int page,
+            int dataLimit) {
+
+            page = Math.Max(page, 1);
+
+            int skip = (page - 1) * dataLimit;
+
+            var pagedSource = source
+                .Skip(skip)
+                .Take(dataLimit);
+
+            var tasks = pagedSource.Select(selector);
+
+            var results = await Task.WhenAll(tasks);
+
+            return results.Where(filter);
+        }
         #endregion
 
     }

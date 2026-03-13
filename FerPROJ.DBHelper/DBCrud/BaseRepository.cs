@@ -112,6 +112,34 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             return result.OrderByDescending(c => c.DateCreated);
         }
+        public virtual async Task<(IEnumerable<TModel> ModelItems, int TotalCount)> GetViewModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int page, int dateLimit = int.MaxValue) {
+
+            var query = await GetAllWithSearchAsync(null, dateFrom, dateTo, dateLimit);
+
+            var result = await query.SelectListAsync(async c => {
+
+                return await GetPrepareModelByEntityAsync(c);
+
+            }, c => c.SearchForText(searchText), page, dateLimit);
+
+            var dataCount = await _ts.GetCountAsync<TEntity>();
+
+            return (result.OrderByDescending(c => c.DateCreated), dataCount);
+        }
+        public virtual async Task<(IEnumerable<TModel> ModelItems, int TotalCount)> GetViewModelWithSearchAsync(Expression<Func<TEntity, bool>> whereCondition, string searchText, DateTime? dateFrom, DateTime? dateTo, int page, int dateLimit = int.MaxValue) {
+
+            var query = await GetAllAsync(whereCondition);
+
+            var result = await query.SelectListAsync(async c => {
+
+                return await GetPrepareModelByEntityAsync(c);
+
+            }, c => c.SearchFor(searchText, dateFrom, dateTo, d => d.DateCreated), page, dateLimit);
+
+            var dataCount = await _ts.GetCountAsync(whereCondition);
+
+            return (result.OrderByDescending(c => c.DateCreated), dataCount);
+        }
 
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> whereCondition) {
             return await _ts.GetAllAsync(whereCondition);

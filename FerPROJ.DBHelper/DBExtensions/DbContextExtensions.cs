@@ -600,6 +600,12 @@ namespace FerPROJ.DBHelper.DBExtensions {
             return await context.Set<TEntity>().FirstOrDefaultAsync(predicate);
 
         }
+        public static async Task<int> GetCountAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate = null) where TEntity : class {           
+            if (predicate != null) {
+                return await context.Set<TEntity>().CountAsync(predicate);
+            }
+            return await context.Set<TEntity>().CountAsync();
+        }
         public static async Task<string> GetGeneratedIDAsync<TEntity>(this DbContext context, string prefix, bool withSlash = true) where TEntity : class {
             // Use the first 3 letters of the class name as default prefix if none is provided
             if (string.IsNullOrEmpty(prefix)) {
