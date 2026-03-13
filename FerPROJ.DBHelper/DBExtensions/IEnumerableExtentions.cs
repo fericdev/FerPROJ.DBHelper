@@ -201,7 +201,13 @@ namespace FerPROJ.DBHelper.DBExtensions {
             var taskFactories = source.Select(entity =>
                 new Func<Task<TResult>>(() => selector(entity)));
 
-            return await CacheManager.GetOrCreateListCacheAsync(taskFactories);
+            var results = await CacheManager.GetOrCreateListCacheAsync(taskFactories);
+
+            if (results.IsNullOrEmpty()) {
+                return Enumerable.Empty<TResult>();
+            }
+
+            return results;
 
         }
 
@@ -215,6 +221,10 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 new Func<Task<TResult>>(() => selector(entity)));
 
             var results = await CacheManager.GetOrCreateListCacheAsync(taskFactories);
+
+            if (results.IsNullOrEmpty()) {
+                return Enumerable.Empty<TResult>();
+            }
 
             return results.Where(filter)
                           .Take(dataLimit);
