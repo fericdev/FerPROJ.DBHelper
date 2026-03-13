@@ -88,19 +88,19 @@ namespace FerPROJ.DBHelper.DBCrud {
         protected virtual async Task<IEnumerable<TEntity>> GetAllWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int dataLimit = int.MaxValue) {
             return await _ts.GetAllWithSearchAsync<TEntity>(searchText, dateFrom, dateTo, dataLimit);
         }
-        public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int dateLimit = int.MaxValue) {
+        public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int dataLimit = int.MaxValue) {
 
-            var query = await GetAllWithSearchAsync(null, dateFrom, dateTo, dateLimit);
+            var query = await GetAllWithSearchAsync(null, dateFrom, dateTo, dataLimit);
 
             var result = await query.SelectListAsync(async c => {
 
                 return await GetPrepareModelByEntityAsync(c);
 
-            }, c => c.SearchForText(searchText), dateLimit);
+            }, c => c.SearchForText(searchText), dataLimit);
 
             return result.OrderByDescending(c => c.DateCreated);
         }
-        public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(Expression<Func<TEntity, bool>> whereCondition, string searchText, DateTime? dateFrom, DateTime? dateTo, int dateLimit = int.MaxValue) {
+        public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(Expression<Func<TEntity, bool>> whereCondition, string searchText, DateTime? dateFrom, DateTime? dateTo, int dataLimit = int.MaxValue) {
 
             var query = await GetAllAsync(whereCondition);
 
@@ -108,25 +108,25 @@ namespace FerPROJ.DBHelper.DBCrud {
 
                 return await GetPrepareModelByEntityAsync(c);
 
-            }, c => c.SearchFor(searchText, dateFrom, dateTo, d => d.DateCreated), dateLimit);
+            }, c => c.SearchFor(searchText, dateFrom, dateTo, d => d.DateCreated), dataLimit);
 
             return result.OrderByDescending(c => c.DateCreated);
         }
-        public virtual async Task<(IEnumerable<TModel> ModelItems, int TotalCount)> GetViewModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int page, int dateLimit = int.MaxValue) {
+        public virtual async Task<(IEnumerable<TModel> ModelItems, int TotalCount)> GetViewModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int page, int dataLimit = int.MaxValue) {
 
-            var query = await GetAllWithSearchAsync(null, dateFrom, dateTo, dateLimit);
+            var query = await GetAllWithSearchAsync(null, dateFrom, dateTo, int.MaxValue);
 
             var result = await query.SelectListAsync(async c => {
 
                 return await GetPrepareModelByEntityAsync(c);
 
-            }, c => c.SearchForText(searchText), page, dateLimit);
+            }, c => c.SearchForText(searchText), page, dataLimit);
 
             var dataCount = await _ts.GetCountAsync<TEntity>();
 
             return (result.OrderByDescending(c => c.DateCreated), dataCount);
         }
-        public virtual async Task<(IEnumerable<TModel> ModelItems, int TotalCount)> GetViewModelWithSearchAsync(Expression<Func<TEntity, bool>> whereCondition, string searchText, DateTime? dateFrom, DateTime? dateTo, int page, int dateLimit = int.MaxValue) {
+        public virtual async Task<(IEnumerable<TModel> ModelItems, int TotalCount)> GetViewModelWithSearchAsync(Expression<Func<TEntity, bool>> whereCondition, string searchText, DateTime? dateFrom, DateTime? dateTo, int page, int dataLimit = int.MaxValue) {
 
             var query = await GetAllAsync(whereCondition);
 
@@ -134,7 +134,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
                 return await GetPrepareModelByEntityAsync(c);
 
-            }, c => c.SearchFor(searchText, dateFrom, dateTo, d => d.DateCreated), page, dateLimit);
+            }, c => c.SearchFor(searchText, dateFrom, dateTo, d => d.DateCreated), page, dataLimit);
 
             var dataCount = await _ts.GetCountAsync(whereCondition);
 
