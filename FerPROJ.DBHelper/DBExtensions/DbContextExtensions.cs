@@ -76,6 +76,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             entity.Status = CAppConstants.IN_ACTIVE_STATUS;
             entity.DateDeleted = DateTime.Now;
             entity.ModifiedById = CAppConstants.USER_ID;
+            entity.ModifiedBy = CAppConstants.USERNAME;
             await context.UpdateAndCommitAsync(entity);
         }
         #endregion
