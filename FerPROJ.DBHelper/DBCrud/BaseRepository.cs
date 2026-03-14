@@ -612,12 +612,11 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         #region Base DELETE for Item
         protected override async Task DeleteDataAsync(Guid id) {
-            var tbl = await _ts.GetByIdAsync<TEntity, Guid>(id);
-            var items = await _ts.GetAllItemsByParentIdAsync<TEntityItem>(id);
+            var tbl = await _ts.GetByIdAsync<TEntity>(id);
             if (tbl == null)
                 return;
-            await _ts.RemoveRangeAndCommitAsync(items);
-            await _ts.RemoveAndCommitAsync(tbl);
+
+            await _ts.SoftRemoveAndCommitAsync(tbl);
         }
         #endregion
     }

@@ -71,6 +71,15 @@ namespace FerPROJ.DBHelper.DBExtensions {
         }
         #endregion
 
+        #region Soft Remove
+        public static async Task SoftRemoveAndCommitAsync<TEntity>(this DbContext context, TEntity entity) where TEntity : BaseEntity {
+            entity.Status = CAppConstants.IN_ACTIVE_STATUS;
+            entity.DateDeleted = DateTime.Now;
+            entity.ModifiedById = CAppConstants.USER_ID;
+            await context.UpdateAndCommitAsync(entity);
+        }
+        #endregion
+
         #region Update
         public static async Task UpdateAndCommitAsync<TEntity, TRelatedEntity>(
             this DbContext context,
@@ -530,6 +539,9 @@ namespace FerPROJ.DBHelper.DBExtensions {
         #endregion
 
         #region Get Method
+        public static async Task<TEntity> GetByIdAsync<TEntity>(this DbContext context, Guid id) where TEntity : BaseEntity {
+            return await context.GetByPredicateAsync<TEntity>(c => c.Id == id);
+        }
         public static async Task<TEntity> GetByIdAsync<TEntity, TType>(this DbContext context, TType id) where TEntity : class {
 
             // Get Primary Key
