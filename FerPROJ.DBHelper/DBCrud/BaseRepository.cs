@@ -64,13 +64,13 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task<TModel> GetPrepareModelByIdAsync(TType id) {
             var entity = await GetByIdAsync(id);
-            return await CacheManager.GetOrCreateCacheAsync(id, async () => {
+            return await CacheManager.GetOrCreateCacheAsync($"GetEntity:{id}", async () => {
                 return await GetPrepareModelByEntityAsync(entity);
             });
         }
         public virtual async Task<TModel> GetPrepareModelByPredicateAsync(Expression<Func<TEntity, bool>> predicate) {
             var entity = await GetByPredicateAsync(predicate);
-            return await CacheManager.GetOrCreateCacheAsync(entity.GetPropertyValue<string>("Id"), async () => {
+            return await CacheManager.GetOrCreateCacheAsync($"GetEntity:{entity.GetPropertyValue<string>("Id")}", async () => {
                 return await GetPrepareModelByEntityAsync(entity);
             });
         }
@@ -102,7 +102,9 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             var result = await query.SelectListAsync(async c => {
 
-                return await GetPrepareModelByEntityAsync(c);
+                return await CacheManager.GetOrCreateCacheAsync($"GetList:{c.GetPropertyValue<string>("Id")}", async () => {
+                    return await GetPrepareModelByEntityAsync(c);
+                });
 
             }, c => c.SearchForText(searchText), dataLimit);
 
@@ -118,7 +120,9 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             var result = await query.SelectListAsync(async c => {
 
-                return await GetPrepareModelByEntityAsync(c);
+                return await CacheManager.GetOrCreateCacheAsync($"GetList:{c.GetPropertyValue<string>("Id")}", async () => {
+                    return await GetPrepareModelByEntityAsync(c);
+                });
 
             }, c => c.SearchFor(searchText, dateFrom, dateTo, d => d.DateCreated), dataLimit);
 
@@ -138,7 +142,9 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             var result = await query.SelectListAsync(async c => {
 
-                return await GetPrepareModelByEntityAsync(c);
+                return await CacheManager.GetOrCreateCacheAsync($"GetList:{c.GetPropertyValue<string>("Id")}", async () => {
+                    return await GetPrepareModelByEntityAsync(c);
+                });
 
             }, c => c.SearchForText(searchText), page, dataLimit);
 
@@ -158,7 +164,9 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             var result = await query.SelectListAsync(async c => {
 
-                return await GetPrepareModelByEntityAsync(c);
+                return await CacheManager.GetOrCreateCacheAsync($"GetList:{c.GetPropertyValue<string>("Id")}", async () => {
+                    return await GetPrepareModelByEntityAsync(c);
+                });
 
             }, c => c.SearchFor(searchText, dateFrom, dateTo, d => d.DateCreated), page, dataLimit);
 
@@ -451,7 +459,7 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task<List<TModelItem>> GetPrepareModelItemsByParentIdAsync(Guid parentId) {
 
-            return await CacheManager.GetOrCreateCacheAsync(parentId, async () => {
+            return await CacheManager.GetOrCreateCacheAsync($"GetItems:{parentId}", async () => {
 
                 var entities = await GetAllItemsByParentIdAsync(parentId);
 
