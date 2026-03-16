@@ -19,6 +19,7 @@ namespace FerPROJ.DBHelper.DBCache {
     public static class CacheManager {
 
         private static MemoryCache _cache = MemoryCache.Default;
+        private static ConcurrentDictionary<string, bool> _cacheKeys = new ConcurrentDictionary<string, bool>();
 
         #region Save
         public async static Task SaveToCacheAsync<TEntity>(this DbContext dbContext, TEntity value) where TEntity : class {
@@ -56,6 +57,9 @@ namespace FerPROJ.DBHelper.DBCache {
             _cache.Set(key, existingList, DateTimeOffset.MaxValue);
 
             ClearCache(value.GetPropertyValue<string>("Id"));
+            ClearCacheByPrefix("GetEntity");
+            ClearCacheByPrefix("GetList");
+            ClearCacheByPrefix("GetItems");
 
             Console.WriteLine($"Cache Cleared and Saved: {key} TIME: {DateTime.Now.TimeOfDay} Count: {existingList.Count}");
         }
@@ -217,6 +221,11 @@ namespace FerPROJ.DBHelper.DBCache {
             // Save the updated list to the cache
             _cache.Set(key, existingList, DateTimeOffset.MaxValue);
 
+            ClearCache(value.GetPropertyValue<string>("Id"));
+            ClearCacheByPrefix("GetEntity");
+            ClearCacheByPrefix("GetList");
+            ClearCacheByPrefix("GetItems");
+
             await Task.CompletedTask;
         }
 
@@ -238,6 +247,10 @@ namespace FerPROJ.DBHelper.DBCache {
             else {
                 foreach (var value in values) {
                     existingList.Remove(value);
+                    ClearCache(value.GetPropertyValue<string>("Id"));
+                    ClearCacheByPrefix("GetEntity");
+                    ClearCacheByPrefix("GetList");
+                    ClearCacheByPrefix("GetItems");
                 }
             }
 
@@ -356,12 +369,28 @@ namespace FerPROJ.DBHelper.DBCache {
             var newValue = await createFunc();
 
             // Store the new value in cache
-            _cache.Set(key.ToString(), newValue, DateTimeOffset.MaxValue);
+            SetCache(key.ToString(), newValue);
 
             return newValue;
         }
+        public static void SetCache(string key, object value) {
+            _cache.Set(key, value, DateTimeOffset.MaxValue);
+            _cacheKeys.TryAdd(key, true);
+        }
+
         public static void ClearCache(string key) {
             _cache.Remove(key);
+            _cacheKeys.TryRemove(key, out _);
+        }
+        public static void ClearCacheByPrefix(string prefix) {
+            var keysToRemove = _cacheKeys.Keys
+                .Where(k => k.StartsWith(prefix))
+                .ToList();
+
+            foreach (var key in keysToRemove) {
+                _cache.Remove(key);
+                _cacheKeys.TryRemove(key, out _);
+            }
         }
         #endregion
 
