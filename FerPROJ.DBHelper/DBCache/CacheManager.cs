@@ -55,12 +55,18 @@ namespace FerPROJ.DBHelper.DBCache {
             // Save the updated list to the cache
             _cache.Set(key, existingList, DateTimeOffset.MaxValue);
 
+            ClearCache(value.GetPropertyValue<string>("Id"));
+
             Console.WriteLine($"Cache Cleared and Saved: {key} TIME: {DateTime.Now.TimeOfDay} Count: {existingList.Count}");
         }
         public async static Task SaveAllToCacheAsync<TEntity>(this DbContext dbContext, List<TEntity> values) where TEntity : class {
 
             if (values.Count <= 0) {
                 return;
+            }
+
+            foreach(var value in values) {
+                ClearCache(value.GetPropertyValue<string>("Id"));
             }
 
             string key = typeof(TEntity).Name;
@@ -335,6 +341,27 @@ namespace FerPROJ.DBHelper.DBCache {
 
             return list?.FirstOrDefault(predicate);
 
+        }
+        #endregion
+
+        #region Get or Create
+        public static async Task<TResult> GetOrCreateCacheAsync<TResult>(object key, Func<Task<TResult>> createFunc) {
+            // Try to get the value from cache
+            var cachedValue = _cache.Get(key.ToString());
+
+            if (cachedValue != null) {
+                return (TResult)cachedValue;
+            }
+            // If not in cache, create it using the provided function
+            var newValue = await createFunc();
+
+            // Store the new value in cache
+            _cache.Set(key.ToString(), newValue, DateTimeOffset.MaxValue);
+
+            return newValue;
+        }
+        public static void ClearCache(string key) {
+            _cache.Remove(key);
         }
         #endregion
 

@@ -64,11 +64,15 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task<TModel> GetPrepareModelByIdAsync(TType id) {
             var entity = await GetByIdAsync(id);
-            return await GetPrepareModelByEntityAsync(entity);
+            return await CacheManager.GetOrCreateCacheAsync(id, async () => {
+                return await GetPrepareModelByEntityAsync(entity);
+            });
         }
         public virtual async Task<TModel> GetPrepareModelByPredicateAsync(Expression<Func<TEntity, bool>> predicate) {
             var entity = await GetByPredicateAsync(predicate);
-            return await GetPrepareModelByEntityAsync(entity);
+            return await CacheManager.GetOrCreateCacheAsync(entity.GetPropertyValue<string>("Id"), async () => {
+                return await GetPrepareModelByEntityAsync(entity);
+            });
         }
         #endregion
 
@@ -124,8 +128,8 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             var query = await GetAllWithSearchAsync(null, dateFrom, dateTo, int.MaxValue);
 
-            dataLimit = !searchText.IsNullOrEmpty() || 
-                        !dateFrom.IsNullOrEmpty() || 
+            dataLimit = !searchText.IsNullOrEmpty() ||
+                        !dateFrom.IsNullOrEmpty() ||
                         !dateTo.IsNullOrEmpty() ? int.MaxValue : dataLimit;
 
             query = query.GetAllActiveOnly();
@@ -447,18 +451,21 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task<List<TModelItem>> GetPrepareModelItemsByParentIdAsync(Guid parentId) {
 
-            var entities = await GetAllItemsByParentIdAsync(parentId);
+            return await CacheManager.GetOrCreateCacheAsync(parentId, async () => {
 
-            var modelItems = new List<TModelItem>();
+                var entities = await GetAllItemsByParentIdAsync(parentId);
 
-            foreach (var entity in entities) {
+                var modelItems = new List<TModelItem>();
 
-                var modelItem = await GetPrepareModelItemByEntityAsync(entity);
+                foreach (var entity in entities) {
 
-                modelItems.Add(modelItem);
-            }
+                    var modelItem = await GetPrepareModelItemByEntityAsync(entity);
 
-            return modelItems;
+                    modelItems.Add(modelItem);
+                }
+
+                return modelItems;
+            });
         }
         public virtual async Task<TModelItem> GetPrepareModelItemByEntityAsync(TEntityItem entity) {
             return entity.ToDestination<TModelItem>();
