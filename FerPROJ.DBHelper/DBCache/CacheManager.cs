@@ -18,8 +18,10 @@ using System.Threading.Tasks;
 namespace FerPROJ.DBHelper.DBCache {
     public static class CacheManager {
 
-        private static MemoryCache _cache = MemoryCache.Default;
-        private static ConcurrentDictionary<string, bool> _cacheKeys = new ConcurrentDictionary<string, bool>();
+        #region Fields
+        private static readonly MemoryCache _cache = MemoryCache.Default;
+        private static readonly ConcurrentDictionary<string, bool> _cacheKeys = new ConcurrentDictionary<string, bool>();
+        #endregion
 
         #region Save
         public async static Task SaveToCacheAsync<TEntity>(this DbContext dbContext, TEntity value) where TEntity : class {
@@ -362,9 +364,11 @@ namespace FerPROJ.DBHelper.DBCache {
             // Try to get the value from cache
             var cachedValue = _cache.Get(key.ToString());
 
+            // If found in cache, return it
             if (cachedValue != null) {
                 return (TResult)cachedValue;
             }
+
             // If not in cache, create it using the provided function
             var newValue = await createFunc();
 
@@ -388,8 +392,7 @@ namespace FerPROJ.DBHelper.DBCache {
                 .ToList();
 
             foreach (var key in keysToRemove) {
-                _cache.Remove(key);
-                _cacheKeys.TryRemove(key, out _);
+                ClearCache(key);
             }
         }
         #endregion
