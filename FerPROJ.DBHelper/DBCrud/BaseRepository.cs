@@ -488,6 +488,10 @@ namespace FerPROJ.DBHelper.DBCrud {
         public virtual async Task<TEntityItem> GetItemByParentIdAsync(Guid parentId) {
             return await _ts.GetByParentIdAsync<TEntityItem>(parentId);
         }
+
+        public virtual async Task<TEntityItem> GetItemByPredicateAsync(Expression<Func<TEntityItem, bool>> predicate) {
+            return await _ts.GetByPredicateAsync(predicate);
+        }
         #endregion
 
         #region Base SAVE for Item
