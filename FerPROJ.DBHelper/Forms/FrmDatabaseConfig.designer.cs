@@ -34,6 +34,7 @@ namespace FerPROJ.DBHelper.Forms
         private void InitializeComponent()
         {
             this.customPanel1 = new FerPROJ.Design.Forms.CPanel();
+            this.cButtonRunSetup = new FerPROJ.Design.Controls.CButton();
             this.cButtonRunMigration = new FerPROJ.Design.Controls.CButton();
             this.cbSSL = new System.Windows.Forms.CheckBox();
             this.saveConfigCustomButton = new FerPROJ.Design.Controls.CButton();
@@ -47,9 +48,13 @@ namespace FerPROJ.DBHelper.Forms
             this.customLabelDesc3 = new FerPROJ.Design.Controls.CLabelDesc();
             this.customLabelDesc2 = new FerPROJ.Design.Controls.CLabelDesc();
             this.customLabelDesc1 = new FerPROJ.Design.Controls.CLabelDesc();
-            this.cButtonRunSetup = new FerPROJ.Design.Controls.CButton();
+            ((System.ComponentModel.ISupportInitialize)(this.baseKryptonPanel)).BeginInit();
             this.customPanel1.SuspendLayout();
             this.SuspendLayout();
+            // 
+            // baseKryptonPanel
+            // 
+            this.baseKryptonPanel.Size = new System.Drawing.Size(377, 485);
             // 
             // customPanel1
             // 
@@ -77,6 +82,27 @@ namespace FerPROJ.DBHelper.Forms
             this.customPanel1.Size = new System.Drawing.Size(377, 485);
             this.customPanel1.TabIndex = 0;
             this.customPanel1.UnderlinedStyle = false;
+            // 
+            // cButtonRunSetup
+            // 
+            this.cButtonRunSetup.BackColor = System.Drawing.Color.Lime;
+            this.cButtonRunSetup.BackgroundColor = System.Drawing.Color.Lime;
+            this.cButtonRunSetup.BorderColor = System.Drawing.Color.Green;
+            this.cButtonRunSetup.BorderRadius = 20;
+            this.cButtonRunSetup.BorderSize = 0;
+            this.cButtonRunSetup.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.cButtonRunSetup.FlatAppearance.BorderSize = 0;
+            this.cButtonRunSetup.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.cButtonRunSetup.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F);
+            this.cButtonRunSetup.ForeColor = System.Drawing.Color.Black;
+            this.cButtonRunSetup.Location = new System.Drawing.Point(41, 429);
+            this.cButtonRunSetup.Name = "cButtonRunSetup";
+            this.cButtonRunSetup.Size = new System.Drawing.Size(310, 40);
+            this.cButtonRunSetup.TabIndex = 8;
+            this.cButtonRunSetup.Text = "Run MySQL Setup";
+            this.cButtonRunSetup.TextColor = System.Drawing.Color.Black;
+            this.cButtonRunSetup.UseVisualStyleBackColor = false;
+            this.cButtonRunSetup.Click += new System.EventHandler(this.cButtonRunSetup_Click);
             // 
             // cButtonRunMigration
             // 
@@ -301,27 +327,6 @@ namespace FerPROJ.DBHelper.Forms
             this.customLabelDesc1.TabIndex = 0;
             this.customLabelDesc1.Text = "Hostname:";
             // 
-            // cButtonRunSetup
-            // 
-            this.cButtonRunSetup.BackColor = System.Drawing.Color.Lime;
-            this.cButtonRunSetup.BackgroundColor = System.Drawing.Color.Lime;
-            this.cButtonRunSetup.BorderColor = System.Drawing.Color.Green;
-            this.cButtonRunSetup.BorderRadius = 20;
-            this.cButtonRunSetup.BorderSize = 0;
-            this.cButtonRunSetup.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.cButtonRunSetup.FlatAppearance.BorderSize = 0;
-            this.cButtonRunSetup.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.cButtonRunSetup.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F);
-            this.cButtonRunSetup.ForeColor = System.Drawing.Color.Black;
-            this.cButtonRunSetup.Location = new System.Drawing.Point(41, 429);
-            this.cButtonRunSetup.Name = "cButtonRunSetup";
-            this.cButtonRunSetup.Size = new System.Drawing.Size(310, 40);
-            this.cButtonRunSetup.TabIndex = 8;
-            this.cButtonRunSetup.Text = "Run MySQL Setup";
-            this.cButtonRunSetup.TextColor = System.Drawing.Color.Black;
-            this.cButtonRunSetup.UseVisualStyleBackColor = false;
-            this.cButtonRunSetup.Click += new System.EventHandler(this.cButtonRunSetup_Click);
-            // 
             // FrmDatabaseConfig
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -333,8 +338,17 @@ namespace FerPROJ.DBHelper.Forms
             this.Name = "FrmDatabaseConfig";
             this.Padding = new System.Windows.Forms.Padding(5);
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.StateCommon.Back.Color1 = System.Drawing.Color.RoyalBlue;
+            this.StateCommon.Back.Color2 = System.Drawing.Color.RoyalBlue;
+            this.StateCommon.Border.Color1 = System.Drawing.Color.RoyalBlue;
+            this.StateCommon.Border.Color2 = System.Drawing.Color.RoyalBlue;
+            this.StateCommon.Header.Back.Color2 = System.Drawing.Color.RoyalBlue;
+            this.StateCommon.Header.Border.Color1 = System.Drawing.Color.RoyalBlue;
+            this.StateCommon.Header.Border.Color2 = System.Drawing.Color.RoyalBlue;
             this.Text = "Database Connection Settings";
             this.Load += new System.EventHandler(this.FrmConnectionSettings_Load);
+            this.Controls.SetChildIndex(this.customPanel1, 0);
+            ((System.ComponentModel.ISupportInitialize)(this.baseKryptonPanel)).EndInit();
             this.customPanel1.ResumeLayout(false);
             this.customPanel1.PerformLayout();
             this.ResumeLayout(false);

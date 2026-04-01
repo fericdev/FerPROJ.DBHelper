@@ -1,6 +1,7 @@
 ﻿
 using FerPROJ.DBHelper.Helper;
 using FerPROJ.Design.Class;
+using FerPROJ.Design.Forms;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -12,7 +13,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace FerPROJ.DBHelper.Forms {
-    public partial class FrmDatabaseConfig : Form {
+    public partial class FrmDatabaseConfig : FrmKrypton {
         public FrmDatabaseConfig() {
             InitializeComponent();
         }
