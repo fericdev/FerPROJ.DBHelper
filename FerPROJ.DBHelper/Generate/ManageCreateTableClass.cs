@@ -12,7 +12,7 @@ using System.Windows.Forms;
 
 namespace FerPROJ.DBHelper.Generate
 {
-    public partial class ManageCreateTableClass : FrmManage
+    public partial class ManageCreateTableClass : FrmManageKrypton
     {
         GTableClass generateClass;
         public ManageCreateTableClass()
@@ -36,19 +36,15 @@ namespace FerPROJ.DBHelper.Generate
                 listOfDBCDatagridview1[DatabaseName.Index, nIndex].Value = databaseName;
             }
         }
-        protected override bool OnSaveData()
-        {
-            if(listOfDBCDatagridview1.GetSelectedValue(DatabaseName.Index, out string sout))
-            {
+        protected override async Task<bool> OnSaveDataAsync() {
+            if (listOfDBCDatagridview1.GetSelectedValue(DatabaseName.Index, out string sout)) {
                 generateClass.GenerateClass(sout);
                 return true;
             }
             return false;
         }
-        protected override bool OnSaveNewData()
-        {
-            if (listOfDBCDatagridview1.GetSelectedValue(DatabaseName.Index, out string sout))
-            {
+        protected override async Task<bool> OnSaveNewDataAsync() {
+            if (listOfDBCDatagridview1.GetSelectedValue(DatabaseName.Index, out string sout)) {
                 generateClass.GenerateClass(sout);
                 return true;
             }
