@@ -38,7 +38,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\MyDLL\AutoMapper.dll</HintPath>
     </Reference>
-    <Reference Include="ComponentFactory.Krypton.Toolkit, Version=4.6.0.0, Culture=neutral, PublicKeyToken=a87e673e9ecb6e8e" />
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\MyDLL\EntityFramework.dll</HintPath>
