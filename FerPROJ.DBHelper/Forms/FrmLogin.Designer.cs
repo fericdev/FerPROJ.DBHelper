@@ -98,19 +98,19 @@
             // 
             this.cButtonClose.Location = new System.Drawing.Point(250, 311);
             this.cButtonClose.Name = "cButtonClose";
-            this.cButtonClose.PaletteMode = ComponentFactory.Krypton.Toolkit.PaletteMode.Office2007Black;
+            this.cButtonClose.PaletteMode = Krypton.Toolkit.PaletteMode.Office2007Black;
             this.cButtonClose.Size = new System.Drawing.Size(117, 36);
-            this.cButtonClose.StateCommon.Border.DrawBorders = ((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders)((((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Top | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Bottom) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Left) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Right)));
+            this.cButtonClose.StateCommon.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
+            | Krypton.Toolkit.PaletteDrawBorders.Left) 
+            | Krypton.Toolkit.PaletteDrawBorders.Right)));
             this.cButtonClose.StateCommon.Border.Rounding = 15;
             this.cButtonClose.StateCommon.Content.ShortText.Color1 = System.Drawing.Color.White;
             this.cButtonClose.StateCommon.Content.ShortText.Color2 = System.Drawing.Color.White;
             this.cButtonClose.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Tahoma", 10F);
             this.cButtonClose.StateNormal.Back.Color1 = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
-            this.cButtonClose.StateNormal.Border.DrawBorders = ((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders)((((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Top | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Bottom) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Left) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Right)));
+            this.cButtonClose.StateNormal.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
+            | Krypton.Toolkit.PaletteDrawBorders.Left) 
+            | Krypton.Toolkit.PaletteDrawBorders.Right)));
             this.cButtonClose.StateNormal.Border.Rounding = 15;
             this.cButtonClose.StateNormal.Content.ShortText.Color1 = System.Drawing.Color.White;
             this.cButtonClose.StateNormal.Content.ShortText.Color2 = System.Drawing.Color.White;
@@ -134,19 +134,19 @@
             // 
             this.cButtonLogin.Location = new System.Drawing.Point(118, 311);
             this.cButtonLogin.Name = "cButtonLogin";
-            this.cButtonLogin.PaletteMode = ComponentFactory.Krypton.Toolkit.PaletteMode.Office2007Black;
+            this.cButtonLogin.PaletteMode = Krypton.Toolkit.PaletteMode.Office2007Black;
             this.cButtonLogin.Size = new System.Drawing.Size(117, 36);
-            this.cButtonLogin.StateCommon.Border.DrawBorders = ((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders)((((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Top | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Bottom) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Left) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Right)));
+            this.cButtonLogin.StateCommon.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
+            | Krypton.Toolkit.PaletteDrawBorders.Left) 
+            | Krypton.Toolkit.PaletteDrawBorders.Right)));
             this.cButtonLogin.StateCommon.Border.Rounding = 15;
             this.cButtonLogin.StateCommon.Content.ShortText.Color1 = System.Drawing.Color.White;
             this.cButtonLogin.StateCommon.Content.ShortText.Color2 = System.Drawing.Color.White;
             this.cButtonLogin.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Tahoma", 10F);
             this.cButtonLogin.StateNormal.Back.Color1 = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
-            this.cButtonLogin.StateNormal.Border.DrawBorders = ((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders)((((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Top | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Bottom) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Left) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Right)));
+            this.cButtonLogin.StateNormal.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
+            | Krypton.Toolkit.PaletteDrawBorders.Left) 
+            | Krypton.Toolkit.PaletteDrawBorders.Right)));
             this.cButtonLogin.StateNormal.Border.Rounding = 15;
             this.cButtonLogin.StateNormal.Content.ShortText.Color1 = System.Drawing.Color.White;
             this.cButtonLogin.StateNormal.Content.ShortText.Color2 = System.Drawing.Color.White;
@@ -175,33 +175,33 @@
             this.passwordCTextBoxKrypton.StateActive.Back.Color1 = System.Drawing.Color.WhiteSmoke;
             this.passwordCTextBoxKrypton.StateActive.Border.Color1 = System.Drawing.Color.DarkGray;
             this.passwordCTextBoxKrypton.StateActive.Border.Color2 = System.Drawing.Color.White;
-            this.passwordCTextBoxKrypton.StateActive.Border.DrawBorders = ((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders)((((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Top | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Bottom) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Left) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Right)));
+            this.passwordCTextBoxKrypton.StateActive.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
+            | Krypton.Toolkit.PaletteDrawBorders.Left) 
+            | Krypton.Toolkit.PaletteDrawBorders.Right)));
             this.passwordCTextBoxKrypton.StateActive.Border.Rounding = 10;
             this.passwordCTextBoxKrypton.StateActive.Content.Color1 = System.Drawing.Color.Black;
             this.passwordCTextBoxKrypton.StateCommon.Back.Color1 = System.Drawing.Color.WhiteSmoke;
             this.passwordCTextBoxKrypton.StateCommon.Border.Color1 = System.Drawing.Color.White;
             this.passwordCTextBoxKrypton.StateCommon.Border.Color2 = System.Drawing.Color.White;
-            this.passwordCTextBoxKrypton.StateCommon.Border.DrawBorders = ((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders)((((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Top | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Bottom) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Left) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Right)));
+            this.passwordCTextBoxKrypton.StateCommon.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
+            | Krypton.Toolkit.PaletteDrawBorders.Left) 
+            | Krypton.Toolkit.PaletteDrawBorders.Right)));
             this.passwordCTextBoxKrypton.StateCommon.Border.Rounding = 10;
             this.passwordCTextBoxKrypton.StateCommon.Content.Color1 = System.Drawing.Color.Black;
             this.passwordCTextBoxKrypton.StateDisabled.Back.Color1 = System.Drawing.Color.WhiteSmoke;
             this.passwordCTextBoxKrypton.StateDisabled.Border.Color1 = System.Drawing.Color.White;
             this.passwordCTextBoxKrypton.StateDisabled.Border.Color2 = System.Drawing.Color.White;
-            this.passwordCTextBoxKrypton.StateDisabled.Border.DrawBorders = ((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders)((((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Top | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Bottom) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Left) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Right)));
+            this.passwordCTextBoxKrypton.StateDisabled.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
+            | Krypton.Toolkit.PaletteDrawBorders.Left) 
+            | Krypton.Toolkit.PaletteDrawBorders.Right)));
             this.passwordCTextBoxKrypton.StateDisabled.Border.Rounding = 10;
             this.passwordCTextBoxKrypton.StateDisabled.Content.Color1 = System.Drawing.Color.Black;
             this.passwordCTextBoxKrypton.StateNormal.Back.Color1 = System.Drawing.Color.WhiteSmoke;
             this.passwordCTextBoxKrypton.StateNormal.Border.Color1 = System.Drawing.Color.White;
             this.passwordCTextBoxKrypton.StateNormal.Border.Color2 = System.Drawing.Color.White;
-            this.passwordCTextBoxKrypton.StateNormal.Border.DrawBorders = ((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders)((((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Top | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Bottom) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Left) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Right)));
+            this.passwordCTextBoxKrypton.StateNormal.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
+            | Krypton.Toolkit.PaletteDrawBorders.Left) 
+            | Krypton.Toolkit.PaletteDrawBorders.Right)));
             this.passwordCTextBoxKrypton.StateNormal.Border.Rounding = 10;
             this.passwordCTextBoxKrypton.StateNormal.Content.Color1 = System.Drawing.Color.Black;
             this.passwordCTextBoxKrypton.TabIndex = 16;
@@ -230,33 +230,33 @@
             this.userNameCTextBoxKrypton.StateActive.Back.Color1 = System.Drawing.Color.WhiteSmoke;
             this.userNameCTextBoxKrypton.StateActive.Border.Color1 = System.Drawing.Color.DarkGray;
             this.userNameCTextBoxKrypton.StateActive.Border.Color2 = System.Drawing.Color.White;
-            this.userNameCTextBoxKrypton.StateActive.Border.DrawBorders = ((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders)((((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Top | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Bottom) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Left) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Right)));
+            this.userNameCTextBoxKrypton.StateActive.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
+            | Krypton.Toolkit.PaletteDrawBorders.Left) 
+            | Krypton.Toolkit.PaletteDrawBorders.Right)));
             this.userNameCTextBoxKrypton.StateActive.Border.Rounding = 10;
             this.userNameCTextBoxKrypton.StateActive.Content.Color1 = System.Drawing.Color.Black;
             this.userNameCTextBoxKrypton.StateCommon.Back.Color1 = System.Drawing.Color.WhiteSmoke;
             this.userNameCTextBoxKrypton.StateCommon.Border.Color1 = System.Drawing.Color.White;
             this.userNameCTextBoxKrypton.StateCommon.Border.Color2 = System.Drawing.Color.White;
-            this.userNameCTextBoxKrypton.StateCommon.Border.DrawBorders = ((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders)((((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Top | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Bottom) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Left) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Right)));
+            this.userNameCTextBoxKrypton.StateCommon.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
+            | Krypton.Toolkit.PaletteDrawBorders.Left) 
+            | Krypton.Toolkit.PaletteDrawBorders.Right)));
             this.userNameCTextBoxKrypton.StateCommon.Border.Rounding = 10;
             this.userNameCTextBoxKrypton.StateCommon.Content.Color1 = System.Drawing.Color.Black;
             this.userNameCTextBoxKrypton.StateDisabled.Back.Color1 = System.Drawing.Color.WhiteSmoke;
             this.userNameCTextBoxKrypton.StateDisabled.Border.Color1 = System.Drawing.Color.White;
             this.userNameCTextBoxKrypton.StateDisabled.Border.Color2 = System.Drawing.Color.White;
-            this.userNameCTextBoxKrypton.StateDisabled.Border.DrawBorders = ((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders)((((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Top | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Bottom) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Left) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Right)));
+            this.userNameCTextBoxKrypton.StateDisabled.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
+            | Krypton.Toolkit.PaletteDrawBorders.Left) 
+            | Krypton.Toolkit.PaletteDrawBorders.Right)));
             this.userNameCTextBoxKrypton.StateDisabled.Border.Rounding = 10;
             this.userNameCTextBoxKrypton.StateDisabled.Content.Color1 = System.Drawing.Color.Black;
             this.userNameCTextBoxKrypton.StateNormal.Back.Color1 = System.Drawing.Color.WhiteSmoke;
             this.userNameCTextBoxKrypton.StateNormal.Border.Color1 = System.Drawing.Color.White;
             this.userNameCTextBoxKrypton.StateNormal.Border.Color2 = System.Drawing.Color.White;
-            this.userNameCTextBoxKrypton.StateNormal.Border.DrawBorders = ((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders)((((ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Top | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Bottom) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Left) 
-            | ComponentFactory.Krypton.Toolkit.PaletteDrawBorders.Right)));
+            this.userNameCTextBoxKrypton.StateNormal.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
+            | Krypton.Toolkit.PaletteDrawBorders.Left) 
+            | Krypton.Toolkit.PaletteDrawBorders.Right)));
             this.userNameCTextBoxKrypton.StateNormal.Border.Rounding = 10;
             this.userNameCTextBoxKrypton.StateNormal.Content.Color1 = System.Drawing.Color.Black;
             this.userNameCTextBoxKrypton.TabIndex = 2;
