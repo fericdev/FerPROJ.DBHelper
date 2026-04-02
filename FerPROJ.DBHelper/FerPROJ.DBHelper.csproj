@@ -137,12 +137,6 @@
     <Compile Include="Forms\FrmLogin.Designer.cs">
       <DependentUpon>FrmLogin.cs</DependentUpon>
     </Compile>
-    <Compile Include="Forms\List\ListUser.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\List\ListUser.Designer.cs">
-      <DependentUpon>ListUser.cs</DependentUpon>
-    </Compile>
     <Compile Include="Forms\Manage\ManageUser.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -178,9 +172,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Forms\FrmLogin.resx">
       <DependentUpon>FrmLogin.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\List\ListUser.resx">
-      <DependentUpon>ListUser.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\Manage\ManageUser.resx">
       <DependentUpon>ManageUser.cs</DependentUpon>
