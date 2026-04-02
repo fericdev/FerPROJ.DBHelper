@@ -2,7 +2,6 @@
 using FerPROJ.Design.Class;
 using FerPROJ.Design.Forms;
 using FerPROJ.Design.Interface;
-using MySql.Data.Entity;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;

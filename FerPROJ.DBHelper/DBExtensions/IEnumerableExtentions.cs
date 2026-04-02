@@ -227,13 +227,20 @@ namespace FerPROJ.DBHelper.DBExtensions {
             Func<TResult, bool> filter,
             int dataLimit) {
 
-            source = source.Take(dataLimit);
+            var results = new List<TResult>();
 
-            var tasks = source.Select(selector);
+            foreach (var item in source.Take(dataLimit)) {
+                
+                var result = await selector(item); 
 
-            var results = await Task.WhenAll(tasks);
+                if (filter(result)) {
 
-            return results.Where(filter);
+                    results.Add(result);
+
+                }
+            }
+
+            return results;
         }
         public static async Task<IEnumerable<TResult>> SelectListAsync<TEntity, TResult>(
             this IEnumerable<TEntity> source,
@@ -250,11 +257,20 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 .Skip(skip)
                 .Take(dataLimit);
 
-            var tasks = pagedSource.Select(selector);
+            var results = new List<TResult>();
 
-            var results = await Task.WhenAll(tasks);
+            foreach (var item in pagedSource) {
 
-            return results.Where(filter);
+                var result = await selector(item);
+
+                if (filter(result)) {
+
+                    results.Add(result);
+
+                }
+            }
+
+            return results;
         }
         #endregion
 
