@@ -38,15 +38,11 @@ namespace FerPROJ.DBHelper.DBCrud {
         #region ctor
         protected BaseRepository() {
             _ts = Activator.CreateInstance<EntityContext>();
-            if (_ts.Database.Connection.State != ConnectionState.Open) {
-                _ts.Database.Connection.Open();
-            }
+            OpenConnection();
         }
         protected BaseRepository(EntityContext ts) {
             _ts = ts;
-            if (_ts.Database.Connection.State != ConnectionState.Open) {
-                _ts.Database.Connection.Open();
-            }
+            OpenConnection();
         }
         #endregion
 
@@ -55,6 +51,16 @@ namespace FerPROJ.DBHelper.DBCrud {
             _ts.Dispose();
             DbContextExtensions.AllowDuplicate = true;
             DbContextExtensions.PropertiesToCheck = new List<string>();
+        }
+        public void OpenConnection() {
+            if (_ts.Database.Connection.State != ConnectionState.Open) {
+                _ts.Database.Connection.Open();
+            }
+        }
+        public void CloseConnection() {
+            if (_ts.Database.Connection.State != ConnectionState.Closed) {
+                _ts.Database.Connection.Close();
+            }
         }
         #endregion
 
