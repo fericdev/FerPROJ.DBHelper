@@ -817,7 +817,15 @@ namespace FerPROJ.DBHelper.DBExtensions {
             // Apply the where condition if provided
             var query = dbSet.AsQueryable();
 
-            query = query.Where(whereCondition);
+            if (whereCondition != null) {
+
+                // Normalize expression BEFORE passing to EF
+                var visitor = new ToStringEvaluator();
+
+                var normalized = (Expression<Func<TEntity, bool>>)visitor.Visit(whereCondition);
+
+                query = query.Where(normalized);
+            }
 
             // If no Status property exists, return all entities
             return await query.ToListAsync();

@@ -208,4 +208,24 @@ namespace FerPROJ.DBHelper.DBExtensions {
         #endregion
 
     }
+    public class ToStringEvaluator : ExpressionVisitor {
+        protected override Expression VisitMethodCall(MethodCallExpression node) {
+            // Detect enum.ToString()
+            if (node.Method.Name == "ToString" && node.Object != null) {
+                var objectType = node.Object.Type;
+
+                if (objectType.IsEnum) {
+                    // Evaluate enum value at runtime
+                    var lambda = Expression.Lambda(node.Object);
+                    var value = lambda.Compile().DynamicInvoke();
+
+                    var stringValue = value.ToString();
+
+                    return Expression.Constant(stringValue);
+                }
+            }
+
+            return base.VisitMethodCall(node);
+        }
+    }
 }
