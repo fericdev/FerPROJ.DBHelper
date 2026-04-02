@@ -1,5 +1,6 @@
 ﻿using FerPROJ.DBHelper.DBCache;
 using FerPROJ.Design.Class;
+using MySqlX.XDevAPI.Common;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -213,11 +214,17 @@ namespace FerPROJ.DBHelper.DBExtensions {
             this IEnumerable<TEntity> source,
             Func<TEntity, Task<TResult>> selector) {
 
-            var tasks = source.Select(selector); 
+            var results = new List<TResult>();
 
-            var result = await Task.WhenAll(tasks); 
+            foreach (var item in source) {
 
-            return result;
+                var result = await selector(item);
+
+                results.Add(result);
+
+            }
+
+            return results;
 
         }
 
