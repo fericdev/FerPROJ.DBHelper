@@ -827,29 +827,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
         #region Get Primary Key
         public static PropertyInfo GetPrimaryKeyOfDbContext<TEntity>(this DbContext context) where TEntity : class {
-            // Use ObjectContext to find the primary key property in EF6
-            var objectContext = ((IObjectContextAdapter)context).ObjectContext;
-            var entityType = objectContext.MetadataWorkspace
-                .GetItems<System.Data.Entity.Core.Metadata.Edm.EntityType>(System.Data.Entity.Core.Metadata.Edm.DataSpace.CSpace)
-                .FirstOrDefault(e => e.Name == typeof(TEntity).Name);
-
-            if (entityType == null) {
-                throw new InvalidOperationException($"Entity type {typeof(TEntity).Name} is not part of the model.");
-            }
-
-            // Get the primary key property name
-            var keyPropertyName = entityType.KeyMembers.FirstOrDefault()?.Name;
-            if (string.IsNullOrEmpty(keyPropertyName)) {
-                throw new InvalidOperationException($"No primary key defined on entity {typeof(TEntity).Name}");
-            }
-
-            // Find the property in TEntity that matches the primary key name
-            var keyProperty = typeof(TEntity).GetProperty(keyPropertyName);
-            if (keyProperty == null) {
-                throw new InvalidOperationException($"No primary key property named '{keyPropertyName}' found on entity {typeof(TEntity).Name}");
-            }
-
-            return keyProperty;
+            return typeof(TEntity).GetPropertyInfo("Id");
         }
 
         public static async Task<List<object>> GetPrimaryKeyValuesAsync<TEntity>(this DbContext context) where TEntity : class {
