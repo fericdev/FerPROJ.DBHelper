@@ -243,6 +243,38 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 }
             }
 
+            if (node.Method.Name == "IsNullOrEmpty" && node.Object != null) {
+
+                // Handle string version
+                if (node.Arguments.Count == 1 && node.Arguments[0].Type == typeof(string)) {
+                    var argument = Visit(node.Arguments[0]); // important: recurse
+
+                    var nullCheck = Expression.Equal(argument, Expression.Constant(null, typeof(string)));
+                    var emptyCheck = Expression.Equal(argument, Expression.Constant(string.Empty));
+
+                    return Expression.OrElse(nullCheck, emptyCheck);
+                }
+
+                // Handle Guid version
+                if (node.Arguments.Count == 1 && node.Arguments[0].Type == typeof(Guid)) {
+                    var argument = Visit(node.Arguments[0]);
+
+                    var emptyGuid = Expression.Constant(Guid.Empty);
+
+                    return Expression.Equal(argument, emptyGuid);
+                }
+
+                // Handle nullable Guid version
+                if (node.Arguments.Count == 1 && node.Arguments[0].Type == typeof(Guid?)) {
+                    var argument = Visit(node.Arguments[0]);
+
+                    var nullCheck = Expression.Equal(argument, Expression.Constant(null, typeof(Guid?)));
+                    var emptyCheck = Expression.Equal(argument, Expression.Constant(Guid.Empty, typeof(Guid?)));
+
+                    return Expression.OrElse(nullCheck, emptyCheck);
+                }
+            }
+
             return base.VisitMethodCall(node);
         }
         #endregion
