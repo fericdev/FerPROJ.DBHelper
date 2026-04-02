@@ -429,7 +429,15 @@ namespace FerPROJ.DBHelper.DBCache {
 
             // Get the derived types (that implement BaseDBEntityAsync)
             var derivedTypes = assemblies
-                .SelectMany(a => a.GetTypes())
+                .SelectMany(a => {
+                    try {
+                        return a.GetTypes();
+                    }
+                    catch (ReflectionTypeLoadException ex) {
+                        // Return only successfully loaded types
+                        return ex.Types.Where(t => t != null);
+                    }
+                })
                 .Where(t => !t.IsAbstract && IsSubclassOfRawGeneric(baseGenericType, t))
                 .ToList();
 
