@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.DBExtensions {
-    public static class IEnumerableExtentions {
+    public static class IEnumerableExtensions {
 
         #region Search By Date
         public static IEnumerable<T> SearchDateRange<T>(this IEnumerable<T> queryable, DateTime? dateFrom, DateTime? dateTo, string dateProperty = "") {

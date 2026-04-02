@@ -127,7 +127,7 @@
     <Compile Include="Helper\MySqlHelper.cs" />
     <Compile Include="DBCache\CacheManager.cs" />
     <Compile Include="DBExtensions\DbContextExtensions.cs" />
-    <Compile Include="DBExtensions\IEnumerableExtentions.cs" />
+    <Compile Include="DBExtensions\IEnumerableExtensions.cs" />
     <Compile Include="DBExtensions\IQueryableExtensions.cs" />
     <Compile Include="Entity\Users\User.cs" />
     <Compile Include="Entity\Users\UserMigrations.cs" />
