@@ -32,20 +32,25 @@ namespace FerPROJ.DBHelper.DBCrud {
         public bool AllowDuplicate { get; set; }
 
         public EntityContext _ts;
+        private bool _willDispose;
         #endregion
 
         #region ctor
         protected BaseRepository() {
             _ts = Activator.CreateInstance<EntityContext>();
+            _willDispose = true;
         }
         protected BaseRepository(EntityContext ts) {
             _ts = ts;
+            _willDispose = false;
         }
         #endregion
 
         #region IDisposable
         public void Dispose() {
-            _ts.Dispose();
+            if (_willDispose) {
+                _ts?.Dispose();
+            }
             DbContextExtensions.AllowDuplicate = true;
             DbContextExtensions.PropertiesToCheck = new List<string>();
         }
