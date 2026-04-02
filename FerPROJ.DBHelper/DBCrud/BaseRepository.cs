@@ -8,6 +8,7 @@ using FerPROJ.Design.Controls;
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.Entity.Migrations;
@@ -32,25 +33,26 @@ namespace FerPROJ.DBHelper.DBCrud {
         public bool AllowDuplicate { get; set; }
 
         public EntityContext _ts;
-        private bool _willDispose;
         #endregion
 
         #region ctor
         protected BaseRepository() {
             _ts = Activator.CreateInstance<EntityContext>();
-            _willDispose = true;
+            if (_ts.Database.Connection.State != ConnectionState.Open) {
+                _ts.Database.Connection.Open();
+            }
         }
         protected BaseRepository(EntityContext ts) {
             _ts = ts;
-            _willDispose = false;
+            if (_ts.Database.Connection.State != ConnectionState.Open) {
+                _ts.Database.Connection.Open();
+            }
         }
         #endregion
 
         #region IDisposable
         public void Dispose() {
-            if (_willDispose) {
-                _ts?.Dispose();
-            }
+            _ts.Dispose();
             DbContextExtensions.AllowDuplicate = true;
             DbContextExtensions.PropertiesToCheck = new List<string>();
         }
