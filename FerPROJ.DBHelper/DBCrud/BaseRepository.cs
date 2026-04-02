@@ -30,27 +30,28 @@ namespace FerPROJ.DBHelper.DBCrud {
         where TEntity : class {
 
         #region BaseProperties
-        public bool AllowDuplicate { get; set; }
-
-        public EntityContext _ts;
+        public readonly EntityContext _ts;
+        private readonly bool _tsAlone;
         #endregion
 
         #region ctor
         protected BaseRepository() {
             _ts = Activator.CreateInstance<EntityContext>();
+            _tsAlone = true;
             OpenConnection();
         }
         protected BaseRepository(EntityContext ts) {
             _ts = ts;
+            _tsAlone = false;
             OpenConnection();
         }
         #endregion
 
         #region IDisposable
         public void Dispose() {
-            _ts.Dispose();
-            DbContextExtensions.AllowDuplicate = true;
-            DbContextExtensions.PropertiesToCheck = new List<string>();
+            if (_tsAlone) {
+                _ts?.Dispose();
+            }
         }
         public void OpenConnection() {
             if (_ts.Database.Connection.State != ConnectionState.Open) {
@@ -447,6 +448,28 @@ namespace FerPROJ.DBHelper.DBCrud {
         public virtual async Task LoadCachedAsync() {
             var entities = await _ts.GetAllUnCachedAsync<TEntity>();
             await _ts.SaveAllToCacheAsync(entities);
+        }
+        #endregion
+
+        #region Execute 
+        public async Task ExecuteAsync(
+            Func<BaseRepository<EntityContext, TModel, TEntity, TType>, Task> action) {
+            try {
+                await action(this);
+            }
+            finally {
+                Dispose();
+            }
+        }
+
+        public async Task<TResult> ExecuteAsync<TResult>(
+            Func<BaseRepository<EntityContext, TModel, TEntity, TType>, Task<TResult>> action) {
+            try {
+                return await action(this);
+            }
+            finally {
+                Dispose();
+            }
         }
         #endregion
     }
