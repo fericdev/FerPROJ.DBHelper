@@ -457,6 +457,9 @@ namespace FerPROJ.DBHelper.DBCrud {
             try {
                 await action(this);
             }
+            catch(Exception ex) {
+                CDialogManager.Warning($"An error occurred during execution: {ex.Message}", GetType().Name);
+            }
             finally {
                 Dispose();
             }
@@ -466,6 +469,10 @@ namespace FerPROJ.DBHelper.DBCrud {
             Func<BaseRepository<EntityContext, TModel, TEntity, TType>, Task<TResult>> action) {
             try {
                 return await action(this);
+            }
+            catch (Exception ex) {
+                CDialogManager.Warning($"An error occurred during execution: {ex.Message}", GetType().Name);
+                return default;
             }
             finally {
                 Dispose();
