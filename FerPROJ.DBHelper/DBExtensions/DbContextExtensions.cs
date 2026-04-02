@@ -610,12 +610,12 @@ namespace FerPROJ.DBHelper.DBExtensions {
         }
         public static async Task<TEntity> GetByPredicateAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate) where TEntity : class {
 
-            return await context.Set<TEntity>().FirstOrDefaultAsync(predicate);
+            return await context.Set<TEntity>().FirstOrDefaultAsync(predicate.NormalizeExpression());
 
         }
         public static async Task<int> GetCountAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate = null) where TEntity : class {           
             if (predicate != null) {
-                return await context.Set<TEntity>().CountAsync(predicate);
+                return await context.Set<TEntity>().CountAsync(predicate.NormalizeExpression());
             }
             return await context.Set<TEntity>().CountAsync();
         }
@@ -651,7 +651,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             var query = context.Set<TEntity>().AsQueryable();
 
             if (whereCondition != null) {
-                query = query.Where(whereCondition);
+                query = query.Where(whereCondition.NormalizeExpression());
             }
 
             // Get the count with the where condition, then increment by 1
@@ -817,16 +817,9 @@ namespace FerPROJ.DBHelper.DBExtensions {
             // Apply the where condition if provided
             var query = dbSet.AsQueryable();
 
-            if (whereCondition != null) {
-
-                // Normalize expression BEFORE passing to EF
-                var visitor = new ToStringEvaluator();
-
-                var normalized = (Expression<Func<TEntity, bool>>)visitor.Visit(whereCondition);
-
-                query = query.Where(normalized);
-            }
-
+            // apply where condition
+            query = query.Where(whereCondition.NormalizeExpression());
+            
             // If no Status property exists, return all entities
             return await query.ToListAsync();
         }
@@ -928,7 +921,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
         #region Utilities
         public static async Task<bool> HasDataAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate = null) where TEntity : class {
-            return predicate != null ? await context.Set<TEntity>().AnyAsync(predicate) : await context.Set<TEntity>().AnyAsync();
+            return predicate != null ? await context.Set<TEntity>().AnyAsync(predicate.NormalizeExpression()) : await context.Set<TEntity>().AnyAsync();
         }
         #endregion
 

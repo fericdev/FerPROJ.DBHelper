@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FerPROJ.Design.Class;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
@@ -207,8 +208,25 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
         #endregion
 
+        #region Normalize Enum To String in Expression
+        public static Expression<Func<T, bool>> NormalizeExpression<T>(this Expression<Func<T, bool>> expression) {
+
+            if (expression.IsNullOrEmpty()) {
+                return expression;
+            }
+
+            var visitor = new ToStringEvaluator();
+
+            var modifiedBody = visitor.Visit(expression.Body);
+
+            return Expression.Lambda<Func<T, bool>>(modifiedBody, expression.Parameters);
+        }
+        #endregion
+
     }
     public class ToStringEvaluator : ExpressionVisitor {
+
+        #region MethodCallExpression Visitor
         protected override Expression VisitMethodCall(MethodCallExpression node) {
             // Detect enum.ToString()
             if (node.Method.Name == "ToString" && node.Object != null) {
@@ -227,5 +245,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             return base.VisitMethodCall(node);
         }
+        #endregion
+
     }
 }
