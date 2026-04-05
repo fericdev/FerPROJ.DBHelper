@@ -58,131 +58,35 @@ namespace FerPROJ.DBHelper.DBCache {
             // Save the updated list to the cache
             _cache.Set(key, existingList, DateTimeOffset.MaxValue);
 
-            ClearCache(value.GetPropertyValue<string>("Id"));
-            ClearCacheByPrefix("GetEntity");
-            ClearCacheByPrefix("GetList");
-            ClearCacheByPrefix("GetItems");
+            ClearCacheByPrefix("Entity");
+            ClearCacheByPrefix("Item");
+            ClearCacheByPrefix(nameof(TEntity));
+            ClearCacheBySuffix(value.GetPropertyValue<string>("Id"));
 
             Console.WriteLine($"Cache Cleared and Saved: {key} TIME: {DateTime.Now.TimeOfDay} Count: {existingList.Count}");
         }
         public async static Task SaveAllToCacheAsync<TEntity>(this DbContext dbContext, List<TEntity> values) where TEntity : class {
-
-            if (values.Count <= 0) {
+            if (values.Count <= 0)
                 return;
+
+            foreach (var value in values) {
+                await SaveToCacheAsync(dbContext, value);
             }
 
-            foreach(var value in values) {
-                ClearCache(value.GetPropertyValue<string>("Id"));
-            }
-
-            string key = typeof(TEntity).Name;
-
-            // Get the current cached list of TEntity
-            var existingList = await GetAllListCacheAsync<TEntity>();
-
-            // If there's no existing list, create a new one
-            if (existingList == null) {
-                existingList = new List<TEntity>();
-            }
-            else {
-
-                PropertyInfo primaryKey = null;
-
-                if (dbContext == null) {
-                    primaryKey = typeof(TEntity).GetPropertyInfo("Id");
-                }
-                else {
-                    primaryKey = dbContext.GetPrimaryKeyOfDbContext<TEntity>();
-                }
-
-                if (primaryKey == null) {
-                    return;
-                }
-
-                // Prepare a list to store items to remove
-                var itemsToRemove = new List<TEntity>();
-
-                // Identify the items to remove without modifying the collection during iteration
-                foreach (var value in values) {
-
-                    var primaryValue = primaryKey.GetValue(value);
-
-                    var existingValue = existingList.FirstOrDefault(x => primaryKey.GetValue(x).Equals(primaryValue));
-
-                    if (existingValue != null) {
-
-                        itemsToRemove.Add(existingValue);
-
-                    }
-                }
-
-                // Remove identified items after the iteration
-                foreach (var item in itemsToRemove) {
-
-                    existingList.Remove(item);
-
-                }
-            }
-
-            // Add the new values to the existing list
-            existingList.AddRange(values);
-
-            // Save the updated list to the cache
-            _cache.Set(key, existingList, DateTimeOffset.MaxValue);
-
-            Console.WriteLine($"Cache Cleared and Saved: {key} TIME: {DateTime.Now.TimeOfDay} Count: {existingList.Count}");
         }
 
         public async static Task SaveAllToCacheAsync<TEntity>(this DbContext dbContext, IEnumerable<TEntity> values) where TEntity : class {
-
-            if (values == null || !values.Any()) {
-
+            if (values == null || !values.Any())
                 return;
-
-            }
 
             await dbContext.SaveAllToCacheAsync(values.ToList());
         }
 
         public async static Task SaveAllToCacheAsync<TEntity>(this DbContext dbContext, ICollection<TEntity> values) where TEntity : class {
-
-            if (values == null || !values.Any()) {
-
+            if (values == null || !values.Any())
                 return;
-
-            }
 
             await dbContext.SaveAllToCacheAsync(values.ToList());
-        }
-
-        #endregion
-
-        #region Clear and Save
-        public async static Task ClearAndSaveAllToCacheAsync<TEntity>(this DbContext dbContext, List<TEntity> values) where TEntity : class {
-            //
-            if (values.Count <= 0) {
-                return;
-            }
-            //
-            string key = typeof(TEntity).Name;
-
-            // Clear the cache synchronously (fast operation)
-            _cache.Remove(key);
-
-            // Save the updated list to the cache synchronously
-            _cache.Set(key, values, DateTimeOffset.MaxValue);
-
-            Console.WriteLine($"Cache Cleared and Saved: {key} TIME: {DateTime.Now.TimeOfDay} Count: {values.Count}");
-
-            await Task.CompletedTask;
-        }
-
-        public async static Task ClearAndSaveAllToCacheAsync<TEntity>(this DbContext dbContext, IEnumerable<TEntity> values) where TEntity : class {
-            await dbContext.ClearAndSaveAllToCacheAsync(values.ToList());
-        }
-
-        public async static Task ClearAndSaveAllToCacheAsync<TEntity>(this DbContext dbContext, ICollection<TEntity> values) where TEntity : class {
-            await dbContext.ClearAndSaveAllToCacheAsync(values.ToList());
         }
 
         #endregion
@@ -223,43 +127,21 @@ namespace FerPROJ.DBHelper.DBCache {
             // Save the updated list to the cache
             _cache.Set(key, existingList, DateTimeOffset.MaxValue);
 
-            ClearCache(value.GetPropertyValue<string>("Id"));
-            ClearCacheByPrefix("GetEntity");
-            ClearCacheByPrefix("GetList");
-            ClearCacheByPrefix("GetItems");
+            ClearCacheByPrefix("Entity");
+            ClearCacheByPrefix("Item");
+            ClearCacheByPrefix(nameof(TEntity));
+            ClearCacheBySuffix(value.GetPropertyValue<string>("Id"));
 
             await Task.CompletedTask;
         }
 
         public async static Task RemoveAllFromCacheAsync<TEntity>(this DbContext dbContext, List<TEntity> values) where TEntity : class {
-
-            if (values.Count <= 0) {
+            if (values.Count <= 0)
                 return;
+
+            foreach (var value in values) {
+                await RemoveFromCacheAsync(dbContext, value);
             }
-
-            string key = typeof(TEntity).Name;
-
-            // Get the current cached list of TEntity
-            var existingList = await GetAllListCacheAsync<TEntity>();
-
-            // If there's no existing list, return
-            if (existingList == null) {
-                return;
-            }
-            else {
-                foreach (var value in values) {
-                    existingList.Remove(value);
-                    ClearCache(value.GetPropertyValue<string>("Id"));
-                    ClearCacheByPrefix("GetEntity");
-                    ClearCacheByPrefix("GetList");
-                    ClearCacheByPrefix("GetItems");
-                }
-            }
-
-            // Save the updated list to the cache
-            _cache.Set(key, existingList, DateTimeOffset.MaxValue);
-
-            await Task.CompletedTask;
         }
 
 
@@ -315,25 +197,13 @@ namespace FerPROJ.DBHelper.DBCache {
 
             // Remove identified items after the iteration
             foreach (var item in itemsToRemove) {
-
                 existingList.Remove(item);
-
             }
 
             // Save the updated list to the cache
             _cache.Set(key, existingList, DateTimeOffset.MaxValue);
 
             Console.WriteLine($"Updated: {key} TIME: {DateTime.Now.TimeOfDay} Count: {existingList.Count}");
-        }
-
-        // Overload for IEnumerable
-        public async static Task RemoveAllFromCacheAsync<TEntity>(this DbContext dbContext, IEnumerable<object> values) where TEntity : class {
-            await dbContext.RemoveAllByIdsFromCacheAsync<TEntity>(values.ToList());
-        }
-
-        // Overload for ICollection
-        public async static Task RemoveAllFromCacheAsync<TEntity>(this DbContext dbContext, ICollection<object> values) where TEntity : class {
-            await dbContext.RemoveAllByIdsFromCacheAsync<TEntity>(values.ToList());
         }
         #endregion
 
@@ -377,6 +247,9 @@ namespace FerPROJ.DBHelper.DBCache {
 
             return newValue;
         }
+        public static async Task<TResult> GetOrCreateCacheAsync<TResult>(string prefix, object key, Func<Task<TResult>> createFunc) {
+            return await GetOrCreateCacheAsync($"{prefix}:{key}", createFunc);
+        }
         public static void SetCache(string key, object value) {
             _cache.Set(key, value, DateTimeOffset.MaxValue);
             _cacheKeys.TryAdd(key, true);
@@ -389,6 +262,19 @@ namespace FerPROJ.DBHelper.DBCache {
         public static void ClearCacheByPrefix(string prefix) {
             var keysToRemove = _cacheKeys.Keys
                 .Where(k => k.StartsWith(prefix))
+                .ToList();
+
+            foreach (var key in keysToRemove) {
+                ClearCache(key);
+            }
+        }
+        public static void ClearCacheBySuffix(object suffix) {
+            if (suffix == null) return;
+
+            string suffixStr = suffix.ToString();
+
+            var keysToRemove = _cacheKeys.Keys
+                .Where(k => k.EndsWith(suffixStr, StringComparison.OrdinalIgnoreCase))
                 .ToList();
 
             foreach (var key in keysToRemove) {

@@ -79,6 +79,36 @@ namespace FerPROJ.DBHelper.DBExtensions {
             entity.ModifiedBy = CAppConstants.USERNAME;
             await context.UpdateAndCommitAsync(entity);
         }
+        public static async Task SoftRemoveRangeAndCommitAsync<TEntity>(this DbContext context, ICollection<TEntity> entities) where TEntity : BaseEntity {
+            if (entities.Count() <= 0) {
+                return;
+            }
+            foreach(var entity in entities) {
+                entity.Status = CAppConstants.IN_ACTIVE_STATUS;
+                entity.DateDeleted = DateTime.Now;
+                entity.ModifiedById = CAppConstants.USER_ID;
+                entity.ModifiedBy = CAppConstants.USERNAME;
+            }
+            await context.UpdateRangeAndCommitAsync(entities.ToList());
+        }
+        public static async Task SoftRemoveRangeAndCommitAsync<TEntity>(this DbContext context, IEnumerable<TEntity> entities) where TEntity : BaseEntity {
+            await SoftRemoveRangeAndCommitAsync(context, entities);
+        }
+        public static async Task SoftRemoveRangeAsync<TEntity>(this DbContext context, ICollection<TEntity> entities) where TEntity : BaseEntity {
+            if (entities.Count() <= 0) {
+                return;
+            }
+            foreach (var entity in entities) {
+                entity.Status = CAppConstants.IN_ACTIVE_STATUS;
+                entity.DateDeleted = DateTime.Now;
+                entity.ModifiedById = CAppConstants.USER_ID;
+                entity.ModifiedBy = CAppConstants.USERNAME;
+            }
+            await context.UpdateRangeAsync(entities.ToList());
+        }
+        public static async Task SoftRemoveRangeAsync<TEntity>(this DbContext context, IEnumerable<TEntity> entities) where TEntity : BaseEntity {
+            await SoftRemoveRangeAsync(context, entities);
+        }
         #endregion
 
         #region Update
@@ -193,14 +223,6 @@ namespace FerPROJ.DBHelper.DBExtensions {
             await context.SaveChangesAsync();
 
         }
-        public static async Task UpdateRangeAsync<TEntity>(
-             this DbContext context,
-             List<TEntity> entity)
-             where TEntity : class {
-            foreach (var item in entity) {
-                await context.UpdateAsync(item);
-            }
-        }
         public static async Task UpdateAndCommitAsync<TEntity>(
              this DbContext context,
              TEntity entity)
@@ -215,10 +237,22 @@ namespace FerPROJ.DBHelper.DBExtensions {
              List<TEntity> entity)
              where TEntity : class {
 
-            foreach (var item in entity) {
-                await context.UpdateAsync(item);
-            }
+            UpdateFieldsOfEntities(entity);
+
+            context.Set<TEntity>().AddOrUpdate(entity.ToArray());
+
             await context.SaveChangesAsync();
+            await context.SaveAllToCacheAsync(entity);
+        }
+        public static async Task UpdateRangeAsync<TEntity>(
+             this DbContext context,
+             List<TEntity> entity)
+             where TEntity : class {
+
+            UpdateFieldsOfEntities(entity);
+
+            context.Set<TEntity>().AddOrUpdate(entity.ToArray());
+            await context.SaveAllToCacheAsync(entity);
         }
         #endregion
 
@@ -887,6 +921,12 @@ namespace FerPROJ.DBHelper.DBExtensions {
             var modifiedByProperty = type.GetProperty("ModifiedBy");
             if (modifiedByProperty != null && modifiedByProperty.CanWrite) {
                 modifiedByProperty.SetValue(entity, CAppConstants.USERNAME); // Default to "Unknown" if null
+            }
+
+            // Check for ModifiedBy property
+            var modifiedByIdProperty = type.GetProperty("ModifiedById");
+            if (modifiedByIdProperty != null && modifiedByIdProperty.CanWrite) {
+                modifiedByIdProperty.SetValue(entity, CAppConstants.USER_ID); // Default to "Unknown" if null
             }
         }
         private static void UpdateFieldsOfEntities<TEntity>(ICollection<TEntity> entities)
