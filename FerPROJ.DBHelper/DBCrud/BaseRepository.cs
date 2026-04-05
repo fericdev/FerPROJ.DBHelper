@@ -27,7 +27,7 @@ namespace FerPROJ.DBHelper.DBCrud {
     public abstract class BaseRepository<EntityContext, TModel, TEntity, TType> : IDisposable
         where EntityContext : DbContext
         where TModel : BaseModel
-        where TEntity : class {
+        where TEntity : BaseEntity {
 
         #region BaseProperties
         public readonly EntityContext _ts;
@@ -382,7 +382,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             var tbl = await _ts.GetByIdAsync<TEntity, TType>(id);
             if (tbl == null)
                 return;
-            await _ts.RemoveAndCommitAsync(tbl);
+            await _ts.SoftRemoveAndCommitAsync(tbl);
         }
 
         public async Task<bool> DeleteByIdAsync(TType id) {
@@ -677,16 +677,6 @@ namespace FerPROJ.DBHelper.DBCrud {
                 throw new ArgumentException(sb.ToString());
             }
             return false;
-        }
-        #endregion
-
-        #region Base DELETE for Item
-        protected override async Task DeleteDataAsync(Guid id) {
-            var tbl = await _ts.GetByIdAsync<TEntity>(id);
-            if (tbl == null)
-                return;
-
-            await _ts.SoftRemoveAndCommitAsync(tbl);
         }
         #endregion
 
