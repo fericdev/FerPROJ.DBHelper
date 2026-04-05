@@ -689,5 +689,34 @@ namespace FerPROJ.DBHelper.DBCrud {
             await _ts.SoftRemoveAndCommitAsync(tbl);
         }
         #endregion
+
+        #region Execute 
+        public async Task ExecuteAsync(
+            Func<BaseItemRepository<EntityContext, TModel, TModelItem, TEntity, TEntityItem>, Task> action) {
+            try {
+                await action(this);
+            }
+            catch (Exception ex) {
+                CDialogManager.Warning($"An error occurred during execution: {ex.Message}", GetType().Name);
+            }
+            finally {
+                Dispose();
+            }
+        }
+
+        public async Task<TResult> ExecuteAsync<TResult>(
+            Func<BaseItemRepository<EntityContext, TModel, TModelItem, TEntity, TEntityItem>, Task<TResult>> action) {
+            try {
+                return await action(this);
+            }
+            catch (Exception ex) {
+                CDialogManager.Warning($"An error occurred during execution: {ex.Message}", GetType().Name);
+                return default;
+            }
+            finally {
+                Dispose();
+            }
+        }
+        #endregion
     }
 }
