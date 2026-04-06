@@ -43,12 +43,12 @@ namespace FerPROJ.DBHelper.Generate
             }
             return false;
         }
-        protected override async Task<bool> OnSaveNewDataAsync() {
+        protected override async Task<(bool Result, bool CloseForm)> OnSaveNewDataAsync() {
             if (listOfDBCDatagridview1.GetSelectedValue(DatabaseName.Index, out string sout)) {
                 generateClass.GenerateClass(sout);
-                return true;
+                return (true, false);
             }
-            return false;
+            return (false, false);
         }
     }
 }

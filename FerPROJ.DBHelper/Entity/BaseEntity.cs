@@ -22,4 +22,7 @@ namespace FerPROJ.DBHelper.Entity {
         public Guid? ParentId { get; set; }
         public string Description { get; set; }
     }
+    public partial class BaseFormEntity : BaseEntity {
+        public string FinalizeStatus { get; set; }
+    }
 }

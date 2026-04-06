@@ -484,7 +484,7 @@ namespace FerPROJ.DBHelper.DBCrud {
     public abstract class BaseItemRepository<EntityContext, TModel, TModelItem, TEntity, TEntityItem> :
         BaseRepository<EntityContext, TModel, TEntity, Guid>
         where EntityContext : DbContext
-        where TModel : BaseModel<TModelItem>
+        where TModel : BaseFormModel<TModelItem>
         where TEntity : BaseEntity
         where TModelItem : BaseModelItem
         where TEntityItem : BaseEntityItem {
@@ -646,6 +646,79 @@ namespace FerPROJ.DBHelper.DBCrud {
                     await UpdateDataAsync(model, modelItems);
                     if (returnResult)
                         CDialogManager.Info("Updated Successfully!", "Success");
+                    return true;
+                }
+            }
+            catch (DbEntityValidationException ex) {
+                var sb = new StringBuilder();
+                var validationResult = ex.EntityValidationErrors.FirstOrDefault();
+                if (validationResult != null && validationResult.ValidationErrors.Count > 0) {
+                    foreach (var validationError in validationResult.ValidationErrors)
+                        sb.AppendLine($"{validationError.ErrorMessage}");
+                }
+                throw new ArgumentException(sb.ToString());
+            }
+            catch (DbUpdateException ex) {
+                var sb = new StringBuilder();
+                var innerEx = ex.InnerException;
+                int innerLevel = 1;
+                while (innerEx != null) {
+                    sb.AppendLine($"Inner Exception Level {innerLevel}: {innerEx.Message}\n");
+                    if (innerEx is MySqlException mySqlEx)
+                        sb.AppendLine($"SQL Error Code: {mySqlEx.Number}\n");
+                    else if (innerEx is System.Data.SqlClient.SqlException sqlEx)
+                        sb.AppendLine($"SQL Error Code: {sqlEx.Number}\n");
+                    innerEx = innerEx.InnerException;
+                    innerLevel++;
+                }
+                if (ex.Entries != null && ex.Entries.Any()) {
+                    sb.AppendLine("\nEntities involved in the exception:");
+                    foreach (var entry in ex.Entries)
+                        sb.AppendLine($"TableName: {entry.Entity.GetType().Name}, Operation: {entry.State}");
+                }
+                throw new ArgumentException(sb.ToString());
+            }
+            return false;
+        }
+        #endregion
+
+        #region Base Finalize Data
+        protected async virtual Task SaveFinalizeDataAsync(TModel model, List<TModelItem> modelItems) {
+            model.FinalizeStatus = FinalizeStatusTypes.Completed.ToString();
+            await _ts.UpdateModelAndCommitAsync<TModel, TModelItem, TEntity, TEntityItem>(model, modelItems);
+        }
+
+        public async Task<bool> SaveFinalizeModelAsync(TModel model, List<TModelItem> modelItems, bool enabledValidation = false, bool confirmation = true, bool returnResult = true) {
+            if (model == null)
+                throw new ArgumentNullException($"{nameof(model)} is null!");
+
+            if (enabledValidation && !model.DataValidation()) {
+                var sb = new StringBuilder();
+                if (!string.IsNullOrEmpty(model.Error))
+                    sb.AppendLine("Error 1: " + model.Error);
+                if (!string.IsNullOrEmpty(model.ErrorMessage))
+                    sb.AppendLine("Error 2: " + model.ErrorMessage);
+                if (model.ErrorMessages.Length > 0)
+                    sb.AppendLine("Error 3: " + model.ErrorMessages.ToString());
+                throw new ArgumentException(sb.ToString());
+            }
+
+            if (!model.Success)
+                throw new ArgumentException(model.Error);
+
+            try {
+                if (confirmation) {
+                    if (CDialogManager.Ask("You won’t be able to update this data again.\n" +
+                                           "Are you sure to finalize this data?", "Confirmation")) {
+                        await SaveFinalizeDataAsync(model, modelItems);
+                        CDialogManager.Info("Saved Successfully!", "Success");
+                        return true;
+                    }
+                }
+                else {
+                    await SaveFinalizeDataAsync(model, modelItems);
+                    if (returnResult)
+                        CDialogManager.Info("Saved Successfully!", "Success");
                     return true;
                 }
             }
