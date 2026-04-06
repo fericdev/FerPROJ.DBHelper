@@ -78,13 +78,13 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task<TModel> GetPrepareModelByIdAsync(TType id) {
             var entity = await GetByIdAsync(id);
-            return await CacheManager.GetOrCreateCacheAsync("Entity", id, async () => {
+            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelPrefix, id, async () => {
                 return await GetPrepareModelByEntityAsync(entity);
             });
         }
         public virtual async Task<TModel> GetPrepareModelByPredicateAsync(Expression<Func<TEntity, bool>> predicate) {
             var entity = await GetByPredicateAsync(predicate);
-            return await CacheManager.GetOrCreateCacheAsync("Entity", entity.GetPropertyValue<string>("Id"), async () => {
+            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelPrefix, entity.GetPropertyValue<string>("Id"), async () => {
                 return await GetPrepareModelByEntityAsync(entity);
             });
         }
@@ -116,7 +116,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             var result = await query.SelectListAsync(async c => {
 
-                return await CacheManager.GetOrCreateCacheAsync(nameof(c), c.GetPropertyValue<string>("Id"), async () => {
+                return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelPrefix, c.GetPropertyValue<string>("Id"), async () => {
                     return await GetPrepareModelByEntityAsync(c);
                 });
 
@@ -134,7 +134,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             var result = await query.SelectListAsync(async c => {
 
-                return await CacheManager.GetOrCreateCacheAsync(nameof(c), c.GetPropertyValue<string>("Id"), async () => {
+                return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelPrefix, c.GetPropertyValue<string>("Id"), async () => {
                     return await GetPrepareModelByEntityAsync(c);
                 });
 
@@ -156,7 +156,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             var result = await query.SelectListAsync(async c => {
 
-                return await CacheManager.GetOrCreateCacheAsync(nameof(c), c.GetPropertyValue<string>("Id"), async () => {
+                return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelPrefix, c.GetPropertyValue<string>("Id"), async () => {
                     return await GetPrepareModelByEntityAsync(c);
                 });
 
@@ -178,7 +178,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             var result = await query.SelectListAsync(async c => {
 
-                return await CacheManager.GetOrCreateCacheAsync(nameof(c), c.GetPropertyValue<string>("Id"), async () => {
+                return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelPrefix, c.GetPropertyValue<string>("Id"), async () => {
                     return await GetPrepareModelByEntityAsync(c);
                 });
 
@@ -496,13 +496,15 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         #region Base GET for Model Item
         public override async Task<TModel> GetPrepareModelByEntityAsync(TEntity entity) {
-            var model = await base.GetPrepareModelByEntityAsync(entity);
-            model.Items = await GetPrepareModelItemsByParentIdAsync(entity.Id);
-            return model;
+            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ModelPrefix, entity.GetPropertyValue<string>("Id"), async () => {
+                var model = await base.GetPrepareModelByEntityAsync(entity);
+                model.Items = await GetPrepareModelItemsByParentIdAsync(entity.Id);
+                return model;
+            });
         }
         public virtual async Task<List<TModelItem>> GetPrepareModelItemsByParentIdAsync(Guid parentId) {
 
-            return await CacheManager.GetOrCreateCacheAsync("Item", parentId, async () => {
+            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelItemPrefix, parentId, async () => {
 
                 var entities = await GetAllItemsByParentIdAsync(parentId);
 

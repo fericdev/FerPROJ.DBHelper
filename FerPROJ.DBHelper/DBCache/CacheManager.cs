@@ -18,6 +18,18 @@ using System.Threading.Tasks;
 namespace FerPROJ.DBHelper.DBCache {
     public static class CacheManager {
 
+        #region Prefixes
+        public static string ListModelPrefix => "ListModel";
+        public static string ModelPrefix => "Model";
+        public static string ListEntityPrefix => "ListEntity";
+        public static string EntityPrefix => "Entity";
+        public static string ListModelItemPrefix => "ListModelItem";
+        public static string ModelItemPrefix => "ModelItem";
+        public static string ListEntityItemPrefix => "ListEntityItem";
+        public static string EntityItemPrefix => "EntityItem";
+
+        #endregion
+
         #region Fields
         private static readonly MemoryCache _cache = MemoryCache.Default;
         private static readonly ConcurrentDictionary<string, bool> _cacheKeys = new ConcurrentDictionary<string, bool>();
@@ -58,9 +70,10 @@ namespace FerPROJ.DBHelper.DBCache {
             // Save the updated list to the cache
             _cache.Set(key, existingList, DateTimeOffset.MaxValue);
 
-            ClearCacheByPrefix("Entity");
-            ClearCacheByPrefix("Item");
-            ClearCacheByPrefix(nameof(TEntity));
+            ClearCacheByPrefix(ListModelPrefix);
+            ClearCacheByPrefix(ListModelItemPrefix);
+            ClearCacheByPrefix(ModelPrefix);
+            ClearCacheByPrefix(ModelItemPrefix);
             ClearCacheBySuffix(value.GetPropertyValue<string>("Id"));
 
             Console.WriteLine($"Cache Cleared and Saved: {key} TIME: {DateTime.Now.TimeOfDay} Count: {existingList.Count}");
@@ -127,9 +140,10 @@ namespace FerPROJ.DBHelper.DBCache {
             // Save the updated list to the cache
             _cache.Set(key, existingList, DateTimeOffset.MaxValue);
 
-            ClearCacheByPrefix("Entity");
-            ClearCacheByPrefix("Item");
-            ClearCacheByPrefix(nameof(TEntity));
+            ClearCacheByPrefix(ListModelPrefix);
+            ClearCacheByPrefix(ListModelItemPrefix);
+            ClearCacheByPrefix(ModelPrefix);
+            ClearCacheByPrefix(ModelItemPrefix);
             ClearCacheBySuffix(value.GetPropertyValue<string>("Id"));
 
             await Task.CompletedTask;
