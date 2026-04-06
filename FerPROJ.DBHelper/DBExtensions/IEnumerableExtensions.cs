@@ -147,14 +147,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             if (statusProperty != null) {
                 // Define the predicate to filter active entities
                 Func<T, bool> predicate = x => {
-                    var statusValue = statusProperty.GetValue(x);
-
-                    // Check if Status property is of type string and matches active status
-                    if (statusValue is string statusString && statusString == CAppConstants.ACTIVE_STATUS) {
-                        return true;
-                    }
-
-                    return false;
+                    return x.GetPropertyValue<string>("Status") == CAppConstants.ACTIVE_STATUS;
                 };
 
                 // Apply the predicate to filter the collection
@@ -175,14 +168,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             if (statusProperty != null) {
                 // Define the predicate to filter active entities
                 Func<T, bool> predicate = x => {
-                    var statusValue = statusProperty.GetValue(x);
-
-                    // Check if Status property is of type string and matches active status
-                    if (statusValue is string statusString && statusString == CAppConstants.IN_ACTIVE_STATUS) {
-                        return true;
-                    }
-
-                    return false;
+                    return x.GetPropertyValue<string>("Status") == CAppConstants.IN_ACTIVE_STATUS;
                 };
 
                 // Apply the predicate to filter the collection
