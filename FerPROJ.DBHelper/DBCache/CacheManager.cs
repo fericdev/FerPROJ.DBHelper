@@ -140,10 +140,6 @@ namespace FerPROJ.DBHelper.DBCache {
             // Save the updated list to the cache
             _cache.Set(key, existingList, DateTimeOffset.MaxValue);
 
-            ClearCacheByPrefix(ListModelPrefix);
-            ClearCacheByPrefix(ListModelItemPrefix);
-            ClearCacheByPrefix(ModelPrefix);
-            ClearCacheByPrefix(ModelItemPrefix);
             ClearCacheBySuffix(value.GetPropertyValue<string>("Id"));
 
             await Task.CompletedTask;
