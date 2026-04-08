@@ -5,7 +5,6 @@ namespace FerPROJ.DBHelper.Entity {
     public partial class BaseEntity {
         [Key]
         public Guid Id { get; set; }
-        public string FormId { get; set; }
         public string Name { get; set; }
         public DateTime? DateCreated { get; set; } = null;
         public DateTime? DateModified { get; set; } = null;
@@ -23,6 +22,7 @@ namespace FerPROJ.DBHelper.Entity {
         public string Description { get; set; }
     }
     public partial class BaseFormEntity : BaseEntity {
+        public string FormId { get; set; }
         public string FinalizeStatus { get; set; }
     }
 }
