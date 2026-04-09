@@ -481,6 +481,34 @@ namespace FerPROJ.DBHelper.DBCrud {
                 Dispose();
             }
         }
+        public async Task ExecuteAsync<TRepository>(
+            Func<TRepository, Task> action) where TRepository : BaseRepository<EntityContext, TModel, TEntity, TType> {
+            try {
+                // Cast 'this' to the derived repository type
+                await action((TRepository)this);
+            }
+            catch (Exception ex) {
+                CDialogManager.Warning($"An error occurred during execution: {ex.Message}", GetType().Name);
+            }
+            finally {
+                Dispose();
+            }
+        }
+
+        public async Task<TResult> ExecuteAsync<TRepository, TResult>(
+            Func<TRepository, Task<TResult>> action) where TRepository : BaseRepository<EntityContext, TModel, TEntity, TType> {
+            try {
+                // Cast 'this' to the derived repository type
+                return await action((TRepository)this);
+            }
+            catch (Exception ex) {
+                CDialogManager.Warning($"An error occurred during execution: {ex.Message}", GetType().Name);
+                return default;
+            }
+            finally {
+                Dispose();
+            }
+        }
         #endregion
     }
 
