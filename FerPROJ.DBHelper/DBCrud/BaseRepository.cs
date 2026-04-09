@@ -81,13 +81,13 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task<TModel> GetPrepareModelByIdAsync(TType id) {
             var entity = await GetByIdAsync(id);
-            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelPrefix, id, async () => {
+            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ModelPrefix, id, async () => {
                 return await GetPrepareModelByEntityAsync(entity);
             });
         }
         public virtual async Task<TModel> GetPrepareModelByPredicateAsync(Expression<Func<TEntity, bool>> predicate) {
             var entity = await GetByPredicateAsync(predicate);
-            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelPrefix, entity.GetPropertyValue<string>("Id"), async () => {
+            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ModelPrefix, entity.GetPropertyValue<string>("Id"), async () => {
                 return await GetPrepareModelByEntityAsync(entity);
             });
         }
