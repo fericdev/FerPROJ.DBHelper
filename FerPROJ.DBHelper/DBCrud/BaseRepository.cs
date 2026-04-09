@@ -66,9 +66,12 @@ namespace FerPROJ.DBHelper.DBCrud {
         #endregion
 
         #region Base GET for Model
-        public virtual async Task<TModel> GetPrepareModelAsync(TModel model = null, string prefix = "FRM#") {
+        public virtual async Task<TModel> GetPrepareModelAsync(TModel model = null, string prefix = null) {
             if (model == null) {
                 model = Activator.CreateInstance<TModel>();
+            }
+            if (prefix.IsNullOrEmpty()) {
+                prefix = $"{typeof(TModel).Name.ToStringUpperLettersOnly()}-";
             }
             model.FormId = await GetGeneratedIDAsync(prefix, false);
             return model;
@@ -457,7 +460,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             try {
                 await action(this);
             }
-            catch(Exception ex) {
+            catch (Exception ex) {
                 CDialogManager.Warning($"An error occurred during execution: {ex.Message}", GetType().Name);
             }
             finally {
