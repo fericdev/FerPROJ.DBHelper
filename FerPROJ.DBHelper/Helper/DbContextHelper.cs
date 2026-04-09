@@ -76,15 +76,10 @@ namespace FerPROJ.DBHelper.Helper {
         #region Run Database Migration
         public static async Task RunDatabaseMigrationAsync() {
             await FrmSplasherLoading.ShowSplashAsync();
+
             FrmSplasherLoading.SetLoadingText(0);
 
-            // Find the DbContext type in the loaded assemblies
-            var dbContextType = GetDbContextType();
-            if (dbContextType == null) {
-                throw new InvalidOperationException("No DbContext type found in loaded assemblies.");
-            }
-
-            using (var dbContext = (DbContext)Activator.CreateInstance(dbContextType)) {
+            using (var dbContext = (DbContext)Activator.CreateInstance(CAppConstants.DB_CONTEXT_TYPE)) {
 
                 // 1. Check if the database exists
                 if (!dbContext.Database.Exists()) {
@@ -109,7 +104,7 @@ namespace FerPROJ.DBHelper.Helper {
                         t.GetInterfaces().Any(i =>
                             i.IsGenericType &&
                             i.GetGenericTypeDefinition() == typeof(IDbContextMigration<>) &&
-                            i.GetGenericArguments()[0] == dbContextType
+                            (i.GetGenericArguments()[0] == CAppConstants.DB_CONTEXT_TYPE || i.GetGenericArguments()[0] == GetDbContextType())
                         )
                     )
                     .ToList();
