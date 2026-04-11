@@ -570,7 +570,7 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
 
         public virtual async Task<TEntityItem> GetItemByPredicateAsync(Expression<Func<TEntityItem, bool>> predicate) {
-            return await _ts.GetByPredicateAsync(predicate);
+            return await _ts.GetItemByPredicateAsync(predicate);
         }
         #endregion
 

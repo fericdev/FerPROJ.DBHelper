@@ -517,7 +517,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
         #endregion
 
         #region Update Status
-        public static async Task SetStatusInActiveAsync<TEntity>(this DbContext context, string id) where TEntity : class {
+        public static async Task SetStatusInActiveAsync<TEntity>(this DbContext context, string id) where TEntity : BaseEntity {
 
             // Retrieve the entity by primary key
             var entity = await context.GetByIdAsync<TEntity, string>(id);
@@ -577,7 +577,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
         public static async Task<TEntity> GetByIdAsync<TEntity>(this DbContext context, Guid id) where TEntity : BaseEntity {
             return await context.GetByPredicateAsync<TEntity>(c => c.Id == id);
         }
-        public static async Task<TEntity> GetByIdAsync<TEntity, TType>(this DbContext context, TType id) where TEntity : class {
+        public static async Task<TEntity> GetByIdAsync<TEntity, TType>(this DbContext context, TType id) where TEntity : BaseEntity {
 
             // Get Primary Key
             PropertyInfo keyProperty = context.GetPrimaryKeyOfDbContext<TEntity>();
@@ -601,12 +601,12 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
         }
         public static async Task<TEntityItem> GetByParentIdAsync<TEntityItem>(this DbContext context, Guid parentId) where TEntityItem : BaseEntityItem {
-            return await context.GetByPredicateAsync<TEntityItem>(c => c.ParentId == parentId);
+            return await context.GetItemByPredicateAsync<TEntityItem>(c => c.ParentId == parentId);
         }
         public static async Task<TEntity> GetByIdAsync<TEntity, TType>(
             this DbContext context,
             TType id,
-            string propertyName) where TEntity : class {
+            string propertyName) where TEntity : BaseEntity {
 
             // Find the specified property on TEntity
             var property = typeof(TEntity).GetProperty(propertyName);
@@ -642,10 +642,14 @@ namespace FerPROJ.DBHelper.DBExtensions {
             return null;
 
         }
-        public static async Task<TEntity> GetByPredicateAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate) where TEntity : class {
-
-            return await context.Set<TEntity>().FirstOrDefaultAsync(predicate.NormalizeExpression());
-
+        public static async Task<TEntity> GetByPredicateAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate) where TEntity : BaseEntity {           
+            return await context.Set<TEntity>()
+                .Where(predicate.NormalizeExpression())
+                .Where(c=>c.Status == CAppConstants.ACTIVE_STATUS)
+                .FirstOrDefaultAsync();
+        }
+        public static async Task<TEntityItem> GetItemByPredicateAsync<TEntityItem>(this DbContext context, Expression<Func<TEntityItem, bool>> predicate) where TEntityItem : BaseEntityItem {
+            return await context.Set<TEntityItem>().FirstOrDefaultAsync(predicate.NormalizeExpression());
         }
         public static async Task<int> GetCountAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate = null) where TEntity : class {           
             if (predicate != null) {
