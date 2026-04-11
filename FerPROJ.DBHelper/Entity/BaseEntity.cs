@@ -6,6 +6,7 @@ namespace FerPROJ.DBHelper.Entity {
         [Key]
         public Guid Id { get; set; }
         public string Name { get; set; }
+        public DateTime? DateMarked { get; set; } = null;
         public DateTime? DateCreated { get; set; } = null;
         public DateTime? DateModified { get; set; } = null;
         public DateTime? DateDeleted { get; set; } = null;
