@@ -77,6 +77,10 @@ namespace FerPROJ.DBHelper.DBCrud {
             return model;
         }
         public virtual async Task<TModel> GetPrepareModelByEntityAsync(TEntity entity) {
+            if (entity.IsNullOrEmpty()) {
+                entity = Activator.CreateInstance<TEntity>();
+            }
+
             return entity.ToDestination<TModel>();
         }
         public virtual async Task<TModel> GetPrepareModelByIdAsync(TType id) {
