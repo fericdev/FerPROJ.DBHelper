@@ -219,8 +219,18 @@ namespace FerPROJ.DBHelper.DBCache {
 
         #region Get 
         public async static Task<List<TEntity>> GetAllListCacheAsync<TEntity>() where TEntity : class {
+
             string key = typeof(TEntity).Name;
-            return await Task.FromResult(_cache.Get(key) as List<TEntity>);
+
+            var result = await Task.FromResult(_cache.Get(key) as List<TEntity>);
+
+            if (result.IsNullOrEmpty()) {
+                return new List<TEntity>();
+            }
+
+            result = result.Where(c => c.GetPropertyValue<string>("Status") == CAppConstants.ACTIVE_STATUS).ToList();
+
+            return result;
         }
         public async static Task<IEnumerable<TEntity>> GetAllEnumerableCacheAsync<TEntity>() where TEntity : class {
             var result = await GetAllListCacheAsync<TEntity>();

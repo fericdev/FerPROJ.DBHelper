@@ -230,14 +230,14 @@ namespace FerPROJ.DBHelper.DBCrud {
             cmb.FillComboBox(cmbName, cmbValue, listItems);
         }
 
-        public virtual async Task LoadComboBoxByEntityAsync<T>(CComboBoxKrypton cmb, string cmbName, string cmbValue, Expression<Func<T, bool>> whereCondition = null) where T : class {
+        public virtual async Task LoadComboBoxByEntityAsync<T>(CComboBoxKrypton cmb, string cmbName, string cmbValue, Expression<Func<T, bool>> whereCondition = null) where T : BaseEntity {
             var listItems = whereCondition != null
                 ? await _ts.GetAllAsync(whereCondition)
                 : await _ts.GetAllAsync<T>();
             cmb.FillComboBox(cmbName, cmbValue, listItems);
         }
 
-        public virtual async Task LoadComboBoxByEntityAsync<T>(CComboBoxKrypton cmb, Func<T, string> cmbName, string cmbValue, Expression<Func<T, bool>> whereCondition = null) where T : class {
+        public virtual async Task LoadComboBoxByEntityAsync<T>(CComboBoxKrypton cmb, Func<T, string> cmbName, string cmbValue, Expression<Func<T, bool>> whereCondition = null) where T : BaseEntity {
             var listItems = whereCondition != null
                 ? await _ts.GetAllAsync(whereCondition)
                 : await _ts.GetAllAsync<T>();
@@ -453,7 +453,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         #region Base Cache Methods
         public virtual async Task LoadCachedAsync() {
-            var entities = await _ts.GetAllUnCachedAsync<TEntity>();
+            var entities = await _ts.GetAllAsync<TEntity>(isCached: false);
             await _ts.SaveAllToCacheAsync(entities);
         }
         #endregion

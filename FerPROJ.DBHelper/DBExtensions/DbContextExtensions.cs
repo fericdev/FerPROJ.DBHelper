@@ -83,7 +83,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             if (entities.Count() <= 0) {
                 return;
             }
-            foreach(var entity in entities) {
+            foreach (var entity in entities) {
                 entity.Status = CAppConstants.IN_ACTIVE_STATUS;
                 entity.DateDeleted = DateTime.Now;
                 entity.ModifiedById = CAppConstants.USER_ID;
@@ -161,7 +161,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             List<TEntity> entities,
             string foreignKey,
             object foreignKeyValue)
-            where TEntity : class {
+            where TEntity : BaseEntity {
             // Get the property info for the specified foreign key
             var foreignKeyProperty = typeof(TEntity).GetProperty(foreignKey, BindingFlags.Public | BindingFlags.Instance);
 
@@ -193,7 +193,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             List<TEntity> entities,
             string foreignKey,
             object foreignKeyValue)
-            where TEntity : class {
+            where TEntity : BaseEntity {
             // Get the property info for the specified foreign key
             var foreignKeyProperty = typeof(TEntity).GetProperty(foreignKey, BindingFlags.Public | BindingFlags.Instance);
 
@@ -642,16 +642,16 @@ namespace FerPROJ.DBHelper.DBExtensions {
             return null;
 
         }
-        public static async Task<TEntity> GetByPredicateAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate) where TEntity : BaseEntity {           
+        public static async Task<TEntity> GetByPredicateAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate) where TEntity : BaseEntity {
             return await context.Set<TEntity>()
+                .Where(c => c.Status == CAppConstants.ACTIVE_STATUS)
                 .Where(predicate.NormalizeExpression())
-                .Where(c=>c.Status == CAppConstants.ACTIVE_STATUS)
                 .FirstOrDefaultAsync();
         }
         public static async Task<TEntityItem> GetItemByPredicateAsync<TEntityItem>(this DbContext context, Expression<Func<TEntityItem, bool>> predicate) where TEntityItem : BaseEntityItem {
             return await context.Set<TEntityItem>().FirstOrDefaultAsync(predicate.NormalizeExpression());
         }
-        public static async Task<int> GetCountAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate = null) where TEntity : class {           
+        public static async Task<int> GetCountAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate = null) where TEntity : class {
             if (predicate != null) {
                 return await context.Set<TEntity>().CountAsync(predicate.NormalizeExpression());
             }
@@ -713,10 +713,10 @@ namespace FerPROJ.DBHelper.DBExtensions {
         #region Get All Method
         public static async Task<IEnumerable<TEntityItem>> GetAllItemsByParentIdAsync<TEntityItem>(this DbContext context, Guid parentId) where TEntityItem : BaseEntityItem {
             // Assuming you already have a GetAllAsync(predicate) method
-            return await context.GetAllAsync<TEntityItem>(c => c.ParentId == parentId, isCached: false);
+            return await context.GetAllItemAsync<TEntityItem>(c => c.ParentId == parentId, isCached: false);
         }
         //
-        public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, string propertyName, object propertyValue) where TEntity : class {
+        public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, string propertyName, object propertyValue) where TEntity : BaseEntity {
 
             Expression<Func<TEntity, bool>> whereCondition = null;
 
@@ -776,17 +776,12 @@ namespace FerPROJ.DBHelper.DBExtensions {
             return await query.ToListAsync();
         }
         public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, bool isCached = true) where TEntity : class {
-
             var cachedData = await CacheManager.GetAllQueryableCacheAsync<TEntity>();
-
             if (cachedData != null && isCached) {
-
                 return cachedData;
-
             }
 
             return await context.Set<TEntity>().ToListAsync();
-
         }
 
         public static async Task<IEnumerable<TEntity>> GetAllUnCachedAsync<TEntity>(this DbContext context) where TEntity : class {
@@ -833,20 +828,39 @@ namespace FerPROJ.DBHelper.DBExtensions {
             return await query.ToListAsync();
         }
 
-        public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> whereCondition, bool isCached = true) where TEntity : class {
+        public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> whereCondition, bool isCached = true) where TEntity : BaseEntity {
 
             var cachedData = await CacheManager.GetAllQueryableCacheAsync<TEntity>();
-
             if (cachedData != null && isCached) {
-
                 var result = cachedData.Where(whereCondition);
-
                 if (result != null && result.Any()) {
-
                     return result.ToList();
-
                 }
+            }
 
+            // Get the DbSet for TEntity
+            var dbSet = context.Set<TEntity>();
+
+            // Apply the where condition if provided
+            var query = dbSet.AsQueryable();
+
+            // Filter by active status if Status property exists
+            query = query.Where(c => c.Status == CAppConstants.ACTIVE_STATUS);
+
+            // apply where condition
+            query = query.Where(whereCondition.NormalizeExpression());
+
+            // If no Status property exists, return all entities
+            return await query.ToListAsync();
+        }
+        public static async Task<IEnumerable<TEntity>> GetAllItemAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> whereCondition, bool isCached = true) where TEntity : BaseEntityItem {
+
+            var cachedData = await CacheManager.GetAllQueryableCacheAsync<TEntity>();
+            if (cachedData != null && isCached) {
+                var result = cachedData.Where(whereCondition);
+                if (result != null && result.Any()) {
+                    return result.ToList();
+                }
             }
 
             // Get the DbSet for TEntity
@@ -857,7 +871,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             // apply where condition
             query = query.Where(whereCondition.NormalizeExpression());
-            
+
             // If no Status property exists, return all entities
             return await query.ToListAsync();
         }
