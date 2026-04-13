@@ -275,6 +275,44 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 }
             }
 
+            // Handle IsNotNullAndEquals extension
+            if (node.Method.Name == "IsEquals" && node.Arguments.Count == 2) {
+                var stringExpr = Visit(node.Arguments[0]); // the "value"
+                var enumExpr = Visit(node.Arguments[1]);   // the "compareTo"
+
+                var enumType = node.Method.GetGenericArguments()[0];
+
+                // value != null
+                var notNullCheck = Expression.NotEqual(
+                    stringExpr,
+                    Expression.Constant(null, typeof(string))
+                );
+
+                // Enum.Parse(typeof(TEnum), value)
+                var parseMethod = typeof(Enum).GetMethod(
+                    nameof(Enum.Parse),
+                    new[] { typeof(Type), typeof(string), typeof(bool) }
+                );
+
+                if (parseMethod == null)
+                    throw new InvalidOperationException("Enum.Parse method not found.");
+
+                var parsedEnum = Expression.Call(
+                    parseMethod,
+                    Expression.Constant(enumType),
+                    stringExpr,
+                    Expression.Constant(true)
+                );
+
+                var convertedParsedEnum = Expression.Convert(parsedEnum, enumType);
+
+                // parsedEnum == compareTo
+                var equalsCheck = Expression.Equal(convertedParsedEnum, enumExpr);
+
+                // value != null && parsedEnum == compareTo
+                return Expression.AndAlso(notNullCheck, equalsCheck);
+            }
+
             return base.VisitMethodCall(node);
         }
         #endregion

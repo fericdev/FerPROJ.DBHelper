@@ -25,5 +25,6 @@ namespace FerPROJ.DBHelper.Entity {
     public partial class BaseFormEntity : BaseEntity {
         public string FormId { get; set; }
         public string FinalizeStatus { get; set; }
+        public string Remarks { get; set; }
     }
 }
