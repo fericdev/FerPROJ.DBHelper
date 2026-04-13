@@ -300,7 +300,8 @@ namespace FerPROJ.DBHelper.DBExtensions {
         }
         // DTO
         public static async Task SaveDTOAsync<TSource, TEntity>(this DbContext context, TSource myDTO) where TSource : BaseModel where TEntity : class {
-
+            
+            myDTO.Id = Guid.NewGuid();
             myDTO.DateCreated = DateTime.Now;
             myDTO.CreatedBy = CAppConstants.USERNAME;
             myDTO.Status = CAppConstants.ACTIVE_STATUS;
@@ -313,6 +314,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
         }
         public static async Task SaveDTOAndCommitAsync<TSource, TEntity>(this DbContext context, TSource myDTO) where TSource : BaseModel where TEntity : class {
 
+            myDTO.Id = Guid.NewGuid();
             myDTO.DateCreated = DateTime.Now;
             myDTO.CreatedBy = CAppConstants.USERNAME;
             myDTO.Status = CAppConstants.ACTIVE_STATUS;
@@ -372,6 +374,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             where TEntityItem : BaseEntityItem {
 
             // Set common properties
+            model.Id = Guid.NewGuid();
             model.DateCreated = DateTime.Now;
             model.CreatedBy = CAppConstants.USERNAME;
             model.Status = CAppConstants.ACTIVE_STATUS;
@@ -398,6 +401,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
         public static async Task SaveRangeDTOAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : BaseModel where TEntity : class {
 
             foreach (var item in myDTO) {
+                item.Id = Guid.NewGuid();
                 item.DateCreated = DateTime.Now;
                 item.CreatedBy = CAppConstants.USERNAME;
                 item.Status = CAppConstants.ACTIVE_STATUS;
@@ -412,6 +416,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
         public static async Task SaveRangeDTOAndCommitAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : BaseModel where TEntity : class {
 
             foreach (var item in myDTO) {
+                item.Id = Guid.NewGuid();
                 item.DateCreated = DateTime.Now;
                 item.CreatedBy = CAppConstants.USERNAME;
                 item.Status = CAppConstants.ACTIVE_STATUS;
