@@ -288,20 +288,21 @@ namespace FerPROJ.DBHelper.DBExtensions {
                     var getterLambda = Expression.Lambda<Func<object>>(objectMember);
                     enumValue = getterLambda.Compile().Invoke();
                 }
+
                 else if (enumExpr is ConstantExpression constExpr) {
                     enumValue = constExpr.Value;
                 }
 
-                if (enumValue == null)
-                    throw new NotSupportedException("Enum value could not be resolved.");
+                if (enumValue.IsNullOrEmpty()) {
 
-                // Convert enum to string OUTSIDE expression
-                var enumString = enumValue.ToString();
+                    // Convert enum to string OUTSIDE expression
+                    var enumString = enumValue.ToString();
 
-                var constantStringExpr = Expression.Constant(enumString, typeof(string));
+                    var constantStringExpr = Expression.Constant(enumString, typeof(string));
 
-                // c.Type == "BankAccount"
-                return Expression.Equal(stringExpr, constantStringExpr);
+                    // c.Type == "BankAccount"
+                    return Expression.Equal(stringExpr, constantStringExpr);
+                }
             }
 
             return base.VisitMethodCall(node);
