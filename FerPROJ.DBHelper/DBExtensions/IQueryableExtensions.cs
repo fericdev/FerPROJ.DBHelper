@@ -293,7 +293,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
                     enumValue = constExpr.Value;
                 }
 
-                if (enumValue.IsNullOrEmpty()) {
+                if (!enumValue.IsNullOrEmpty()) {
 
                     // Convert enum to string OUTSIDE expression
                     var enumString = enumValue.ToString();
