@@ -277,40 +277,31 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             // Handle IsNotNullAndEquals extension
             if (node.Method.Name == "IsEquals" && node.Arguments.Count == 2) {
-                var stringExpr = Visit(node.Arguments[0]); // the "value"
-                var enumExpr = Visit(node.Arguments[1]);   // the "compareTo"
+                var stringExpr = Visit(node.Arguments[0]); // c.Type
+                var enumExpr = node.Arguments[1];          // ledgerAccountType
 
-                var enumType = node.Method.GetGenericArguments()[0];
+                // Extract enum value (must be constant or captured variable)
+                object enumValue = null;
 
-                // value != null
-                var notNullCheck = Expression.NotEqual(
-                    stringExpr,
-                    Expression.Constant(null, typeof(string))
-                );
+                if (enumExpr is MemberExpression memberExpr) {
+                    var objectMember = Expression.Convert(memberExpr, typeof(object));
+                    var getterLambda = Expression.Lambda<Func<object>>(objectMember);
+                    enumValue = getterLambda.Compile().Invoke();
+                }
+                else if (enumExpr is ConstantExpression constExpr) {
+                    enumValue = constExpr.Value;
+                }
 
-                // Enum.Parse(typeof(TEnum), value)
-                var parseMethod = typeof(Enum).GetMethod(
-                    nameof(Enum.Parse),
-                    new[] { typeof(Type), typeof(string), typeof(bool) }
-                );
+                if (enumValue == null)
+                    throw new NotSupportedException("Enum value could not be resolved.");
 
-                if (parseMethod == null)
-                    throw new InvalidOperationException("Enum.Parse method not found.");
+                // Convert enum to string OUTSIDE expression
+                var enumString = enumValue.ToString();
 
-                var parsedEnum = Expression.Call(
-                    parseMethod,
-                    Expression.Constant(enumType),
-                    stringExpr,
-                    Expression.Constant(true)
-                );
+                var constantStringExpr = Expression.Constant(enumString, typeof(string));
 
-                var convertedParsedEnum = Expression.Convert(parsedEnum, enumType);
-
-                // parsedEnum == compareTo
-                var equalsCheck = Expression.Equal(convertedParsedEnum, enumExpr);
-
-                // value != null && parsedEnum == compareTo
-                return Expression.AndAlso(notNullCheck, equalsCheck);
+                // c.Type == "BankAccount"
+                return Expression.Equal(stringExpr, constantStringExpr);
             }
 
             return base.VisitMethodCall(node);
