@@ -484,7 +484,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             // Check for incoming ids
             var incomingIds = entityItems
                 .Select(x => x.Id)
-                .Where(id => id != Guid.Empty)
+                .Where(id => !id.IsNullOrEmpty())
                 .ToHashSet();
 
             // Items for removal
