@@ -479,12 +479,27 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             // Map entity items from model items
             var entityItems = new CMappingExtensionList<TModelItem, TEntityItem>().GetMappingResultList(modelItems);
+            var existingItems = await context.GetAllItemsByParentIdAsync<TEntityItem>(model.Id);
+
+            // Check for incoming ids
+            var incomingIds = entityItems
+                .Select(x => x.Id)
+                .Where(id => id != Guid.Empty)
+                .ToHashSet();
+
+            // Items for removal
+            var entityItemsForDeletion = existingItems
+                .Where(item => !incomingIds.Contains(item.Id))
+                .ToList();
 
             // Save main entity
             await context.UpdateAndCommitAsync(entity);
 
             // Save entity items
             await context.UpdateRangeAndCommitAsync(entityItems);
+
+            // Delete old items
+            await context.RemoveRangeAndCommitAsync(entityItemsForDeletion);
 
         }
         public static async Task UpdateRangeDTOAsync<TSource, TEntity>(this DbContext context, List<TSource> myDTO) where TSource : BaseModel where TEntity : class {
