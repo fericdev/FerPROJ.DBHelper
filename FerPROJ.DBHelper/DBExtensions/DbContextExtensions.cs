@@ -313,7 +313,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 var exists = await context.HasDataAsync(duplicateCheck);
                 if (exists) {
                     var props = duplicateCheck.GetPropertyNames();
-                    throw new ArgumentException($"{string.Join(", ", props)} already exists.");
+                    throw new ArgumentException($"{props.ToJoinedString()} already exists.");
                 }
             }
             //
