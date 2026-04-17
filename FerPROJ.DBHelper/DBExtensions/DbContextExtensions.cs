@@ -21,11 +21,6 @@ using FerPROJ.DBHelper.Entity;
 namespace FerPROJ.DBHelper.DBExtensions {
     public static class DbContextExtensions {
 
-        #region properties
-        public static bool AllowDuplicate { get; set; }
-        public static List<string> PropertiesToCheck { get; set; } = new List<string>();
-        #endregion
-
         #region Remove
         public static async Task RemoveRangeAndCommitAsync<TEntity>(this DbContext context, ICollection<TEntity> entity) where TEntity : class {
             if (entity.Count() <= 0) {
@@ -312,8 +307,15 @@ namespace FerPROJ.DBHelper.DBExtensions {
             await context.SaveAsync(tbl);
 
         }
-        public static async Task SaveDTOAndCommitAsync<TSource, TEntity>(this DbContext context, TSource myDTO) where TSource : BaseModel where TEntity : class {
+        public static async Task SaveDTOAndCommitAsync<TSource, TEntity>(this DbContext context, TSource myDTO, Expression<Func<TEntity, bool>> duplicateCheck = null) where TSource : BaseModel where TEntity : class {
+            //
+            if (duplicateCheck != null) {
+                var exists = await context.HasDataAsync(duplicateCheck);
 
+                if (exists)
+                    throw new ArgumentException("Duplicate record already exists.");
+            }
+            //
             myDTO.Id = Guid.NewGuid();
             myDTO.DateCreated = DateTime.Now;
             myDTO.CreatedBy = CAppConstants.USERNAME;
@@ -321,48 +323,6 @@ namespace FerPROJ.DBHelper.DBExtensions {
             myDTO.CreatedById = CAppConstants.USER_ID;
 
             var tbl = new CMappingExtension<TSource, TEntity>().GetMappingResult(myDTO);
-
-            if (!AllowDuplicate && PropertiesToCheck.Any()) {
-
-                var entityType = typeof(TEntity);
-
-                // Validate that all properties exist
-                foreach (var prop in PropertiesToCheck) {
-                    if (!entityType.GetProperties().Any(c => c.Name.SearchFor(prop))) {
-                        throw new ArgumentException($"Property '{prop}' does not exist on entity type '{entityType.Name}'.");
-                    }
-                }
-
-                // Parameter "e" in the expression
-                var parameter = Expression.Parameter(entityType, "e");
-
-                // Combine all equality checks with AND
-                Expression finalExpression = null;
-
-                foreach (var prop in PropertiesToCheck) {
-                    var propertyInfo = entityType.GetProperties().FirstOrDefault(c => c.Name.SearchFor(prop));
-                    var propertyAccess = Expression.Property(parameter, propertyInfo);
-
-                    var propertyValue = propertyInfo.GetValue(tbl);
-                    var constant = Expression.Constant(propertyValue);
-
-                    var equality = Expression.Equal(propertyAccess, constant);
-
-                    finalExpression = finalExpression == null
-                        ? equality
-                        : Expression.AndAlso(finalExpression, equality);
-                }
-
-                // Build the complete lambda expression: e => e.Prop1 == value1 && e.Prop2 == value2
-                var lambda = Expression.Lambda<Func<TEntity, bool>>(finalExpression, parameter);
-
-                // Use the expression to check for duplicates
-                var entityExists = await context.HasDataAsync(lambda);
-
-                if (entityExists) {
-                    throw new ArgumentException($"{string.Join(", ", PropertiesToCheck)} already exists.");
-                }
-            }
 
             await context.SaveAndCommitAsync(tbl);
 

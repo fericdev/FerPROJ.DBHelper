@@ -31,6 +31,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         #region BaseProperties
         public readonly EntityContext _ts;
+        public Expression<Func<TEntity, bool>> _duplicateCheck = null;
         private readonly bool _tsAlone;
         #endregion
 
@@ -268,7 +269,7 @@ namespace FerPROJ.DBHelper.DBCrud {
         #region Base DTO CRUD
         protected async virtual Task SaveDataAsync(TModel myDTO) {
             myDTO.Id = Guid.NewGuid();
-            await _ts.SaveDTOAndCommitAsync<TModel, TEntity>(myDTO);
+            await _ts.SaveDTOAndCommitAsync(myDTO, _duplicateCheck);
         }
 
         public async Task<bool> SaveDTOAsync(TModel myDTO, bool enabledValidation = false, bool confirmation = true, bool returnResult = true) {
