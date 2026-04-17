@@ -115,6 +115,11 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int dataLimit = int.MaxValue) {
 
+            if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate() && !searchText.IsNullOrEmpty()) {
+                dateFrom = null;
+                dateTo = null;
+            }
+
             var query = await GetAllWithSearchAsync(null, dateFrom, dateTo);
 
             query = query.GetAllActiveOnly();
@@ -133,6 +138,11 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(Expression<Func<TEntity, bool>> whereCondition, string searchText, DateTime? dateFrom, DateTime? dateTo, int dataLimit = int.MaxValue) {
 
+            if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate() && !searchText.IsNullOrEmpty()) {
+                dateFrom = null;
+                dateTo = null;
+            }
+
             var query = await GetAllAsync(whereCondition);
 
             query = query.GetAllActiveOnly();
@@ -150,6 +160,11 @@ namespace FerPROJ.DBHelper.DBCrud {
             return result;
         }
         public virtual async Task<(IEnumerable<TModel> ModelItems, int TotalCount)> GetViewModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int page, int dataLimit = int.MaxValue) {
+
+            if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate() && !searchText.IsNullOrEmpty()) {
+                dateFrom = null;
+                dateTo = null;
+            }
 
             var query = await GetAllWithSearchAsync(null, dateFrom, dateTo, int.MaxValue);
 
@@ -172,6 +187,11 @@ namespace FerPROJ.DBHelper.DBCrud {
             return (result, query.Count());
         }
         public virtual async Task<(IEnumerable<TModel> ModelItems, int TotalCount)> GetViewModelWithSearchAsync(Expression<Func<TEntity, bool>> whereCondition, string searchText, DateTime? dateFrom, DateTime? dateTo, int page, int dataLimit = int.MaxValue) {
+
+            if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate() && !searchText.IsNullOrEmpty()) {
+                dateFrom = null;
+                dateTo = null;
+            }
 
             var query = await GetAllAsync(whereCondition);
 
