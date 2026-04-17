@@ -223,6 +223,29 @@ namespace FerPROJ.DBHelper.DBExtensions {
         }
         #endregion
 
+        public static List<string> GetPropertyNames<TEntity>(
+            this Expression<Func<TEntity, bool>> expression) {
+            var properties = new List<string>();
+
+            void Visit(Expression exp) {
+                if (exp is BinaryExpression binary) {
+                    // Handle AND / OR / ==
+                    Visit(binary.Left);
+                    Visit(binary.Right);
+                }
+                else if (exp is MemberExpression member) {
+                    // Only capture properties of the entity (e.Property)
+                    if (member.Expression is ParameterExpression) {
+                        properties.Add(member.Member.Name);
+                    }
+                }
+            }
+
+            Visit(expression.Body);
+
+            return properties.Distinct().ToList();
+        }
+
     }
     public class ToStringEvaluator : ExpressionVisitor {
 
@@ -310,4 +333,5 @@ namespace FerPROJ.DBHelper.DBExtensions {
         #endregion
 
     }
+
 }

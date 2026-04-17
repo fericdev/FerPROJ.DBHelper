@@ -311,9 +311,10 @@ namespace FerPROJ.DBHelper.DBExtensions {
             //
             if (duplicateCheck != null) {
                 var exists = await context.HasDataAsync(duplicateCheck);
-
-                if (exists)
-                    throw new ArgumentException("Duplicate record already exists.");
+                if (exists) {
+                    var props = duplicateCheck.GetPropertyNames();
+                    throw new ArgumentException($"{string.Join(", ", props)} already exists.");
+                }
             }
             //
             myDTO.Id = Guid.NewGuid();
