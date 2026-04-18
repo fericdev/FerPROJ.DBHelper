@@ -731,7 +731,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             var cachedData = await CacheManager.GetAllEnumerableCacheAsync<TEntity>();
 
-            if (cachedData != null && isCached) {
+            if (!cachedData.IsNullOrEmpty() && isCached) {
 
                 var result = cachedData.SearchDateRange(dateFrom, dateTo);
 
@@ -758,7 +758,8 @@ namespace FerPROJ.DBHelper.DBExtensions {
         }
         public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, bool isCached = true) where TEntity : class {
             var cachedData = await CacheManager.GetAllQueryableCacheAsync<TEntity>();
-            if (cachedData != null && isCached) {
+
+            if (!cachedData.IsNullOrEmpty() && isCached) {
                 return cachedData;
             }
 
@@ -812,7 +813,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
         public static async Task<IEnumerable<TEntity>> GetAllAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> whereCondition, bool isCached = true) where TEntity : BaseEntity {
 
             var cachedData = await CacheManager.GetAllQueryableCacheAsync<TEntity>();
-            if (cachedData != null && isCached) {
+            if (!cachedData.IsNullOrEmpty() && isCached) {
                 var result = cachedData.Where(whereCondition);
                 if (result != null && result.Any()) {
                     return result.ToList();
@@ -837,7 +838,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
         public static async Task<IEnumerable<TEntity>> GetAllItemAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> whereCondition, bool isCached = true) where TEntity : BaseEntityItem {
 
             var cachedData = await CacheManager.GetAllQueryableCacheAsync<TEntity>();
-            if (cachedData != null && isCached) {
+            if (!cachedData.IsNullOrEmpty() && isCached) {
                 var result = cachedData.Where(whereCondition);
                 if (result != null && result.Any()) {
                     return result.ToList();

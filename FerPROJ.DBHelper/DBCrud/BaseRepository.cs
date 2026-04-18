@@ -582,6 +582,9 @@ namespace FerPROJ.DBHelper.DBCrud {
         #endregion
 
         #region Base GET for Item
+        public virtual async Task<IEnumerable<TEntityItem>> GetAllItemsAsync() {
+            return await _ts.GetAllAsync<TEntityItem>();
+        }
         public virtual async Task<IEnumerable<TEntityItem>> GetAllItemsByParentIdAsync(Guid parentId) {
             return await _ts.GetAllItemsByParentIdAsync<TEntityItem>(parentId);
         }
