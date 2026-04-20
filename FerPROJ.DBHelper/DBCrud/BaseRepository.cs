@@ -541,7 +541,7 @@ namespace FerPROJ.DBHelper.DBCrud {
         BaseRepository<EntityContext, TModel, TEntity, Guid>
         where EntityContext : DbContext
         where TModel : BaseFormModel<TModelItem>
-        where TEntity : BaseEntity
+        where TEntity : BaseFormEntity
         where TModelItem : BaseModelItem
         where TEntityItem : BaseEntityItem {
 
@@ -840,6 +840,39 @@ namespace FerPROJ.DBHelper.DBCrud {
             finally {
                 Dispose();
             }
+        }
+        #endregion
+
+        #region Remarks
+        public async Task<bool> SaveRemarksDTOAsync(RemarksModel myDTO) {
+            if (myDTO == null)
+                throw new ArgumentNullException($"{nameof(myDTO)} is null!");
+
+            if (!myDTO.DataValidation()) {
+                var sb = new StringBuilder();
+                if (!string.IsNullOrEmpty(myDTO.Error))
+                    sb.AppendLine("Error 1: " + myDTO.Error);
+                if (!string.IsNullOrEmpty(myDTO.ErrorMessage))
+                    sb.AppendLine("Error 2: " + myDTO.ErrorMessage);
+                if (myDTO.ErrorMessages.Length > 0)
+                    sb.AppendLine("Error 3: " + myDTO.ErrorMessages.ToString());
+                throw new ArgumentException(sb.ToString());
+            }
+
+            if (!myDTO.Success)
+                throw new ArgumentException(myDTO.Error);
+
+            if (CDialogManager.Ask("Are you sure to save remarks?", "Confirmation")) {
+                await SaveRemarksDataAsync(myDTO);
+                CDialogManager.Info("Saved Successfully!", "Success");
+                return true;
+            }
+            return false;
+        }
+        protected async virtual Task SaveRemarksDataAsync(RemarksModel myDTO) {
+            var tbl = await GetByIdAsync(myDTO.Id);
+            tbl.Remarks = myDTO.Remarks;
+            await _ts.UpdateAndCommitAsync(tbl);
         }
         #endregion
     }
