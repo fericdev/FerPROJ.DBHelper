@@ -306,7 +306,7 @@ namespace FerPROJ.DBHelper.Helper {
         #endregion
 
         #region Create Backup of Database
-        public static async Task BackupDatabaseAsync() {
+        public static async Task BackupDatabaseAsync(bool showResult = true) {
             // Get database connection details from config
             var db = CConfigurationManager.GetValue("DatabaseName", "DatabaseConfig");
             var port = CConfigurationManager.GetValue("Port", "DatabaseConfig");
@@ -346,7 +346,9 @@ namespace FerPROJ.DBHelper.Helper {
                 File.WriteAllText(backupPath, result);
             }
 
-            CDialogManager.Info($"Database backup created at: {backupPath}", "Backup Successful");
+            if (showResult) {
+                CDialogManager.Info($"Database backup created at: {backupPath}", "Backup Successful");
+            }
         }
         #endregion
 
