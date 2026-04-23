@@ -125,7 +125,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             query = query.GetAllActiveOnly();
 
-            query = query.OrderByProperty("DateCreated", false);
+            query = query.OrderByProperty("DateMarked", false);
 
             var result = await query.SelectListAsync(async c => {
 
@@ -148,7 +148,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             query = query.GetAllActiveOnly();
 
-            query = query.OrderByProperty("DateCreated", false);
+            query = query.OrderByProperty("DateMarked", false);
 
             var result = await query.SelectListAsync(async c => {
 
@@ -175,7 +175,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             query = query.GetAllActiveOnly();
 
-            query = query.OrderByProperty("DateCreated", false);
+            query = query.OrderByProperty("DateMarked", false);
 
             var result = await query.SelectListAsync(async c => {
 
@@ -198,7 +198,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             query = query.GetAllActiveOnly();
 
-            query = query.OrderByProperty("DateCreated", false);
+            query = query.OrderByProperty("DateMarked", false);
 
             dataLimit = !searchText.IsNullOrEmpty() ||
                         !dateFrom.IsNullOrEmpty() ||

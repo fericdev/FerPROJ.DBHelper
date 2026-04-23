@@ -186,7 +186,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             var property = typeof(T).GetPropertyInfo(propertyName);
 
             if (property == null) {
-                throw new ArgumentException($"Property '{propertyName}' not found on type '{typeof(T).Name}'.");
+                property = typeof(T).GetPropertyInfo("DateCreated");
             }
 
             return ascending
