@@ -22,7 +22,7 @@ namespace FerPROJ.DBHelper.Helper {
 
             // Check if any arguments were passed to avoid "Index out of range"
             if (args.GetIndexValue<bool>()) {
-                DbContextHelper.RunDatabaseMigrationAsync().RunTask();
+                DbContextHelper.RunDatabaseMigrationAsync().RunTaskAndForget();
             }
 
             try {
