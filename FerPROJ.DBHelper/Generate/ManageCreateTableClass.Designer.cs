@@ -33,7 +33,7 @@ namespace FerPROJ.DBHelper.Generate
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle7 = new System.Windows.Forms.DataGridViewCellStyle();
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle8 = new System.Windows.Forms.DataGridViewCellStyle();
-            this.listOfDBCDatagridview1 = new FerPROJ.Design.Controls.CDatagridview();
+            this.listOfDBCDatagridview1 = new FerPROJ.Design.Controls.CDataGridView();
             this.DatabaseName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.panel1 = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
@@ -302,7 +302,7 @@ namespace FerPROJ.DBHelper.Generate
         #endregion
 
         private System.Windows.Forms.Panel panel1;
-        private Design.Controls.CDatagridview listOfDBCDatagridview1;
+        private Design.Controls.CDataGridView listOfDBCDatagridview1;
         private System.Windows.Forms.Panel panel2;
         private Design.Controls.CButton generatecButton1;
         private Design.Controls.CLabelDesc cLabelDesc3;
