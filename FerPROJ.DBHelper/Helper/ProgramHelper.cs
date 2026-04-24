@@ -16,7 +16,7 @@ namespace FerPROJ.DBHelper.Helper {
         public static bool IsLoggedIn {  get; private set; }
         public static async Task InitializeAsync<DbContext>(string[] args, Assembly assembly) {
             //
-            CAssembly.SetAssembly<DbContext>(Assembly.GetExecutingAssembly());
+            CAssembly.SetAssembly<DbContext>(assembly);
 
             // Backup
             await DbContextHelper.BackupDatabaseAsync(false);
