@@ -13,31 +13,43 @@ using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.Helper {
     public static class ProgramHelper {
-        public static bool IsLoggedIn {  get; private set; }
-        public static async Task InitializeAsync<DbContext>(string[] args, Assembly assembly) {
+        public static bool Initialize<DbContext>(string[] args, Assembly assembly) {
             //
             CAssembly.SetAssembly<DbContext>(assembly);
 
             // Backup
-            await DbContextHelper.BackupDatabaseAsync(false);
+            DbContextHelper.BackupDatabaseAsync(false).RunTask();
 
             // Check if any arguments were passed to avoid "Index out of range"
             if (args.GetIndexValue<bool>()) {
-                await DbContextHelper.RunDatabaseMigrationAsync();
+                DbContextHelper.RunDatabaseMigrationAsync().RunTask();
             }
 
             try {
+                var isLoggedIn = false;
                 if (CConfigurationManager.IsLoginSkipped()) {
-                    IsLoggedIn = await new UserRepository().CheckCredentialsAsync();
+                    isLoggedIn = new UserRepository().CheckCredentialsAsync().RunTask();
                 }
 
-                if (!IsLoggedIn) {
-                    IsLoggedIn = await CFormLayer.ManageAsync<FrmLogin>();
+                if (!isLoggedIn) {
+                    isLoggedIn = CFormLayer.ManageAsync<FrmLogin>().RunTask();
                 }
+
+                if (isLoggedIn) {
+                    LoadCacheAsync();
+                }
+
+                return isLoggedIn;
             }
             catch (Exception ex) {
                 CDialogManager.Warning(ex.Message);
             }
+            return false;
+        }
+        private static async void LoadCacheAsync() {
+            await FrmSplasher.ShowSplashAsync(
+                CacheManager.GetCacheLoadTasks("LMS.Repository")
+            );
         }
 
     }
