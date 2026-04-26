@@ -55,9 +55,9 @@ namespace FerPROJ.DBHelper.DBExtensions {
         }
 
         private static Expression BuildDateExpression<T>(ParameterExpression param, DateTime? dateFrom, DateTime? dateTo, string propertyName) {
-            
+
             var property = Expression.Property(param, propertyName);
-            
+
             Expression greaterThanOrEqual = null;
             Expression lessThanOrEqual = null;
 
@@ -148,15 +148,23 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
         #region Search by Text
         public static IQueryable<T> SearchText<T>(this IQueryable<T> queryable, string searchText) {
-            if (string.IsNullOrEmpty(searchText)) {
-                return queryable; // Return original query if searchText is empty.
-            }
+            if (string.IsNullOrWhiteSpace(searchText))
+                return queryable;
 
-            // Get the properties of the type and all its base classes
+            // Split search terms (OR logic)
+            var searchTerms = searchText
+                .Split(';')
+                .Select(x => x.Trim())
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
+
+            if (!searchTerms.Any())
+                return queryable;
+
+            // Get all string properties (including inherited)
             var properties = new List<PropertyInfo>();
             Type type = typeof(T);
 
-            // Traverse up the inheritance hierarchy to get all string properties
             while (type != null) {
                 properties.AddRange(
                     type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
@@ -165,44 +173,40 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 type = type.BaseType;
             }
 
-            if (!properties.Any()) {
-                return queryable; // Return original query if no string properties are found.
-            }
+            if (!properties.Any())
+                return queryable;
 
-            // Create parameter for the entity
             ParameterExpression parameter = Expression.Parameter(typeof(T), "x");
 
-            // Initialize the expression for the OR condition
             Expression combinedExpression = null;
 
+            // Build expression: (prop.Contains(term1) OR prop.Contains(term2) ...)
             foreach (var property in properties) {
-                // Create the property expression
-                MemberExpression propertyExpression = Expression.Property(parameter, property);
+                var propertyExpression = Expression.Property(parameter, property);
 
-                // Check if the property is of type string and build the "Contains" check
-                if (property.PropertyType == typeof(string)) {
-                    // Create the method call expression for the Contains method
-                    MethodInfo containsMethod = typeof(string).GetMethod("Contains", new[] { typeof(string) });
-                    MethodCallExpression containsExpression = Expression.Call(propertyExpression, containsMethod, Expression.Constant(searchText));
+                foreach (var term in searchTerms) {
+                    // x.Property != null
+                    var notNull = Expression.NotEqual(propertyExpression, Expression.Constant(null, typeof(string)));
 
-                    // Combine the expression with OR if it's the first one or use OR for subsequent properties
-                    if (combinedExpression == null) {
-                        combinedExpression = containsExpression;
-                    }
-                    else {
-                        combinedExpression = Expression.OrElse(combinedExpression, containsExpression);
-                    }
+                    // x.Property.Contains(term)
+                    var containsMethod = typeof(string).GetMethod(nameof(string.Contains), new[] { typeof(string) });
+                    var containsCall = Expression.Call(propertyExpression, containsMethod, Expression.Constant(term));
 
+                    // null check + contains
+                    var safeContains = Expression.AndAlso(notNull, containsCall);
+
+                    // OR everything together
+                    combinedExpression = combinedExpression == null
+                        ? safeContains
+                        : Expression.OrElse(combinedExpression, safeContains);
                 }
             }
 
-            // If no matching properties found, return the original query
-            if (combinedExpression == null) {
+            if (combinedExpression == null)
                 return queryable;
-            }
 
-            // Create the lambda expression and apply the predicate to filter the IQueryable collection
-            Expression<Func<T, bool>> predicate = Expression.Lambda<Func<T, bool>>(combinedExpression, parameter);
+            var predicate = Expression.Lambda<Func<T, bool>>(combinedExpression, parameter);
+
             return queryable.Where(predicate);
         }
 
