@@ -19,7 +19,6 @@ namespace FerPROJ.DBHelper.DBCrud
         public string Endpoint { get; set; }
         protected BaseApiRepository()
         {
-            Endpoint = Endpoint?.Trim('/') ?? throw new ArgumentNullException(nameof(Endpoint));
             _httpClient = new HttpClient { BaseAddress = new Uri(CAppConstants.API_BASE_URL.TrimEnd('/') + "/") };
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         }
@@ -60,7 +59,7 @@ namespace FerPROJ.DBHelper.DBCrud
         // GET: With search/query params
         public virtual async Task<TEntity> GetByPredicateAsync(Expression<Func<TEntity, bool>> predicate)
         {
-            var response = await _httpClient.GetAsync(GetUrl() + "?" + predicate.ToQuery());
+            var response = await _httpClient.GetAsync(GetUrl() + "?action=get&" + predicate.ToQuery());
             response.EnsureSuccessStatusCode();
             var json = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<TEntity>(json);
@@ -89,7 +88,7 @@ namespace FerPROJ.DBHelper.DBCrud
 
             var json = JsonConvert.SerializeObject(model);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync(GetUrl(), content);
+            var response = await _httpClient.PostAsync(GetUrl() + "?action=save", content);
             response.EnsureSuccessStatusCode();
             return true;
         }
