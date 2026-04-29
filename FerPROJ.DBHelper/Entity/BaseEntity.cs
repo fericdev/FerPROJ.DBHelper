@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FerPROJ.Design.Class;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace FerPROJ.DBHelper.Entity {
@@ -15,7 +16,7 @@ namespace FerPROJ.DBHelper.Entity {
         public string ModifiedBy { get; set; } = null;
         public Guid? ModifiedById { get; set; } = null;
         public string Status { get; set; }
-        public string ApplicationId { get; set; }
+        public string ApplicationId { get; set; } = CConfigurationManager.GetValue("ApplicationId", "DatabaseConfig");
     }
     public partial class BaseEntityItem {
         [Key]
