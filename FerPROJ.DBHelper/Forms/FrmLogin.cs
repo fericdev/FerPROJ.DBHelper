@@ -15,6 +15,7 @@ using System.Windows.Forms;
 
 namespace FerPROJ.DBHelper.Forms {
     public partial class FrmLogin : FrmManageKrypton {
+        public string SystemName = "Management System";
         UserModel userModel = new UserModel();
         public FrmLogin() {
             InitializeComponent();
@@ -23,6 +24,7 @@ namespace FerPROJ.DBHelper.Forms {
             userModelBindingSource.DataSource = userModel;
             userModel.UserName = CConfigurationManager.GetRememberedUsername(cbRememberMe, userNameCTextBoxKrypton);
             CConfigurationManager.SkipLogin(cbSkipLogin);
+            systemNameCLabelTitle.Text = $"{SystemName} Management System";
             await Task.CompletedTask;
         }
         private async void cButtonLogin_Click(object sender, EventArgs e) {

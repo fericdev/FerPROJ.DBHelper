@@ -25,6 +25,7 @@
         private void InitializeComponent() {
             this.components = new System.ComponentModel.Container();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.cbSkipLogin = new System.Windows.Forms.CheckBox();
             this.cButtonClose = new FerPROJ.Design.Controls.CButtonKrypton();
             this.cbRememberMe = new System.Windows.Forms.CheckBox();
             this.cButtonLogin = new FerPROJ.Design.Controls.CButtonKrypton();
@@ -35,18 +36,13 @@
             this.userNameCTextBoxKrypton = new FerPROJ.Design.Controls.CTextBoxKrypton();
             this.cLabelTitle1 = new FerPROJ.Design.Controls.CLabelTitle();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.cLabelTitle4 = new FerPROJ.Design.Controls.CLabelTitle();
-            this.cbSkipLogin = new System.Windows.Forms.CheckBox();
+            this.systemNameCLabelTitle = new FerPROJ.Design.Controls.CLabelTitle();
             this.basePnl2.SuspendLayout();
             this.PanelMain3.SuspendLayout();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.userModelBindingSource)).BeginInit();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // basePnl2
-            // 
-            this.basePnl2.Location = new System.Drawing.Point(389, 1);
             // 
             // baseButtonUpdate
             // 
@@ -71,10 +67,6 @@
             // 
             this.baseButtonAddNew.FlatAppearance.BorderSize = 0;
             // 
-            // panelMain1
-            // 
-            this.panelMain1.Size = new System.Drawing.Size(624, 73);
-            // 
             // panel2
             // 
             this.panel2.BackColor = System.Drawing.SystemColors.ControlLight;
@@ -94,6 +86,17 @@
             this.panel2.Size = new System.Drawing.Size(467, 433);
             this.panel2.TabIndex = 1;
             // 
+            // cbSkipLogin
+            // 
+            this.cbSkipLogin.AutoSize = true;
+            this.cbSkipLogin.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.cbSkipLogin.Location = new System.Drawing.Point(310, 285);
+            this.cbSkipLogin.Name = "cbSkipLogin";
+            this.cbSkipLogin.Size = new System.Drawing.Size(99, 20);
+            this.cbSkipLogin.TabIndex = 21;
+            this.cbSkipLogin.Text = "Skip Login";
+            this.cbSkipLogin.UseVisualStyleBackColor = true;
+            // 
             // cButtonClose
             // 
             this.cButtonClose.Location = new System.Drawing.Point(250, 311);
@@ -103,7 +106,7 @@
             this.cButtonClose.StateCommon.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
             | Krypton.Toolkit.PaletteDrawBorders.Left) 
             | Krypton.Toolkit.PaletteDrawBorders.Right)));
-            this.cButtonClose.StateCommon.Border.Rounding = 15;
+            this.cButtonClose.StateCommon.Border.Rounding = 15F;
             this.cButtonClose.StateCommon.Content.ShortText.Color1 = System.Drawing.Color.White;
             this.cButtonClose.StateCommon.Content.ShortText.Color2 = System.Drawing.Color.White;
             this.cButtonClose.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Tahoma", 10F);
@@ -111,11 +114,12 @@
             this.cButtonClose.StateNormal.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
             | Krypton.Toolkit.PaletteDrawBorders.Left) 
             | Krypton.Toolkit.PaletteDrawBorders.Right)));
-            this.cButtonClose.StateNormal.Border.Rounding = 15;
+            this.cButtonClose.StateNormal.Border.Rounding = 15F;
             this.cButtonClose.StateNormal.Content.ShortText.Color1 = System.Drawing.Color.White;
             this.cButtonClose.StateNormal.Content.ShortText.Color2 = System.Drawing.Color.White;
             this.cButtonClose.StateNormal.Content.ShortText.Font = new System.Drawing.Font("Tahoma", 10F);
             this.cButtonClose.TabIndex = 20;
+            this.cButtonClose.Values.DropDownArrowColor = System.Drawing.Color.Empty;
             this.cButtonClose.Values.Text = "Close";
             this.cButtonClose.Click += new System.EventHandler(this.cButtonClose_Click);
             // 
@@ -139,7 +143,7 @@
             this.cButtonLogin.StateCommon.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
             | Krypton.Toolkit.PaletteDrawBorders.Left) 
             | Krypton.Toolkit.PaletteDrawBorders.Right)));
-            this.cButtonLogin.StateCommon.Border.Rounding = 15;
+            this.cButtonLogin.StateCommon.Border.Rounding = 15F;
             this.cButtonLogin.StateCommon.Content.ShortText.Color1 = System.Drawing.Color.White;
             this.cButtonLogin.StateCommon.Content.ShortText.Color2 = System.Drawing.Color.White;
             this.cButtonLogin.StateCommon.Content.ShortText.Font = new System.Drawing.Font("Tahoma", 10F);
@@ -147,11 +151,12 @@
             this.cButtonLogin.StateNormal.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
             | Krypton.Toolkit.PaletteDrawBorders.Left) 
             | Krypton.Toolkit.PaletteDrawBorders.Right)));
-            this.cButtonLogin.StateNormal.Border.Rounding = 15;
+            this.cButtonLogin.StateNormal.Border.Rounding = 15F;
             this.cButtonLogin.StateNormal.Content.ShortText.Color1 = System.Drawing.Color.White;
             this.cButtonLogin.StateNormal.Content.ShortText.Color2 = System.Drawing.Color.White;
             this.cButtonLogin.StateNormal.Content.ShortText.Font = new System.Drawing.Font("Tahoma", 10F);
             this.cButtonLogin.TabIndex = 18;
+            this.cButtonLogin.Values.DropDownArrowColor = System.Drawing.Color.Empty;
             this.cButtonLogin.Values.Text = "Login";
             this.cButtonLogin.Click += new System.EventHandler(this.cButtonLogin_Click);
             // 
@@ -178,7 +183,7 @@
             this.passwordCTextBoxKrypton.StateActive.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
             | Krypton.Toolkit.PaletteDrawBorders.Left) 
             | Krypton.Toolkit.PaletteDrawBorders.Right)));
-            this.passwordCTextBoxKrypton.StateActive.Border.Rounding = 10;
+            this.passwordCTextBoxKrypton.StateActive.Border.Rounding = 10F;
             this.passwordCTextBoxKrypton.StateActive.Content.Color1 = System.Drawing.Color.Black;
             this.passwordCTextBoxKrypton.StateCommon.Back.Color1 = System.Drawing.Color.WhiteSmoke;
             this.passwordCTextBoxKrypton.StateCommon.Border.Color1 = System.Drawing.Color.White;
@@ -186,7 +191,7 @@
             this.passwordCTextBoxKrypton.StateCommon.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
             | Krypton.Toolkit.PaletteDrawBorders.Left) 
             | Krypton.Toolkit.PaletteDrawBorders.Right)));
-            this.passwordCTextBoxKrypton.StateCommon.Border.Rounding = 10;
+            this.passwordCTextBoxKrypton.StateCommon.Border.Rounding = 10F;
             this.passwordCTextBoxKrypton.StateCommon.Content.Color1 = System.Drawing.Color.Black;
             this.passwordCTextBoxKrypton.StateDisabled.Back.Color1 = System.Drawing.Color.WhiteSmoke;
             this.passwordCTextBoxKrypton.StateDisabled.Border.Color1 = System.Drawing.Color.White;
@@ -194,7 +199,7 @@
             this.passwordCTextBoxKrypton.StateDisabled.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
             | Krypton.Toolkit.PaletteDrawBorders.Left) 
             | Krypton.Toolkit.PaletteDrawBorders.Right)));
-            this.passwordCTextBoxKrypton.StateDisabled.Border.Rounding = 10;
+            this.passwordCTextBoxKrypton.StateDisabled.Border.Rounding = 10F;
             this.passwordCTextBoxKrypton.StateDisabled.Content.Color1 = System.Drawing.Color.Black;
             this.passwordCTextBoxKrypton.StateNormal.Back.Color1 = System.Drawing.Color.WhiteSmoke;
             this.passwordCTextBoxKrypton.StateNormal.Border.Color1 = System.Drawing.Color.White;
@@ -202,7 +207,7 @@
             this.passwordCTextBoxKrypton.StateNormal.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
             | Krypton.Toolkit.PaletteDrawBorders.Left) 
             | Krypton.Toolkit.PaletteDrawBorders.Right)));
-            this.passwordCTextBoxKrypton.StateNormal.Border.Rounding = 10;
+            this.passwordCTextBoxKrypton.StateNormal.Border.Rounding = 10F;
             this.passwordCTextBoxKrypton.StateNormal.Content.Color1 = System.Drawing.Color.Black;
             this.passwordCTextBoxKrypton.TabIndex = 16;
             this.passwordCTextBoxKrypton.UseSystemPasswordChar = true;
@@ -233,7 +238,7 @@
             this.userNameCTextBoxKrypton.StateActive.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
             | Krypton.Toolkit.PaletteDrawBorders.Left) 
             | Krypton.Toolkit.PaletteDrawBorders.Right)));
-            this.userNameCTextBoxKrypton.StateActive.Border.Rounding = 10;
+            this.userNameCTextBoxKrypton.StateActive.Border.Rounding = 10F;
             this.userNameCTextBoxKrypton.StateActive.Content.Color1 = System.Drawing.Color.Black;
             this.userNameCTextBoxKrypton.StateCommon.Back.Color1 = System.Drawing.Color.WhiteSmoke;
             this.userNameCTextBoxKrypton.StateCommon.Border.Color1 = System.Drawing.Color.White;
@@ -241,7 +246,7 @@
             this.userNameCTextBoxKrypton.StateCommon.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
             | Krypton.Toolkit.PaletteDrawBorders.Left) 
             | Krypton.Toolkit.PaletteDrawBorders.Right)));
-            this.userNameCTextBoxKrypton.StateCommon.Border.Rounding = 10;
+            this.userNameCTextBoxKrypton.StateCommon.Border.Rounding = 10F;
             this.userNameCTextBoxKrypton.StateCommon.Content.Color1 = System.Drawing.Color.Black;
             this.userNameCTextBoxKrypton.StateDisabled.Back.Color1 = System.Drawing.Color.WhiteSmoke;
             this.userNameCTextBoxKrypton.StateDisabled.Border.Color1 = System.Drawing.Color.White;
@@ -249,7 +254,7 @@
             this.userNameCTextBoxKrypton.StateDisabled.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
             | Krypton.Toolkit.PaletteDrawBorders.Left) 
             | Krypton.Toolkit.PaletteDrawBorders.Right)));
-            this.userNameCTextBoxKrypton.StateDisabled.Border.Rounding = 10;
+            this.userNameCTextBoxKrypton.StateDisabled.Border.Rounding = 10F;
             this.userNameCTextBoxKrypton.StateDisabled.Content.Color1 = System.Drawing.Color.Black;
             this.userNameCTextBoxKrypton.StateNormal.Back.Color1 = System.Drawing.Color.WhiteSmoke;
             this.userNameCTextBoxKrypton.StateNormal.Border.Color1 = System.Drawing.Color.White;
@@ -257,7 +262,7 @@
             this.userNameCTextBoxKrypton.StateNormal.Border.DrawBorders = ((Krypton.Toolkit.PaletteDrawBorders)((((Krypton.Toolkit.PaletteDrawBorders.Top | Krypton.Toolkit.PaletteDrawBorders.Bottom) 
             | Krypton.Toolkit.PaletteDrawBorders.Left) 
             | Krypton.Toolkit.PaletteDrawBorders.Right)));
-            this.userNameCTextBoxKrypton.StateNormal.Border.Rounding = 10;
+            this.userNameCTextBoxKrypton.StateNormal.Border.Rounding = 10F;
             this.userNameCTextBoxKrypton.StateNormal.Content.Color1 = System.Drawing.Color.Black;
             this.userNameCTextBoxKrypton.TabIndex = 2;
             // 
@@ -275,35 +280,24 @@
             // 
             this.panel1.BackgroundImage = global::FerPROJ.DBHelper.Properties.Resources.login_bg;
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel1.Controls.Add(this.cLabelTitle4);
+            this.panel1.Controls.Add(this.systemNameCLabelTitle);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(479, 433);
             this.panel1.TabIndex = 2;
             // 
-            // cLabelTitle4
+            // systemNameCLabelTitle
             // 
-            this.cLabelTitle4.BackColor = System.Drawing.Color.Transparent;
-            this.cLabelTitle4.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.cLabelTitle4.Font = new System.Drawing.Font("Impact", 54.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cLabelTitle4.ForeColor = System.Drawing.Color.White;
-            this.cLabelTitle4.Location = new System.Drawing.Point(0, 0);
-            this.cLabelTitle4.Name = "cLabelTitle4";
-            this.cLabelTitle4.Size = new System.Drawing.Size(477, 431);
-            this.cLabelTitle4.TabIndex = 2;
-            this.cLabelTitle4.Text = "LETCHON MANAGEMENT SYSTEM";
-            // 
-            // cbSkipLogin
-            // 
-            this.cbSkipLogin.AutoSize = true;
-            this.cbSkipLogin.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.cbSkipLogin.Location = new System.Drawing.Point(310, 285);
-            this.cbSkipLogin.Name = "cbSkipLogin";
-            this.cbSkipLogin.Size = new System.Drawing.Size(99, 20);
-            this.cbSkipLogin.TabIndex = 21;
-            this.cbSkipLogin.Text = "Skip Login";
-            this.cbSkipLogin.UseVisualStyleBackColor = true;
+            this.systemNameCLabelTitle.BackColor = System.Drawing.Color.Transparent;
+            this.systemNameCLabelTitle.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.systemNameCLabelTitle.Font = new System.Drawing.Font("Impact", 54.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.systemNameCLabelTitle.ForeColor = System.Drawing.Color.White;
+            this.systemNameCLabelTitle.Location = new System.Drawing.Point(0, 0);
+            this.systemNameCLabelTitle.Name = "systemNameCLabelTitle";
+            this.systemNameCLabelTitle.Size = new System.Drawing.Size(477, 431);
+            this.systemNameCLabelTitle.TabIndex = 2;
+            this.systemNameCLabelTitle.Text = "LETCHON MANAGEMENT SYSTEM";
             // 
             // FrmLogin
             // 
@@ -314,6 +308,13 @@
             this.HideFooter = true;
             this.HideHeader = true;
             this.Name = "FrmLogin";
+            this.StateCommon.Back.Color1 = System.Drawing.Color.RoyalBlue;
+            this.StateCommon.Back.Color2 = System.Drawing.Color.RoyalBlue;
+            this.StateCommon.Border.Color1 = System.Drawing.Color.RoyalBlue;
+            this.StateCommon.Border.Color2 = System.Drawing.Color.RoyalBlue;
+            this.StateCommon.Header.Back.Color2 = System.Drawing.Color.RoyalBlue;
+            this.StateCommon.Header.Border.Color1 = System.Drawing.Color.RoyalBlue;
+            this.StateCommon.Header.Border.Color2 = System.Drawing.Color.RoyalBlue;
             this.Text = "FrmLogin";
             this.basePnl2.ResumeLayout(false);
             this.PanelMain3.ResumeLayout(false);
@@ -337,7 +338,7 @@
         private Design.Controls.CLabelTitle cLabelTitle2;
         private Design.Controls.CTextBoxKrypton userNameCTextBoxKrypton;
         private Design.Controls.CLabelTitle cLabelTitle1;
-        private Design.Controls.CLabelTitle cLabelTitle4;
+        private Design.Controls.CLabelTitle systemNameCLabelTitle;
         private System.Windows.Forms.BindingSource userModelBindingSource;
         private System.Windows.Forms.CheckBox cbSkipLogin;
     }

@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.Helper {
     public static class ProgramHelper {
-        public static bool Initialize<DbContext>(string[] args, Assembly assembly) {
+        public static bool Initialize<DbContext>(string[] args, Assembly assembly, string systemName) {
             //
             CAssembly.SetAssembly<DbContext>(assembly);
 
@@ -32,7 +32,7 @@ namespace FerPROJ.DBHelper.Helper {
                 }
 
                 if (!isLoggedIn) {
-                    isLoggedIn = CFormLayer.ManageAsync<FrmLogin>().RunTask();
+                    isLoggedIn = CFormLayer.ManageAsync<FrmLogin>(parameters: c => c.SystemName = systemName).RunTask();
                 }
 
                 if (isLoggedIn) {

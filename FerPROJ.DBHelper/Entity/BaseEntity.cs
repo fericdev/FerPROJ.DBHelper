@@ -15,6 +15,7 @@ namespace FerPROJ.DBHelper.Entity {
         public string ModifiedBy { get; set; } = null;
         public Guid? ModifiedById { get; set; } = null;
         public string Status { get; set; }
+        public string ApplicationId { get; set; }
     }
     public partial class BaseEntityItem {
         [Key]

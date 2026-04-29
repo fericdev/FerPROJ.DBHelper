@@ -349,7 +349,7 @@ namespace FerPROJ.DBHelper.Helper {
             if (showResult) {
                 CDialogManager.Info($"Database backup created at: {backupPath}", "Backup Successful");
             }
-            await CGoogleDriveManager.UploadAsync(backupPath, "LMS-Backup");
+            await CGoogleDriveManager.UploadAsync(backupPath, $"{db}-Backup");
         }
         #endregion
 
