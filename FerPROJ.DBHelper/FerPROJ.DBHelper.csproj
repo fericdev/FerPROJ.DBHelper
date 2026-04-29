@@ -83,10 +83,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DBCrud\BaseApiRepository.cs" />
     <Compile Include="DBCrud\BaseDbContext.cs" />
     <Compile Include="DBCrud\BaseRepository.cs" />
     <Compile Include="DBCrud\BaseMySqlRepository.cs" />
     <Compile Include="DBCrud\BaseRepositoryHelper.cs" />
+    <Compile Include="DBExtensions\ExpressionExtensions.cs" />
     <Compile Include="Entity\BaseEntity.cs" />
     <Compile Include="Helper\MySqlHelper.cs" />
     <Compile Include="DBCache\CacheManager.cs" />

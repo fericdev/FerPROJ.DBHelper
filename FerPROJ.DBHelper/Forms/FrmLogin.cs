@@ -16,7 +16,7 @@ using System.Windows.Forms;
 namespace FerPROJ.DBHelper.Forms {
     public partial class FrmLogin : FrmManageKrypton {
         public string SystemName = "Management System";
-        UserModel userModel = new UserModel();
+        public UserModel userModel = new UserModel();
         public FrmLogin() {
             InitializeComponent();
         }
