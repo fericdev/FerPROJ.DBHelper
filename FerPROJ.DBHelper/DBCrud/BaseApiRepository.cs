@@ -13,122 +13,71 @@ using FerPROJ.DBHelper.DBExtensions;
 
 namespace FerPROJ.DBHelper.DBCrud
 {
-    public abstract class BaseApiRepository<TModel, TEntity, TType> : IDisposable where TModel : BaseModel where TEntity : BaseEntity
-    {
-        protected readonly HttpClient _httpClient;
+    public abstract class BaseApiRepository<TModel, TEntity, TType>
+        where TModel : BaseModel
+        where TEntity : BaseEntity {
         public string Endpoint { get; set; }
-        protected BaseApiRepository()
-        {
-            _httpClient = new HttpClient { BaseAddress = new Uri(CAppConstants.API_BASE_URL.TrimEnd('/') + "/") };
-            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        }
 
-        public void Dispose()
-        {
-            _httpClient?.Dispose();
-        }
+        protected string GetUrl(params object[] segments) {
+            var sb = new StringBuilder(Endpoint);
 
-        protected string GetUrl(params object[] segments)
-        {
-            var url = new StringBuilder(Endpoint);
             foreach (var seg in segments)
-            {
-                url.Append($"/{seg}");
-            }
-            return url.ToString();
+                sb.Append($"/{seg}");
+
+            return sb.ToString();
         }
 
-        // GET: List
-        public virtual async Task<IEnumerable<TEntity>> GetAllAsync()
-        {
-            var response = await _httpClient.GetAsync(GetUrl());
-            response.EnsureSuccessStatusCode();
-            var json = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<IEnumerable<TEntity>>(json);
+        // ✅ GET ALL
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync() {
+            return await CApiManager.GetAsync<List<TEntity>>(GetUrl());
         }
 
-        // GET: By Id
-        public virtual async Task<TEntity> GetByIdAsync(TType id)
-        {
-            var response = await _httpClient.GetAsync(GetUrl(id));
-            response.EnsureSuccessStatusCode();
-            var json = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<TEntity>(json);
+        // ✅ GET BY ID
+        public virtual async Task<TEntity> GetByIdAsync(TType id) {
+            return await CApiManager.GetAsync<TEntity>(GetUrl(id));
         }
 
-        // GET: With search/query params
-        public virtual async Task<TEntity> GetByPredicateAsync(Expression<Func<TEntity, bool>> predicate)
-        {
-            var response = await _httpClient.GetAsync(GetUrl() + "?action=get&" + predicate.ToQuery());
-            response.EnsureSuccessStatusCode();
-            var json = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<TEntity>(json);
+        // ✅ SEARCH
+        public virtual async Task<TEntity> GetByPredicateAsync(Expression<Func<TEntity, bool>> predicate) {
+            var url = GetUrl() + "?action=get&" + predicate.ToQuery();
+            return await CApiManager.GetAsync<TEntity>(url);
         }
 
-        // POST: Create
-        public virtual async Task<bool> SaveDTOAsync(TModel model, bool enabledValidation = false)
-        {
-            if (model == null)
-                throw new ArgumentNullException($"{nameof(model)} is null!");
+        // ✅ CREATE
+        public virtual async Task<bool> SaveDTOAsync(TModel model, bool validate = false) {
+            ValidateModel(model, validate);
 
-            if (enabledValidation && !model.DataValidation())
-            {
-                var sb = new StringBuilder();
-                if (!string.IsNullOrEmpty(model.Error))
-                    sb.AppendLine("Error 1: " + model.Error);
-                if (!string.IsNullOrEmpty(model.ErrorMessage))
-                    sb.AppendLine("Error 2: " + model.ErrorMessage);
-                if (model.ErrorMessages.Length > 0)
-                    sb.AppendLine("Error 3: " + model.ErrorMessages.ToString());
-                throw new ArgumentException(sb.ToString());
-            }
+            await CApiManager.PostAsync<TModel, object>(
+                GetUrl() + "?action=save", model);
 
-            if (!model.Success)
-                throw new ArgumentException(model.Error);
-
-            var json = JsonConvert.SerializeObject(model);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync(GetUrl() + "?action=save", content);
-            response.EnsureSuccessStatusCode();
             return true;
         }
 
-        // PUT: Update
-        public virtual async Task<bool> UpdateDTOAsync(TType id, TModel model, bool enabledValidation = false)
-        {
-            if (model == null)
-                throw new ArgumentNullException($"{nameof(model)} is null!");
+        // ✅ UPDATE
+        public virtual async Task<bool> UpdateDTOAsync(TType id, TModel model, bool validate = false) {
+            ValidateModel(model, validate);
 
-            if (enabledValidation && !model.DataValidation())
-            {
-                var sb = new StringBuilder();
-                if (!string.IsNullOrEmpty(model.Error))
-                    sb.AppendLine("Error 1: " + model.Error);
-                if (!string.IsNullOrEmpty(model.ErrorMessage))
-                    sb.AppendLine("Error 2: " + model.ErrorMessage);
-                if (model.ErrorMessages.Length > 0)
-                    sb.AppendLine("Error 3: " + model.ErrorMessages.ToString());
-                throw new ArgumentException(sb.ToString());
-            }
-
-            if (!model.Success)
-                throw new ArgumentException(model.Error);
-
-            var json = JsonConvert.SerializeObject(model);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await _httpClient.PutAsync(GetUrl(id), content);
-            response.EnsureSuccessStatusCode();
-            return true;
+            return await CApiManager.PutAsync(GetUrl(id), model);
         }
 
-        // DELETE
-        public virtual async Task<bool> DeleteByIdAsync(TType id)
-        {
+        // ✅ DELETE
+        public virtual async Task<bool> DeleteByIdAsync(TType id) {
             if (id == null)
-                throw new ArgumentNullException($"{nameof(id)} is null!");
-            var response = await _httpClient.DeleteAsync(GetUrl(id));
-            response.EnsureSuccessStatusCode();
-            return true;
+                throw new ArgumentNullException(nameof(id));
+
+            return await CApiManager.DeleteAsync(GetUrl(id));
+        }
+
+        // 🔹 SHARED VALIDATION
+        private void ValidateModel(TModel model, bool validate) {
+            if (model == null)
+                throw new ArgumentNullException(nameof(model));
+
+            if (validate && !model.DataValidation())
+                throw new ArgumentException(model.ErrorMessage);
+
+            if (!model.Success)
+                throw new ArgumentException(model.Error);
         }
     }
 }
