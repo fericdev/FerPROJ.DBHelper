@@ -16,7 +16,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
     public class QueryBuilderVisitor : ExpressionVisitor {
         private readonly StringBuilder _query = new StringBuilder();
 
-        public string GetQuery() => _query.ToString().TrimStart('&');
+        public string GetQuery() => _query.ToString();
 
         protected override Expression VisitBinary(BinaryExpression node) {
             if (node.NodeType == ExpressionType.AndAlso) {
