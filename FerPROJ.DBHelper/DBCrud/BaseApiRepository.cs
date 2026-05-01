@@ -110,12 +110,12 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         // ✅ GET ALL
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync() {
-            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelPrefix, typeof(TEntity).Name, async () => {
+            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListEntityPrefix, typeof(TEntity).Name, async () => {
                 return await CApiManager.GetAsync<List<TEntity>>(GetUrl(ActionTypes.Get));
             });
         }
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(string url) {
-            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelPrefix, typeof(TEntity).Name + url, async () => {
+            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListEntityPrefix, typeof(TEntity).Name + url, async () => {
                 return await CApiManager.GetAsync<List<TEntity>>(url);
             });
         }
@@ -270,12 +270,12 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         #region Base GET for Item
         public virtual async Task<IEnumerable<TEntityItem>> GetAllItemsAsync() {
-            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelItemPrefix, typeof(TEntityItem).Name, async () => {
+            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListEntityItemPrefix, typeof(TEntityItem).Name, async () => {
                 return await CApiManager.GetAsync<List<TEntityItem>>(GetItemUrl(ActionTypes.Get));
             });
         }
         public virtual async Task<IEnumerable<TEntityItem>> GetAllItemsAsync(string url) {
-            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelItemPrefix, typeof(TEntity).Name + url, async () => {
+            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListEntityItemPrefix, typeof(TEntity).Name + url, async () => {
                 return await CApiManager.GetAsync<List<TEntityItem>>(url);
             });
         }
