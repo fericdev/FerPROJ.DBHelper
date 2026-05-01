@@ -73,7 +73,7 @@ namespace FerPROJ.DBHelper.DBCrud
             return await UpdateDataAsync(id, entity);
         }
         public virtual async Task<bool> UpdateDataAsync(TType id, TEntity entity) {
-            return await CApiManager.PutAsync(GetUrl(id), entity);
+            return await CApiManager.PutAsync(GetUrl(id) + "?action=update", entity);
         }
 
         // ✅ DELETE
@@ -81,7 +81,7 @@ namespace FerPROJ.DBHelper.DBCrud
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
 
-            return await CApiManager.DeleteAsync(GetUrl(id));
+            return await CApiManager.DeleteAsync(GetUrl(id) + "?action=delete");
         }
 
         // 🔹 SHARED VALIDATION
