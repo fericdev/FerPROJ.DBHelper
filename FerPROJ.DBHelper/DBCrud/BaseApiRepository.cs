@@ -110,10 +110,14 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         // ✅ GET ALL
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync() {
-            return await CApiManager.GetAsync<List<TEntity>>(GetUrl(ActionTypes.Get));
+            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelPrefix, typeof(TEntity).Name, async () => {
+                return await CApiManager.GetAsync<List<TEntity>>(GetUrl(ActionTypes.Get));
+            });
         }
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(string url) {
-            return await CApiManager.GetAsync<List<TEntity>>(url);
+            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelPrefix, typeof(TEntity).Name + url, async () => {
+                return await CApiManager.GetAsync<List<TEntity>>(url);
+            });
         }
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> predicate) {
             var url = GetUrl(ActionTypes.Get) + predicate.ToQuery();
@@ -144,7 +148,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                 var entity = model.ToDestination<TEntity>();
 
                 await SaveDataAsync(entity);
-
+                ClearCache();
                 return true;
             }
             return false;
@@ -162,12 +166,13 @@ namespace FerPROJ.DBHelper.DBCrud {
                 var existingEntity = await GetByIdAsync(model.Id);
 
                 var entity = model.ToDestination(existingEntity);
-
+                ClearCache();
                 return await UpdateDataAsync(entity);
             }
             return false;
         }
         public virtual async Task<bool> UpdateDataAsync(TEntity entity) {
+            ClearCache();
             return await CApiManager.PostAsync(GetUrl(ActionTypes.Update), entity);
         }
 
@@ -178,6 +183,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             }
 
             if (CDialogManager.Ask("Are you sure to delete this data?", "Confirmation")) {
+                ClearCache();
                 return await CApiManager.DeleteAsync(GetUrl(ActionTypes.Delete, ("Id", id)));
             }
             return false;
@@ -204,6 +210,16 @@ namespace FerPROJ.DBHelper.DBCrud {
             }
 
             return sb.ToString();
+        }
+        protected void ClearCache() {
+            CacheManager.ClearCacheByPrefix(CacheManager.ModelPrefix);
+            CacheManager.ClearCacheByPrefix(CacheManager.ListModelPrefix);
+            CacheManager.ClearCacheByPrefix(CacheManager.ModelItemPrefix);
+            CacheManager.ClearCacheByPrefix(CacheManager.ListModelItemPrefix);
+            CacheManager.ClearCacheByPrefix(CacheManager.EntityItemPrefix);
+            CacheManager.ClearCacheByPrefix(CacheManager.EntityPrefix);
+            CacheManager.ClearCacheByPrefix(CacheManager.ListEntityPrefix);
+            CacheManager.ClearCacheByPrefix(CacheManager.ListEntityItemPrefix);
         }
         #endregion
     }
@@ -254,10 +270,14 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         #region Base GET for Item
         public virtual async Task<IEnumerable<TEntityItem>> GetAllItemsAsync() {
-            return await CApiManager.GetAsync<List<TEntityItem>>(GetItemUrl(ActionTypes.Get));
+            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelItemPrefix, typeof(TEntityItem).Name, async () => {
+                return await CApiManager.GetAsync<List<TEntityItem>>(GetItemUrl(ActionTypes.Get));
+            });
         }
         public virtual async Task<IEnumerable<TEntityItem>> GetAllItemsAsync(string url) {
-            return await CApiManager.GetAsync<List<TEntityItem>>(url);
+            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelItemPrefix, typeof(TEntity).Name + url, async () => {
+                return await CApiManager.GetAsync<List<TEntityItem>>(url);
+            });
         }
         public virtual async Task<IEnumerable<TEntityItem>> GetAllItemsAsync(Expression<Func<TEntityItem, bool>> predicate) {
             var url = GetItemUrl(ActionTypes.Get) + predicate.ToQuery();
