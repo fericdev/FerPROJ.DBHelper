@@ -140,12 +140,14 @@ namespace FerPROJ.DBHelper.DBCrud {
             if (!IsResultSuccess(model, validate)) {
                 return false;
             }
+            if (CDialogManager.Ask("Are you sure to save this data?", "Confirmation")) {
+                var entity = model.ToDestination<TEntity>();
 
-            var entity = model.ToDestination<TEntity>();
+                await SaveDataAsync(entity);
 
-            await SaveDataAsync(entity);
-
-            return true;
+                return true;
+            }
+            return false;
         }
         public virtual async Task SaveDataAsync(TEntity entity) {
             await CApiManager.PostAsync<TEntity, object>(GetUrl(ActionTypes.Save), entity);
@@ -153,16 +155,17 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         // ✅ UPDATE
         public virtual async Task<bool> UpdateDTOAsync(TModel model, bool validate = false) {
-
             if (!IsResultSuccess(model, validate)) {
                 return false;
             }
+            if (CDialogManager.Ask("Are you sure to update this data?", "Confirmation")) {
+                var existingEntity = await GetByIdAsync(model.Id);
 
-            var existingEntity = await GetByIdAsync(model.Id);
+                var entity = model.ToDestination(existingEntity);
 
-            var entity = model.ToDestination(existingEntity);
-
-            return await UpdateDataAsync(entity);
+                return await UpdateDataAsync(entity);
+            }
+            return false;
         }
         public virtual async Task<bool> UpdateDataAsync(TEntity entity) {
             return await CApiManager.PostAsync(GetUrl(ActionTypes.Update), entity);
@@ -170,10 +173,14 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         // ✅ DELETE
         public virtual async Task<bool> DeleteByIdAsync(TType id) {
-            if (id == null)
+            if (id == null) {
                 throw new ArgumentNullException(nameof(id));
+            }
 
-            return await CApiManager.DeleteAsync(GetUrl(ActionTypes.Delete, ("Id", id)));
+            if (CDialogManager.Ask("Are you sure to delete this data?", "Confirmation")) {
+                return await CApiManager.DeleteAsync(GetUrl(ActionTypes.Delete, ("Id", id)));
+            }
+            return false;
         }
         #endregion
 
