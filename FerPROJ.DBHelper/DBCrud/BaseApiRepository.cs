@@ -33,7 +33,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             return entity.ToDestination<TModel>();
         }
-        public virtual async Task<TModel> GetPrepareModelByIdAsync(TType id) {
+        public virtual async Task<TModel> GetPrepareModelByIdAsync(Guid id) {
             var entity = await GetByIdAsync(id);
             return await CacheManager.GetOrCreateCacheAsync(CacheManager.ModelPrefix, id, async () => {
                 return await GetPrepareModelByEntityAsync(entity);
@@ -121,8 +121,8 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
 
         // ✅ GET BY ID
-        public virtual async Task<TEntity> GetByIdAsync(TType id) {
-            var result = await GetAllAsync(GetUrl(ActionTypes.Get, id));
+        public virtual async Task<TEntity> GetByIdAsync(Guid id) {
+            var result = await GetAllAsync(GetUrl(ActionTypes.Get, ("Id", id)));
             return result.FirstOrDefault();
         }
 
@@ -137,7 +137,9 @@ namespace FerPROJ.DBHelper.DBCrud {
         #region CRUD
         // ✅ CREATE
         public virtual async Task<bool> SaveDTOAsync(TModel model, bool validate = false) {
-            ValidateModel(model, validate);
+            if (!IsResultSuccess(model, validate)) {
+                return false;
+            }
 
             var entity = model.ToDestination<TEntity>();
 
@@ -150,15 +152,20 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
 
         // ✅ UPDATE
-        public virtual async Task<bool> UpdateDTOAsync(TType id, TModel model, bool validate = false) {
-            ValidateModel(model, validate);
+        public virtual async Task<bool> UpdateDTOAsync(TModel model, bool validate = false) {
 
-            var entity = model.ToDestination<TEntity>();
+            if (!IsResultSuccess(model, validate)) {
+                return false;
+            }
 
-            return await UpdateDataAsync(id, entity);
+            var existingEntity = await GetByIdAsync(model.Id);
+
+            var entity = model.ToDestination(existingEntity);
+
+            return await UpdateDataAsync(model.Id, entity);
         }
-        public virtual async Task<bool> UpdateDataAsync(TType id, TEntity entity) {
-            return await CApiManager.PostAsync(GetUrl(ActionTypes.Update, id), entity);
+        public virtual async Task<bool> UpdateDataAsync(Guid id, TEntity entity) {
+            return await CApiManager.PostAsync(GetUrl(ActionTypes.Update, ("Id", id)), entity);
         }
 
         // ✅ DELETE
@@ -166,34 +173,27 @@ namespace FerPROJ.DBHelper.DBCrud {
             if (id == null)
                 throw new ArgumentNullException(nameof(id));
 
-            return await CApiManager.DeleteAsync(GetUrl(ActionTypes.Delete, id));
+            return await CApiManager.DeleteAsync(GetUrl(ActionTypes.Delete, ("Id", id)));
         }
         #endregion
 
         #region Validation
         // 🔹 SHARED VALIDATION
-        private void ValidateModel(TModel model, bool validate) {
-            if (model == null)
-                throw new ArgumentNullException(nameof(model));
-
-            if (validate && !model.DataValidation())
-                throw new ArgumentException(model.ErrorMessage);
-
-            if (!model.Success)
-                throw new ArgumentException(model.Error);
+        private bool IsResultSuccess(TModel model, bool validate) {
+            return model.DataValidationResult();
         }
         #endregion
 
         #region Utilities
-        protected string GetUrl(ActionTypes actionType, params object[] segments) {
+        protected string GetUrl(ActionTypes actionType, params (string Key, object Value)[] segments) {
             var sb = new StringBuilder(_endpoint);
 
             sb.Append($"?action={actionType.ToString().ToLower()}");
 
             foreach (var seg in segments) {
-                if (seg == null) continue;
+                if (seg.Value == null) continue;
 
-                sb.Append($"&value={Uri.EscapeDataString(seg.ToString())}");
+                sb.Append($"&{seg.Key}={Uri.EscapeDataString(seg.Value.ToString())}");
             }
 
             return sb.ToString();
