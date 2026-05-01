@@ -10,6 +10,7 @@ using FerPROJ.Design.Class;
 using System.Linq.Expressions;
 using FerPROJ.DBHelper.Entity;
 using FerPROJ.DBHelper.DBExtensions;
+using System.Linq;
 
 namespace FerPROJ.DBHelper.DBCrud
 {
@@ -21,8 +22,9 @@ namespace FerPROJ.DBHelper.DBCrud
         protected string GetUrl(params object[] segments) {
             var sb = new StringBuilder(Endpoint);
 
-            foreach (var seg in segments)
+            foreach (var seg in segments) {
                 sb.Append($"/{seg}");
+            }
 
             return sb.ToString();
         }
@@ -31,33 +33,47 @@ namespace FerPROJ.DBHelper.DBCrud
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync() {
             return await CApiManager.GetAsync<List<TEntity>>(GetUrl());
         }
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(string url) {
+            return await CApiManager.GetAsync<List<TEntity>>(url);
+        }
 
         // ✅ GET BY ID
         public virtual async Task<TEntity> GetByIdAsync(TType id) {
-            return await CApiManager.GetAsync<TEntity>(GetUrl(id));
+            var result = await GetAllAsync(GetUrl(id));
+            return result.FirstOrDefault();
         }
 
         // ✅ SEARCH
         public virtual async Task<TEntity> GetByPredicateAsync(Expression<Func<TEntity, bool>> predicate) {
             var url = GetUrl() + "?action=get&" + predicate.ToQuery();
-            return await CApiManager.GetAsync<TEntity>(url);
+            var result = await GetAllAsync(url);
+            return result.FirstOrDefault();
         }
 
         // ✅ CREATE
         public virtual async Task<bool> SaveDTOAsync(TModel model, bool validate = false) {
             ValidateModel(model, validate);
 
-            await CApiManager.PostAsync<TModel, object>(
-                GetUrl() + "?action=save", model);
+            var entity = model.ToDestination<TEntity>();
+
+            await SaveDataAsync(entity);
 
             return true;
+        }
+        public virtual async Task SaveDataAsync(TEntity entity) {
+            await CApiManager.PostAsync<TEntity, object>(GetUrl() + "?action=save", entity);
         }
 
         // ✅ UPDATE
         public virtual async Task<bool> UpdateDTOAsync(TType id, TModel model, bool validate = false) {
             ValidateModel(model, validate);
 
-            return await CApiManager.PutAsync(GetUrl(id), model);
+            var entity = model.ToDestination<TEntity>();
+
+            return await UpdateDataAsync(id, entity);
+        }
+        public virtual async Task<bool> UpdateDataAsync(TType id, TEntity entity) {
+            return await CApiManager.PutAsync(GetUrl(id), entity);
         }
 
         // ✅ DELETE
