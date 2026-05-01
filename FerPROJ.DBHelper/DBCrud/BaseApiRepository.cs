@@ -73,7 +73,7 @@ namespace FerPROJ.DBHelper.DBCrud
             return await UpdateDataAsync(id, entity);
         }
         public virtual async Task<bool> UpdateDataAsync(TType id, TEntity entity) {
-            return await CApiManager.PutAsync(GetUrl(id) + "?action=update", entity);
+            return await CApiManager.PostAsync(GetUrl(id) + "?action=update", entity);
         }
 
         // ✅ DELETE
