@@ -13,8 +13,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FerPROJ.DBHelper.DBCrud
-{
+namespace FerPROJ.DBHelper.DBCrud {
     public abstract class BaseApiRepository<TModel, TEntity, TType>
         where TModel : BaseModel
         where TEntity : BaseEntity {
@@ -63,6 +62,8 @@ namespace FerPROJ.DBHelper.DBCrud
                         !dateTo.IsNullOrEmpty() ? int.MaxValue : dataLimit;
 
             query = query.GetAllActiveOnly();
+
+            query = query.Where(c => c.ApplicationId == CAppConstants.APPLLICATION_ID);
 
             query = query.OrderByProperty("DateMarked", false);
 
@@ -127,7 +128,7 @@ namespace FerPROJ.DBHelper.DBCrud
 
         // ✅ SEARCH
         public virtual async Task<TEntity> GetByPredicateAsync(Expression<Func<TEntity, bool>> predicate) {
-            var url = GetUrl(ActionTypes.Get) +  predicate.ToQuery();
+            var url = GetUrl(ActionTypes.Get) + predicate.ToQuery();
             var result = await GetAllAsync(url);
             return result.FirstOrDefault();
         }

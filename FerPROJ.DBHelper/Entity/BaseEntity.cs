@@ -16,7 +16,7 @@ namespace FerPROJ.DBHelper.Entity {
         public string ModifiedBy { get; set; } = null;
         public Guid? ModifiedById { get; set; } = null;
         public string Status { get; set; }
-        public string ApplicationId { get; set; } = CConfigurationManager.GetValue("ApplicationId", "DatabaseConfig");
+        public string ApplicationId { get; set; } = CAppConstants.APPLLICATION_ID;
     }
     public partial class BaseEntityItem {
         [Key]
