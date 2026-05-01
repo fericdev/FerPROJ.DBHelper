@@ -185,7 +185,7 @@ namespace FerPROJ.DBHelper.DBCrud {
         #endregion
 
         #region Utilities
-        protected string GetUrl(ActionTypes actionType, params (string Key, object Value)[] segments) {
+        protected virtual string GetUrl(ActionTypes actionType, params (string Key, object Value)[] segments) {
             var sb = new StringBuilder(_endpoint);
 
             sb.Append($"?action={actionType.ToString().ToLower()}");
@@ -199,6 +199,84 @@ namespace FerPROJ.DBHelper.DBCrud {
             return sb.ToString();
         }
         #endregion
+    }
+    public abstract class BaseItemApiRepository<TModel, TModelItem, TEntity, TEntityItem> : BaseApiRepository<TModel, TEntity, Guid>
+        where TModel : BaseFormModel<TModelItem>
+        where TModelItem : BaseModelItem
+        where TEntityItem : BaseEntityItem
+        where TEntity : BaseEntity {
+
+        protected readonly string _endpointItem;
+
+        #region CTOR
+        protected BaseItemApiRepository(string endpoint, string endpointItem) : base(endpoint) {
+            _endpointItem = endpointItem;
+        }
+        #endregion
+
+        #region Base GET for Model Item
+        public override async Task<TModel> GetPrepareModelByEntityAsync(TEntity entity) {
+            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ModelPrefix, entity.GetPropertyValue<string>("Id"), async () => {
+                var model = await base.GetPrepareModelByEntityAsync(entity);
+                model.Items = await GetPrepareModelItemsByParentIdAsync(entity.Id);
+                return model;
+            });
+        }
+        public virtual async Task<List<TModelItem>> GetPrepareModelItemsByParentIdAsync(Guid parentId) {
+
+            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelItemPrefix, parentId, async () => {
+
+                var entities = await GetAllItemsByParentIdAsync(parentId);
+
+                var modelItems = new List<TModelItem>();
+
+                foreach (var entity in entities) {
+
+                    var modelItem = await GetPrepareModelItemByEntityAsync(entity);
+
+                    modelItems.Add(modelItem);
+                }
+
+                return modelItems;
+            });
+        }
+        public virtual async Task<TModelItem> GetPrepareModelItemByEntityAsync(TEntityItem entity) {
+            return entity.ToDestination<TModelItem>();
+        }
+        #endregion
+
+        #region Base GET for Item
+        public virtual async Task<IEnumerable<TEntityItem>> GetAllItemsAsync() {
+            return await CApiManager.GetAsync<List<TEntityItem>>(GetItemUrl(ActionTypes.Get));
+        }
+        public virtual async Task<IEnumerable<TEntityItem>> GetAllItemsAsync(string url) {
+            return await CApiManager.GetAsync<List<TEntityItem>>(url);
+        }
+        public virtual async Task<IEnumerable<TEntityItem>> GetAllItemsAsync(Expression<Func<TEntityItem, bool>> predicate) {
+            var url = GetItemUrl(ActionTypes.Get) + predicate.ToQuery();
+            return await GetAllItemsAsync(url);
+        }
+        public virtual async Task<IEnumerable<TEntityItem>> GetAllItemsByParentIdAsync(Guid parentId) {
+            return await GetAllItemsAsync(c => c.ParentId.Equals(parentId));
+        }
+        #endregion
+
+        #region Utilities
+        protected string GetItemUrl(ActionTypes actionType, params (string Key, object Value)[] segments) {
+            var sb = new StringBuilder(_endpointItem);
+
+            sb.Append($"?action={actionType.ToString().ToLower()}");
+
+            foreach (var seg in segments) {
+                if (seg.Value == null) continue;
+
+                sb.Append($"&{seg.Key}={Uri.EscapeDataString(seg.Value.ToString())}");
+            }
+
+            return sb.ToString();
+        }
+        #endregion
+
     }
     public enum ActionTypes {
         Get,
