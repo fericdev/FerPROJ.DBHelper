@@ -2,63 +2,95 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.Query {
     public static class MySqlQueryHelper {
-        public static string GetDateRangeWord(DateTime dtpFrom, DateTime dtpTo) {
-            return $"From {dtpFrom.ToString("MMMM dd, yyyy")} To {dtpTo.ToString("MMMM dd, yyyy")}";
-        }
-        public static string GetMultipleSearchIN(List<string> Values, string ColumnName) {
-            string i = $"{ColumnName} IN(";
-            foreach (var item in Values) {
-                i += $"'{item}',";
-            }
-            i = i.TrimEnd(',');
-            i += ")";
-            return i;
-        }
-        public static string GetMultipleSearchLIKE(string Value, List<string> ColumnsName) {
-            string i = string.Empty;
-            if(Value == null || Value == "") {
-                Value = "%";
-            }
-            if (ColumnsName.Count > 0) {
-                i = $"({ColumnsName[0]} LIKE '%{Value}%'";
+        public static TableSchema BuildSchema<T>() {
+            var type = typeof(T);
 
-                for (int j = 1; j < ColumnsName.Count; j++) {
-                    i += $" OR {ColumnsName[j]} LIKE '%{Value}%'";
+            var table = new TableSchema {
+                TableName = type.Name,
+            };
+
+            foreach (var prop in type.GetProperties()) {
+                // Skip ignored
+                if (prop.GetCustomAttribute<IgnoreColumnAttribute>() != null)
+                    continue;
+
+                var column = new ColumnSchema {
+                    Name = prop.Name,
+                    Type = ResolveSqlType(prop),
+                };
+
+                // Check for primary key
+                if (prop.GetCustomAttribute<PrimaryKeyAttribute>() != null) {
+                    column.IsPrimary = true;
                 }
-                i += ")";
+                else if(prop.Name.Equals("Id")) {
+                    column.IsPrimary = true; 
+                }
+
+                table.Columns.Add(column);
             }
 
-            return i;
+            return table;
         }
-        public static string GetSearchLIKE(string Value, string ColumnName) {
-            return $"{ColumnName} LIKE '%{Value}%'";
-        }
-        public static string GetSelectAll(string TableName) {
-            return $"SELECT * FROM {TableName} ORDER BY DataReference ASC";
-        }
-        public static string GetSelectAll(string TableName, string Where) {
-            if (!Where.ToUpper().Contains("WHERE")) {
-                string oWhere = Where;
-                Where = $"WHERE {oWhere}";
-            }
-            return $"SELECT * FROM {TableName} {Where}";
-        }
-        public static string GetSelectINNERJOIN(string TableName1, string TableName2, string Id) {
-            return $"SELECT * FROM {TableName1} tbl1 INNER JOIN {TableName2} tbl2 ON tbl1.{Id} = tbl2.{Id}";
-        }
-        public static string GetSelectINNERJOIN(string TableName1, string TableName2, string Id, string Where) {
-            return $"SELECT * FROM {TableName1} tbl1 INNER JOIN {TableName2} tbl2 ON tbl1.{Id} = tbl2.{Id} {Where}";
-        }
-        public static string GetSelectJOIN(string JoinType,string TableName1, string TableName2, string Id, string Where) {
-            return $"SELECT * FROM {TableName1} tbl1 {JoinType} {TableName2} tbl2 ON tbl1.{Id} = tbl2.{Id} {Where}";
-        }
-        public static string GetSelectJOIN(string JoinType, string TableName1, string TableName2, string Id) {
-            return $"SELECT * FROM {TableName1} tbl1 {JoinType} {TableName2} tbl2 ON tbl1.{Id} = tbl2.{Id}";
+
+        private static string ResolveSqlType(PropertyInfo prop) {
+            // If manually specified, use it
+            var customType = prop.GetCustomAttribute<ColumnTypeAttribute>();
+            if (customType != null)
+                return customType.Type;
+
+            // Default mappings
+            var type = prop.PropertyType;
+
+            if (type == typeof(int)) return "int";
+            if (type == typeof(long)) return "bigint";
+            if (type == typeof(short)) return "smallint";
+            if (type == typeof(byte)) return "tinyint unsigned";
+            if (type == typeof(bool)) return "tinyint(1)";
+            if (type == typeof(decimal)) return "decimal(18,2)";
+            if (type == typeof(float)) return "float";
+            if (type == typeof(double)) return "double";
+            if (type == typeof(string)) return "varchar(255)";
+            if (type == typeof(DateTime)) return "datetime";
+            if (type == typeof(Guid)) return "char(36)";
+            if (type == typeof(byte[])) return "blob";
+
+            return "text"; // fallback
         }
     }
+
+    #region Table Schema
+    public class TableSchema {
+        public string TableName { get; set; }
+        public List<ColumnSchema> Columns { get; set; } = new List<ColumnSchema>();
+    }
+
+    public class ColumnSchema {
+        public string Name { get; set; }
+        public string Type { get; set; }
+        public bool IsPrimary { get; set; }
+    }
+    #endregion
+
+    #region Attributes
+    [AttributeUsage(AttributeTargets.Property)]
+    public class PrimaryKeyAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Property)]
+    public class IgnoreColumnAttribute : Attribute { }
+
+    [AttributeUsage(AttributeTargets.Property)]
+    public class ColumnTypeAttribute : Attribute {
+        public string Type { get; }
+        public ColumnTypeAttribute(string type) {
+            Type = type;
+        }
+    }
+    #endregion
 }

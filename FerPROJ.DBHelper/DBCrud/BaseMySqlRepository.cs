@@ -97,19 +97,11 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         protected abstract void DeleteData(TType id);
         //
-        public string SelectAll<T>(string search) where T : new() {
-            var columnToSearch = CAccessManager.GetMemberName<T>();
-            return $"SELECT * FROM {_tableName} WHERE {MySqlQueryHelper.GetMultipleSearchLIKE(search, columnToSearch)}";
-        }
         public string SelectAll() {
             return $"SELECT * FROM {_tableName}";
         }
         public string SelectAll(string sWhere) {
             return $"SELECT * FROM {_tableName} {sWhere}";
-        }
-        public string SelectAllDetails<T>(string search) where T : new() {
-            var columnToSearch = CAccessManager.GetMemberName<T>();
-            return $"SELECT * FROM {_tableDetailsName} WHERE {MySqlQueryHelper.GetMultipleSearchLIKE(search, columnToSearch)}";
         }
         public string OrderBy(string columnName = "DateReference", Sort sort = Sort.DESC) {
             return $" ORDER BY {columnName} {sort}";
