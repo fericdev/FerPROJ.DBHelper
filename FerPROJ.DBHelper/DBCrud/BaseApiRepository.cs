@@ -162,10 +162,10 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             var entity = model.ToDestination(existingEntity);
 
-            return await UpdateDataAsync(model.Id, entity);
+            return await UpdateDataAsync(entity);
         }
-        public virtual async Task<bool> UpdateDataAsync(Guid id, TEntity entity) {
-            return await CApiManager.PostAsync(GetUrl(ActionTypes.Update, ("Id", id)), entity);
+        public virtual async Task<bool> UpdateDataAsync(TEntity entity) {
+            return await CApiManager.PostAsync(GetUrl(ActionTypes.Update), entity);
         }
 
         // ✅ DELETE
