@@ -843,6 +843,13 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         #endregion
 
+        #region Trigger Update
+        public async Task<bool> TriggerUpdateAsync(Guid id) {
+            var model = await GetPrepareModelByIdAsync(id);
+            return await UpdateModelAsync(model, model.Items);
+        }
+        #endregion
+
         #region Remarks
         public async Task<bool> SaveRemarksDTOAsync(RemarksModel myDTO) {
             myDTO.DataValidationResult();
