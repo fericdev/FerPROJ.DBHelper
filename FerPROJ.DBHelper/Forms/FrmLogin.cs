@@ -44,7 +44,6 @@ namespace FerPROJ.DBHelper.Forms {
         }
         protected override void InitializeKeyboardShortcuts() {
             keyboardShortcuts[Keys.F1] = () => { DbContextHelper.OpenDatabaseConfiguration(); return Task.CompletedTask; };
-            keyboardShortcuts[Keys.F2] = () => { return CFormLayer.ManageAsync<FrmCompany>(parameters: c => c.HideSaveNew = true); };
         }
     }
 }
