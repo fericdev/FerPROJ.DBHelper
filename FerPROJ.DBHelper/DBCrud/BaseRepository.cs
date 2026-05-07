@@ -846,7 +846,9 @@ namespace FerPROJ.DBHelper.DBCrud {
         #region Trigger Update
         public async Task<bool> TriggerUpdateAsync(Guid id) {
             var model = await GetPrepareModelByIdAsync(id);
-            return await UpdateModelAsync(model, model.Items);
+            await UpdateModelAsync(model, model.Items, enabledValidation: true);
+            await CEventManager<TEntity>.RaiseOnListFormRefreshAsync();
+            return true;
         }
         #endregion
 
