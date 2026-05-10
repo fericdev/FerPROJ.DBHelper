@@ -140,7 +140,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         #region CRUD
         // ✅ CREATE
-        public virtual async Task<bool> SaveDTOAsync(TModel model, bool validate = false) {
+        public virtual async Task<bool> SaveModelAsync(TModel model, bool validate = false) {
             if (!IsResultSuccess(model, validate)) {
                 return false;
             }
@@ -153,12 +153,16 @@ namespace FerPROJ.DBHelper.DBCrud {
             }
             return false;
         }
-        public virtual async Task SaveDataAsync(TEntity entity) {
-            await CApiManager.PostAsync<TEntity, object>(GetUrl(ActionTypes.Save), entity);
+        public virtual async Task<TEntity> SaveDataAsync(TEntity entity) {
+            var result = await CApiManager.PostAsync<TEntity, object>(GetUrl(ActionTypes.Save), entity);
+            if (!result.IsNullOrEmpty()) {
+                return result.ToDestination<TEntity>();
+            }
+            return default;
         }
 
         // ✅ UPDATE
-        public virtual async Task<bool> UpdateDTOAsync(TModel model, bool validate = false) {
+        public virtual async Task<bool> UpdateModelAsync(TModel model, bool validate = false) {
             if (!IsResultSuccess(model, validate)) {
                 return false;
             }
@@ -172,7 +176,6 @@ namespace FerPROJ.DBHelper.DBCrud {
             return false;
         }
         public virtual async Task<bool> UpdateDataAsync(TEntity entity) {
-            ClearCache();
             return await CApiManager.PostAsync(GetUrl(ActionTypes.Update), entity);
         }
 
@@ -285,6 +288,66 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task<IEnumerable<TEntityItem>> GetAllItemsByParentIdAsync(Guid parentId) {
             return await GetAllItemsAsync(c => c.ParentId.Equals(parentId));
+        }
+        public virtual async Task<TEntityItem> GetItemByIdAsync(Guid id) {
+            var result = await GetAllItemsAsync(c => c.Id == id);
+            return result.FirstOrDefault();
+        }
+        #endregion
+
+        #region Base CRUD for Item
+        public virtual async Task SaveItemDataAsync(TEntityItem entity) {
+            await CApiManager.PostAsync<TEntityItem, object>(GetItemUrl(ActionTypes.Save), entity);
+        }
+        public virtual async Task<bool> UpdateItemDataAsync(TEntityItem entity) {
+            return await CApiManager.PostAsync(GetItemUrl(ActionTypes.Update), entity);
+        }
+        public virtual async Task<bool> DeleteItemByIdAsync(Guid id) {
+            return await CApiManager.DeleteAsync(GetItemUrl(ActionTypes.Delete, ("Id", id)));
+        }
+        public override async Task<bool> SaveModelAsync(TModel model, bool validate = false) {
+            var result = await base.SaveModelAsync(model, validate);
+            if (result) {
+                foreach (var item in model.Items) {
+                    var itemEntity = item.ToDestination<TEntityItem>();
+                    itemEntity.ParentId = model.Id;
+                    await SaveItemDataAsync(itemEntity);
+                }
+                return result;
+            }
+            return false;
+        }
+        public override async Task<bool> UpdateModelAsync(TModel model, bool validate = false) {
+            var result = await base.UpdateModelAsync(model, validate);
+            if (result) {
+                foreach (var item in model.Items) {
+                    var existingEntity = await GetItemByIdAsync(item.Id);
+                    var newEntity = model.ToDestination(existingEntity);
+                    await UpdateItemDataAsync(newEntity);
+                }
+                // Handle deletions
+                var entityItems = new CMappingExtensionList<TModelItem, TEntityItem>().GetMappingResultList(model.Items);
+                var existingItems = await GetAllItemsByParentIdAsync(model.Id);
+
+                // Check for incoming ids
+                var incomingIds = entityItems
+                    .Select(x => x.Id)
+                    .Where(id => !id.IsNullOrEmpty())
+                    .ToHashSet();
+
+                // Items for removal
+                var entityItemsForDeletion = existingItems
+                    .Where(item => !incomingIds.Contains(item.Id))
+                    .ToList();
+
+                // Delete items that are not in the incoming list
+                foreach (var item in entityItemsForDeletion) {
+                    await DeleteItemByIdAsync(item.Id);
+                }
+                return true;
+
+            }
+            return false;
         }
         #endregion
 
