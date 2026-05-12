@@ -1,8 +1,10 @@
 using FerPROJ.DBHelper.DBCache;
 using FerPROJ.DBHelper.DBExtensions;
 using FerPROJ.DBHelper.Entity;
+using FerPROJ.DBHelper.Entity.Cache;
 using FerPROJ.Design.BaseModels;
 using FerPROJ.Design.Class;
+using FerPROJ.Design.FormModels;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -107,16 +109,122 @@ namespace FerPROJ.DBHelper.DBCrud {
         #endregion
 
         #region Get Entity
+        public virtual async Task<IEnumerable<T>> GetAllAsync<T>(
+                Expression<Func<T, bool>> predicate = null,
+                Expression<Func<T, object>> orderBy = null,
+                bool descending = false,
+                int? take = null
+            ) where T : BaseEntity {
+
+            var query = new List<string>();
+
+            // predicate
+            if (predicate != null) {
+                query.Add(predicate.ToQuery());
+            }
+
+            // order by
+            if (orderBy != null) {
+                var memberExpression = orderBy.Body as MemberExpression;
+
+                // handle boxing for value types
+                if (memberExpression == null &&
+                    orderBy.Body is UnaryExpression unary) {
+                    memberExpression =
+                        unary.Operand as MemberExpression;
+                }
+
+                if (memberExpression != null) {
+                    query.Add(
+                        $"orderBy={memberExpression.Member.Name}"
+                    );
+
+                    query.Add(
+                        $"descending={descending}"
+                    );
+                }
+            }
+
+            // take
+            if (take.HasValue) {
+                query.Add($"take={take.Value}");
+            }
+
+            var url = GetUrl(ActionTypes.Get);
+
+            if (query.Any()) {
+                url += "?" + string.Join("&", query);
+            }
+
+            return await GetAllAsync<T>(url);
+        }
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(
+                Expression<Func<TEntity, bool>> predicate = null,
+                Expression<Func<TEntity, object>> orderBy = null,
+                bool descending = false,
+                int? take = null
+            ) {
+
+            var query = new List<string>();
+
+            // predicate
+            if (predicate != null) {
+                query.Add(predicate.ToQuery());
+            }
+
+            // order by
+            if (orderBy != null) {
+                var memberExpression = orderBy.Body as MemberExpression;
+
+                // handle boxing for value types
+                if (memberExpression == null &&
+                    orderBy.Body is UnaryExpression unary) {
+                    memberExpression =
+                        unary.Operand as MemberExpression;
+                }
+
+                if (memberExpression != null) {
+                    query.Add(
+                        $"orderBy={memberExpression.Member.Name}"
+                    );
+
+                    query.Add(
+                        $"descending={descending}"
+                    );
+                }
+            }
+
+            // take
+            if (take.HasValue) {
+                query.Add($"take={take.Value}");
+            }
+
+            var url = GetUrl(ActionTypes.Get);
+
+            if (query.Any()) {
+                url += "?" + string.Join("&", query);
+            }
+
+            return await GetAllAsync<TEntity>(url);
+        }
 
         // ✅ GET ALL
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync() {
+            await SyncCacheAsync();
             return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListEntityPrefix, typeof(TEntity).Name, async () => {
                 return await CApiManager.GetAsync<List<TEntity>>(GetUrl(ActionTypes.Get));
             });
         }
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(string url) {
+            await SyncCacheAsync();
             return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListEntityPrefix, typeof(TEntity).Name + url, async () => {
                 return await CApiManager.GetAsync<List<TEntity>>(url);
+            });
+        }
+        public virtual async Task<IEnumerable<T>> GetAllAsync<T>(string url) where T : BaseEntity {
+            await SyncCacheAsync();
+            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListEntityPrefix, typeof(T).Name + url, async () => {
+                return await CApiManager.GetAsync<List<T>>(url);
             });
         }
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> predicate) {
@@ -136,6 +244,11 @@ namespace FerPROJ.DBHelper.DBCrud {
             var result = await GetAllAsync(url);
             return result.FirstOrDefault();
         }
+        public virtual async Task<T> GetByPredicateAsync<T>(Expression<Func<T, bool>> predicate) where T : BaseEntity {
+            var url = GetUrl(ActionTypes.Get) + predicate.ToQuery();
+            var result = await GetAllAsync<T>(url);
+            return result.FirstOrDefault();
+        }
         #endregion
 
         #region CRUD
@@ -148,7 +261,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                 var entity = model.ToDestination<TEntity>();
 
                 await SaveDataAsync(entity);
-                ClearCache();
+                ClearCacheAsync();
                 return true;
             }
             return false;
@@ -157,6 +270,13 @@ namespace FerPROJ.DBHelper.DBCrud {
             var result = await CApiManager.PostAsync<TEntity, object>(GetUrl(ActionTypes.Save), entity);
             if (!result.IsNullOrEmpty()) {
                 return result.ToDestination<TEntity>();
+            }
+            return default;
+        }
+        public virtual async Task<T> SaveDataAsync<T>(T entity) where T : BaseEntity {
+            var result = await CApiManager.PostAsync<T, object>(GetUrl(ActionTypes.Save), entity);
+            if (!result.IsNullOrEmpty()) {
+                return result.ToDestination<T>();
             }
             return default;
         }
@@ -170,12 +290,15 @@ namespace FerPROJ.DBHelper.DBCrud {
                 var existingEntity = await GetByIdAsync(model.Id);
 
                 var entity = model.ToDestination(existingEntity);
-                ClearCache();
+                await ClearCacheAsync();
                 return await UpdateDataAsync(entity);
             }
             return false;
         }
         public virtual async Task<bool> UpdateDataAsync(TEntity entity) {
+            return await CApiManager.PostAsync(GetUrl(ActionTypes.Update), entity);
+        }
+        public virtual async Task<bool> UpdateDataAsync<T>(T entity) where T : BaseEntity {
             return await CApiManager.PostAsync(GetUrl(ActionTypes.Update), entity);
         }
 
@@ -186,7 +309,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             }
 
             if (CDialogManager.Ask("Are you sure to delete this data?", "Confirmation")) {
-                ClearCache();
+                await ClearCacheAsync();
                 return await CApiManager.DeleteAsync(GetUrl(ActionTypes.Delete, ("Id", id)));
             }
             return false;
@@ -197,6 +320,43 @@ namespace FerPROJ.DBHelper.DBCrud {
         // 🔹 SHARED VALIDATION
         private bool IsResultSuccess(TModel model, bool validate) {
             return model.DataValidationResult();
+        }
+        #endregion
+
+        #region Sync Logic
+        public virtual async Task UpdateCacheVersionAsync() {
+
+            var latestVersion = await GetAllAsync<CacheVersion>(orderBy: c => c.VersionNo, descending: true, take: 1);
+
+            var serverVersion = latestVersion.FirstOrDefault();
+
+            if (serverVersion.IsNullOrEmpty()) {
+                serverVersion = new CacheVersion {
+                    Id = Guid.NewGuid(),
+                    VersionNo = 1,
+                    DateCreated = DateTime.Now,
+                };
+                await SaveDataAsync(serverVersion);
+            }
+            else {
+                serverVersion.VersionNo += 1;
+                serverVersion.DateModified = DateTime.Now;
+                await UpdateDataAsync(serverVersion);
+            }
+
+            CConfigurationManager.CreateOrSetValue(nameof(CacheVersion.VersionNo), serverVersion.ToString(), nameof(CacheVersion));
+        }
+        public virtual async Task SyncCacheAsync() {
+
+            var latestVersion = await GetAllAsync<CacheVersion>(orderBy: c => c.VersionNo, descending: true, take: 1);
+
+            var serverVersion = latestVersion.FirstOrDefault();
+
+            var localVersion = CConfigurationManager.GetValue<int>(nameof(CacheVersion.VersionNo), nameof(CacheVersion));
+
+            if (serverVersion.VersionNo > localVersion) {
+                await ClearCacheAsync();
+            }
         }
         #endregion
 
@@ -214,7 +374,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             return sb.ToString();
         }
-        protected void ClearCache() {
+        protected async Task ClearCacheAsync() {
             CacheManager.ClearCacheByPrefix(CacheManager.ModelPrefix);
             CacheManager.ClearCacheByPrefix(CacheManager.ListModelPrefix);
             CacheManager.ClearCacheByPrefix(CacheManager.ModelItemPrefix);
@@ -223,6 +383,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             CacheManager.ClearCacheByPrefix(CacheManager.EntityPrefix);
             CacheManager.ClearCacheByPrefix(CacheManager.ListEntityPrefix);
             CacheManager.ClearCacheByPrefix(CacheManager.ListEntityItemPrefix);
+            await UpdateCacheVersionAsync();
         }
         #endregion
     }
@@ -242,6 +403,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         #region Base GET for Model Item
         public override async Task<TModel> GetPrepareModelByEntityAsync(TEntity entity) {
+            await SyncCacheAsync();
             return await CacheManager.GetOrCreateCacheAsync(CacheManager.ModelPrefix, entity.GetPropertyValue<string>("Id"), async () => {
                 var model = await base.GetPrepareModelByEntityAsync(entity);
                 model.Items = await GetPrepareModelItemsByParentIdAsync(entity.Id);
@@ -249,7 +411,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             });
         }
         public virtual async Task<List<TModelItem>> GetPrepareModelItemsByParentIdAsync(Guid parentId) {
-
+            await SyncCacheAsync();
             return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelItemPrefix, parentId, async () => {
 
                 var entities = await GetAllItemsByParentIdAsync(parentId);

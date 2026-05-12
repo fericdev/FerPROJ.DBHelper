@@ -90,6 +90,7 @@
     <Compile Include="DBCrud\BaseRepositoryHelper.cs" />
     <Compile Include="DBExtensions\ExpressionExtensions.cs" />
     <Compile Include="Entity\BaseEntity.cs" />
+    <Compile Include="Entity\Cache\CacheVersion.cs" />
     <Compile Include="Helper\MySqlHelper.cs" />
     <Compile Include="DBCache\CacheManager.cs" />
     <Compile Include="DBExtensions\DbContextExtensions.cs" />
