@@ -1,36 +1,137 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.DBExtensions {
-    public static class ExpressionExtensions  {
+    public static class ExpressionExtensions {
         public static string ToQuery<T>(this Expression<Func<T, bool>> expression) {
             var visitor = new QueryBuilderVisitor();
-            visitor.Visit(expression);
+            visitor.Visit(expression.Body);
             return visitor.GetQuery();
         }
     }
+
     public class QueryBuilderVisitor : ExpressionVisitor {
+
         private readonly StringBuilder _query = new StringBuilder();
 
         public string GetQuery() => _query.ToString();
 
         protected override Expression VisitBinary(BinaryExpression node) {
-            if (node.NodeType == ExpressionType.AndAlso) {
-                Visit(node.Left);
-                Visit(node.Right);
-            }
-            else if (node.NodeType == ExpressionType.Equal) {
-                var member = (MemberExpression)node.Left;
-                var constant = GetValue(node.Right);
+            switch (node.NodeType) {
+                case ExpressionType.AndAlso:
+                    Visit(node.Left);
+                    Visit(node.Right);
+                    break;
 
-                _query.Append($"&{member.Member.Name}={constant}");
+                case ExpressionType.Equal:
+                    AppendComparison(node, "=");
+                    break;
+
+                case ExpressionType.NotEqual:
+                    AppendComparison(node, "!=");
+                    break;
+
+                case ExpressionType.GreaterThan:
+                    AppendComparison(node, ">");
+                    break;
+
+                case ExpressionType.GreaterThanOrEqual:
+                    AppendComparison(node, ">=");
+                    break;
+
+                case ExpressionType.LessThan:
+                    AppendComparison(node, "<");
+                    break;
+
+                case ExpressionType.LessThanOrEqual:
+                    AppendComparison(node, "<=");
+                    break;
             }
 
             return node;
+        }
+
+        protected override Expression VisitUnary(UnaryExpression node) {
+            // Handles: !x.Flag OR !x.Equals(y)
+            if (node.NodeType == ExpressionType.Not) {
+                // Case: !x.Equals(y)
+                if (node.Operand is MethodCallExpression call &&
+                    call.Method.Name == "Equals") {
+                    var member = call.Object as MemberExpression;
+                    var value = GetValue(call.Arguments[0]);
+
+                    _query.Append($"&{GetMemberName(member)}!={value}");
+                    return node;
+                }
+
+                // Case: !boolFlag
+                if (node.Operand is MemberExpression memberExpr) {
+                    _query.Append($"&{GetMemberName(memberExpr)}=false");
+                    return node;
+                }
+            }
+
+            return base.VisitUnary(node);
+        }
+
+        protected override Expression VisitMethodCall(MethodCallExpression node) {
+            // Handles: x.Equals(value)
+            if (node.Method.Name == "Equals") {
+                if (node.Object is MemberExpression member) {
+                    var value = GetValue(node.Arguments[0]);
+                    _query.Append($"&{GetMemberName(member)}={value}");
+                    return node;
+                }
+
+                // static string.Equals(a, b)
+                if (node.Arguments.Count == 2) {
+                    var memberExpr = node.Arguments[0] as MemberExpression;
+                    var value = GetValue(node.Arguments[1]);
+
+                    _query.Append($"&{GetMemberName(memberExpr)}={value}");
+                    return node;
+                }
+            }
+
+            return base.VisitMethodCall(node);
+        }
+
+        private void AppendComparison(BinaryExpression node, string op) {
+            var leftMember = ExtractMember(node.Left);
+            var rightValue = GetValue(node.Right);
+
+            if (leftMember == null) {
+                leftMember = ExtractMember(node.Right);
+                rightValue = GetValue(node.Left);
+            }
+
+            if (leftMember == null)
+                return;
+
+            _query.Append($"&{leftMember.Member.Name}{op}{rightValue}");
+        }
+
+        private MemberExpression ExtractMember(Expression expression) {
+            if (expression == null) return null;
+
+            if (expression is MemberExpression member)
+                return member;
+
+            if (expression is UnaryExpression unary)
+                return ExtractMember(unary.Operand);
+
+            if (expression is LambdaExpression lambda)
+                return ExtractMember(lambda.Body);
+
+            if (expression is MethodCallExpression call && call.Object != null)
+                return ExtractMember(call.Object);
+
+            return null;
+        }
+
+        private string GetMemberName(MemberExpression member) {
+            return member?.Member?.Name ?? string.Empty;
         }
 
         private object GetValue(Expression expression) {
