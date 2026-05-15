@@ -51,7 +51,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         #region Get View Model
         public virtual async Task<(IEnumerable<TModel> ModelItems, int TotalCount)> GetViewModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int page, int dataLimit = int.MaxValue) {
-
+            await SyncCacheAsync();
             if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate() && !searchText.IsNullOrEmpty()) {
                 dateFrom = null;
                 dateTo = null;
@@ -80,7 +80,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             return (result, query.Count());
         }
         public virtual async Task<(IEnumerable<TModel> ModelItems, int TotalCount)> GetViewModelWithSearchAsync(Expression<Func<TEntity, bool>> whereCondition, string searchText, DateTime? dateFrom, DateTime? dateTo, int page, int dataLimit = int.MaxValue) {
-
+            await SyncCacheAsync();
             if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate() && !searchText.IsNullOrEmpty()) {
                 dateFrom = null;
                 dateTo = null;
@@ -210,19 +210,16 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         // ✅ GET ALL
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync() {
-            await SyncCacheAsync();
             return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListEntityPrefix, typeof(TEntity).Name, async () => {
                 return await CApiManager.GetAsync<List<TEntity>>(GetUrl(ActionTypes.Get));
             });
         }
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(string url) {
-            await SyncCacheAsync();
             return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListEntityPrefix, typeof(TEntity).Name + url, async () => {
                 return await CApiManager.GetAsync<List<TEntity>>(url);
             });
         }
         public virtual async Task<IEnumerable<T>> GetAllAsync<T>(string url) where T : BaseEntity {
-            await SyncCacheAsync();
             return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListEntityPrefix, typeof(T).Name + url, async () => {
                 return await CApiManager.GetAsync<List<T>>(url);
             });
