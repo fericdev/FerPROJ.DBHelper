@@ -374,9 +374,6 @@ namespace FerPROJ.DBHelper.DBCrud {
                     await ClearCacheAsync();
                 }
             }
-            else {
-                await ClearCacheAsync();
-            }
         }
         #endregion
 
