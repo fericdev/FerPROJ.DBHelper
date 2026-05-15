@@ -360,20 +360,20 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task SyncCacheAsync() {
 
-            var cacheVersionApiRepository = new CacheVersionApiRepository();
+            //var cacheVersionApiRepository = new CacheVersionApiRepository();
 
-            var latestVersion = await cacheVersionApiRepository.GetAllAsync(orderBy: c => c.VersionNo, descending: true, take: 1);
+            //var latestVersion = await cacheVersionApiRepository.GetAllAsync(orderBy: c => c.VersionNo, descending: true, take: 1);
 
-            if (!latestVersion.IsNullOrEmpty()) {
+            //if (!latestVersion.IsNullOrEmpty()) {
 
-                var serverVersion = latestVersion.FirstOrDefault();
+            //    var serverVersion = latestVersion.FirstOrDefault();
 
-                var localVersion = CConfigurationManager.GetValue<int>(nameof(CacheVersion.VersionNo), nameof(CacheVersion));
+            //    var localVersion = CConfigurationManager.GetValue<int>(nameof(CacheVersion.VersionNo), nameof(CacheVersion));
 
-                if (serverVersion.VersionNo > localVersion) {
-                    await ClearCacheAsync();
-                }
-            }
+            //    if (serverVersion.VersionNo > localVersion) {
+            //        await ClearCacheAsync();
+            //    }
+            //}
         }
         #endregion
 
