@@ -325,20 +325,27 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             var latestVersion = await GetAllAsync<CacheVersion>(orderBy: c => c.VersionNo, descending: true, take: 1);
 
-            var serverVersion = latestVersion.FirstOrDefault();
+            var serverVersion = new CacheVersion();
 
-            if (serverVersion.IsNullOrEmpty()) {
+            if (latestVersion.IsNullOrEmpty()) {
+
                 serverVersion = new CacheVersion {
                     Id = Guid.NewGuid(),
                     VersionNo = 1,
                     DateCreated = DateTime.Now,
                 };
+
                 await SaveDataAsync(serverVersion);
             }
             else {
+                serverVersion = latestVersion.FirstOrDefault();
+
                 serverVersion.VersionNo += 1;
+
                 serverVersion.DateModified = DateTime.Now;
+
                 await UpdateDataAsync(serverVersion);
+
             }
 
             CConfigurationManager.CreateOrSetValue(nameof(CacheVersion.VersionNo), serverVersion.ToString(), nameof(CacheVersion));
