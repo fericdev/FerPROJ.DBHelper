@@ -21,10 +21,12 @@ namespace FerPROJ.DBHelper.DBCrud {
         where TModel : BaseModel
         where TEntity : BaseEntity {
         protected readonly string _endpoint;
+        protected readonly CacheVersionApiRepository _cacheVersionApiRepository;
 
         #region CTOR
         protected BaseApiRepository(string endpoint) {
             _endpoint = endpoint;
+            _cacheVersionApiRepository = new CacheVersionApiRepository();
         }
         #endregion
 
@@ -323,8 +325,8 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         #region Sync Logic
         public virtual async Task UpdateCacheVersionAsync() {
-
-            var latestVersion = await new CacheVersionApiRepository().GetAllAsync(orderBy: c => c.VersionNo, descending: true, take: 1);
+        
+            var latestVersion = await _cacheVersionApiRepository.GetAllAsync(orderBy: c => c.VersionNo, descending: true, take: 1);
 
             var serverVersion = new CacheVersion();
 
@@ -336,7 +338,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                     DateCreated = DateTime.Now,
                 };
 
-                await SaveDataAsync(serverVersion);
+                await _cacheVersionApiRepository.SaveDataAsync(serverVersion);
             }
             else {
                 serverVersion = latestVersion.FirstOrDefault();
@@ -345,7 +347,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
                 serverVersion.DateModified = DateTime.Now;
 
-                await UpdateDataAsync(serverVersion);
+                await _cacheVersionApiRepository.UpdateDataAsync(serverVersion);
 
             }
 
@@ -353,7 +355,7 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task SyncCacheAsync() {
 
-            var latestVersion = await new CacheVersionApiRepository().GetAllAsync(orderBy: c => c.VersionNo, descending: true, take: 1);
+            var latestVersion = await _cacheVersionApiRepository.GetAllAsync(orderBy: c => c.VersionNo, descending: true, take: 1);
 
             var serverVersion = latestVersion.FirstOrDefault();
 
