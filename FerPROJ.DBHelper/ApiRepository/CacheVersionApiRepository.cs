@@ -13,7 +13,7 @@ namespace FerPROJ.DBHelper.ApiRepository {
         public CacheVersionApiRepository() : base("CacheVersionApiRepository.php") {
         }
 
-        public async Task ExecuteBackgroundTracker() {
+        public async Task ExecuteCacheAsync() {
 
             await CBackgroundTaskManager.RunTaskInBackgroundAsync(async () => 
             {
