@@ -263,7 +263,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
                 await SaveDataAsync(entity);
                 await ClearCacheAsync();
-                await UpdateCacheAsync();
+                await new CacheVersionApiRepository().ExecuteClearCacheAsync();
                 return true;
             }
             return false;
@@ -293,7 +293,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
                 var entity = model.ToDestination(existingEntity);
                 await ClearCacheAsync();
-                await UpdateCacheAsync();
+                await new CacheVersionApiRepository().ExecuteClearCacheAsync();
                 return await UpdateDataAsync(entity);
             }
             return false;
@@ -313,7 +313,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             if (CDialogManager.Ask("Are you sure to delete this data?", "Confirmation")) {
                 await ClearCacheAsync();
-                await UpdateCacheAsync();
+                await new CacheVersionApiRepository().ExecuteClearCacheAsync();
                 return await CApiManager.DeleteAsync(GetUrl(ActionTypes.Delete, ("Id", id)));
             }
             return false;
@@ -324,43 +324,6 @@ namespace FerPROJ.DBHelper.DBCrud {
         // 🔹 SHARED VALIDATION
         private bool IsResultSuccess(TModel model, bool validate) {
             return model.DataValidationResult();
-        }
-        #endregion
-
-        #region Sync Logic
-        public virtual async Task UpdateCacheAsync() {
-
-            CBackgroundTaskManager.RunTaskAndForget(async () => {
-
-                var cacheVersionApiRepository = new CacheVersionApiRepository();
-
-                var latestVersion = await cacheVersionApiRepository.GetAllAsync();
-
-                var serverVersion = new CacheVersion();
-
-                if (latestVersion.IsNullOrEmpty()) {
-
-                    var serverVersionModel = new CacheVersionModel {
-                        VersionNo = 1,
-                    };
-
-                    serverVersion = serverVersionModel.ToDestination<CacheVersion>();
-
-                    await cacheVersionApiRepository.SaveDataAsync(serverVersion);
-                }
-                else {
-                    serverVersion = latestVersion.FirstOrDefault();
-
-                    serverVersion.VersionNo += 1;
-
-                    serverVersion.DateModified = DateTime.Now;
-
-                    await cacheVersionApiRepository.UpdateDataAsync(serverVersion);
-
-                }
-
-                CConfigurationManager.CreateOrSetValue(nameof(CacheVersion.VersionNo), serverVersion.ToString(), nameof(CacheVersion));
-            });
         }
         #endregion
 

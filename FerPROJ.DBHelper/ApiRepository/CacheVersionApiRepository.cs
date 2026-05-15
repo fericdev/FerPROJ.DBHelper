@@ -13,13 +13,11 @@ namespace FerPROJ.DBHelper.ApiRepository {
         public CacheVersionApiRepository() : base("CacheVersionApiRepository.php") {
         }
 
-        public async Task ExecuteCacheAsync() {
+        public async Task ExecuteClearCacheAsync() {
 
             await CBackgroundTaskManager.RunTaskInBackgroundAsync(async () => 
             {
-                var cacheVersionApiRepository = new CacheVersionApiRepository();
-
-                var latestVersion = await cacheVersionApiRepository.GetAllAsync();
+                var latestVersion = await GetAllAsync();
 
                 if (!latestVersion.IsNullOrEmpty()) {
 
@@ -36,6 +34,39 @@ namespace FerPROJ.DBHelper.ApiRepository {
                 }
 
             }, 30);
+        }
+
+        public async Task ExecuteUpdateCacheAsync() {
+
+            CBackgroundTaskManager.RunTaskAndForget(async () => {
+
+                var latestVersion = await GetAllAsync();
+
+                var serverVersion = new CacheVersion();
+
+                if (latestVersion.IsNullOrEmpty()) {
+
+                    var serverVersionModel = new CacheVersionModel {
+                        VersionNo = 1,
+                    };
+
+                    serverVersion = serverVersionModel.ToDestination<CacheVersion>();
+
+                    await SaveDataAsync(serverVersion);
+                }
+                else {
+                    serverVersion = latestVersion.FirstOrDefault();
+
+                    serverVersion.VersionNo += 1;
+
+                    serverVersion.DateModified = DateTime.Now;
+
+                    await UpdateDataAsync(serverVersion);
+
+                }
+
+                CConfigurationManager.CreateOrSetValue(nameof(CacheVersion.VersionNo), serverVersion.ToString(), nameof(CacheVersion));
+            });
         }
     }
 }
