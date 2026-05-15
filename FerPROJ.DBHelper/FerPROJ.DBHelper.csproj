@@ -83,6 +83,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApiRepository\CacheVersionApiRepository.cs" />
     <Compile Include="DBCrud\BaseApiRepository.cs" />
     <Compile Include="DBCrud\BaseDbContext.cs" />
     <Compile Include="DBCrud\BaseRepository.cs" />
