@@ -328,35 +328,37 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         #region Sync Logic
         public virtual async Task UpdateCacheVersionAsync() {
+            CBackgroundTaskManager.RunTaskAndForget(async () => {
 
-            var cacheVersionApiRepository = new CacheVersionApiRepository();
+                var cacheVersionApiRepository = new CacheVersionApiRepository();
 
-            var latestVersion = await cacheVersionApiRepository.GetAllAsync();
+                var latestVersion = await cacheVersionApiRepository.GetAllAsync();
 
-            var serverVersion = new CacheVersion();
+                var serverVersion = new CacheVersion();
 
-            if (latestVersion.IsNullOrEmpty()) {
+                if (latestVersion.IsNullOrEmpty()) {
 
-                var serverVersionModel = new CacheVersionModel {
-                    VersionNo = 1,
-                };
+                    var serverVersionModel = new CacheVersionModel {
+                        VersionNo = 1,
+                    };
 
-                serverVersion = serverVersionModel.ToDestination<CacheVersion>();
+                    serverVersion = serverVersionModel.ToDestination<CacheVersion>();
 
-                await cacheVersionApiRepository.SaveDataAsync(serverVersion);
-            }
-            else {
-                serverVersion = latestVersion.FirstOrDefault();
+                    await cacheVersionApiRepository.SaveDataAsync(serverVersion);
+                }
+                else {
+                    serverVersion = latestVersion.FirstOrDefault();
 
-                serverVersion.VersionNo += 1;
+                    serverVersion.VersionNo += 1;
 
-                serverVersion.DateModified = DateTime.Now;
+                    serverVersion.DateModified = DateTime.Now;
 
-                await cacheVersionApiRepository.UpdateDataAsync(serverVersion);
+                    await cacheVersionApiRepository.UpdateDataAsync(serverVersion);
 
-            }
+                }
 
-            CConfigurationManager.CreateOrSetValue(nameof(CacheVersion.VersionNo), serverVersion.ToString(), nameof(CacheVersion));
+                CConfigurationManager.CreateOrSetValue(nameof(CacheVersion.VersionNo), serverVersion.ToString(), nameof(CacheVersion));
+            });
         }
         public virtual async Task SyncCacheAsync() {
 
