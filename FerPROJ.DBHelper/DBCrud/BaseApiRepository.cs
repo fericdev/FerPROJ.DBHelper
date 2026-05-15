@@ -51,7 +51,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         #region Get View Model
         public virtual async Task<(IEnumerable<TModel> ModelItems, int TotalCount)> GetViewModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int page, int dataLimit = int.MaxValue) {
-            await SyncCacheAsync();
+
             if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate() && !searchText.IsNullOrEmpty()) {
                 dateFrom = null;
                 dateTo = null;
@@ -80,7 +80,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             return (result, query.Count());
         }
         public virtual async Task<(IEnumerable<TModel> ModelItems, int TotalCount)> GetViewModelWithSearchAsync(Expression<Func<TEntity, bool>> whereCondition, string searchText, DateTime? dateFrom, DateTime? dateTo, int page, int dataLimit = int.MaxValue) {
-            await SyncCacheAsync();
+
             if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate() && !searchText.IsNullOrEmpty()) {
                 dateFrom = null;
                 dateTo = null;
@@ -400,7 +400,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         #region Base GET for Model Item
         public override async Task<TModel> GetPrepareModelByEntityAsync(TEntity entity) {
-            await SyncCacheAsync();
+
             return await CacheManager.GetOrCreateCacheAsync(CacheManager.ModelPrefix, entity.GetPropertyValue<string>("Id"), async () => {
                 var model = await base.GetPrepareModelByEntityAsync(entity);
                 model.Items = await GetPrepareModelItemsByParentIdAsync(entity.Id);
@@ -408,7 +408,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             });
         }
         public virtual async Task<List<TModelItem>> GetPrepareModelItemsByParentIdAsync(Guid parentId) {
-            await SyncCacheAsync();
+
             return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelItemPrefix, parentId, async () => {
 
                 var entities = await GetAllItemsByParentIdAsync(parentId);
