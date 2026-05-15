@@ -1,3 +1,4 @@
+using FerPROJ.DBHelper.ApiRepository;
 using FerPROJ.DBHelper.DBCache;
 using FerPROJ.DBHelper.DBExtensions;
 using FerPROJ.DBHelper.Entity;
@@ -323,7 +324,7 @@ namespace FerPROJ.DBHelper.DBCrud {
         #region Sync Logic
         public virtual async Task UpdateCacheVersionAsync() {
 
-            var latestVersion = await GetAllAsync<CacheVersion>(orderBy: c => c.VersionNo, descending: true, take: 1);
+            var latestVersion = await new CacheVersionApiRepository().GetAllAsync(orderBy: c => c.VersionNo, descending: true, take: 1);
 
             var serverVersion = new CacheVersion();
 
@@ -352,7 +353,7 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task SyncCacheAsync() {
 
-            var latestVersion = await GetAllAsync<CacheVersion>(orderBy: c => c.VersionNo, descending: true, take: 1);
+            var latestVersion = await new CacheVersionApiRepository().GetAllAsync(orderBy: c => c.VersionNo, descending: true, take: 1);
 
             var serverVersion = latestVersion.FirstOrDefault();
 
