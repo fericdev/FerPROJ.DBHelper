@@ -331,7 +331,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             var cacheVersionApiRepository = new CacheVersionApiRepository();
 
-            var latestVersion = await cacheVersionApiRepository.GetAllAsync(orderBy: c => c.VersionNo, descending: true, take: 1);
+            var latestVersion = await cacheVersionApiRepository.GetAllAsync();
 
             var serverVersion = new CacheVersion();
 
@@ -360,20 +360,24 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task SyncCacheAsync() {
 
-            //var cacheVersionApiRepository = new CacheVersionApiRepository();
+            CBackgroundTaskManager.RunTaskAndForget(async () => {
 
-            //var latestVersion = await cacheVersionApiRepository.GetAllAsync(orderBy: c => c.VersionNo, descending: true, take: 1);
+                var cacheVersionApiRepository = new CacheVersionApiRepository();
 
-            //if (!latestVersion.IsNullOrEmpty()) {
+                var latestVersion = await cacheVersionApiRepository.GetAllAsync();
 
-            //    var serverVersion = latestVersion.FirstOrDefault();
+                if (!latestVersion.IsNullOrEmpty()) {
 
-            //    var localVersion = CConfigurationManager.GetValue<int>(nameof(CacheVersion.VersionNo), nameof(CacheVersion));
+                    var serverVersion = latestVersion.FirstOrDefault();
 
-            //    if (serverVersion.VersionNo > localVersion) {
-            //        await ClearCacheAsync();
-            //    }
-            //}
+                    var localVersion = CConfigurationManager.GetValue<int>(nameof(CacheVersion.VersionNo), nameof(CacheVersion));
+
+                    if (serverVersion.VersionNo > localVersion) {
+                        await ClearCacheAsync();
+                    }
+                }
+            });
+
         }
         #endregion
 
