@@ -30,7 +30,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         #region Get Model
         public virtual async Task<TModel> GetPrepareModelByEntityAsync(TEntity entity) {
-            await SyncCacheAsync();
+            
             if (entity.IsNullOrEmpty()) {
                 entity = Activator.CreateInstance<TEntity>();
             }
@@ -38,7 +38,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             return entity.ToDestination<TModel>();
         }
         public virtual async Task<TModel> GetPrepareModelByIdAsync(Guid id) {
-            await SyncCacheAsync();
+            
             var entity = await GetByIdAsync(id);
             return await CacheManager.GetOrCreateCacheAsync(CacheManager.ModelPrefix, id, async () => {
                 return await GetPrepareModelByEntityAsync(entity);
@@ -54,7 +54,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         #region Get View Model
         public virtual async Task<(IEnumerable<TModel> ModelItems, int TotalCount)> GetViewModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int page, int dataLimit = int.MaxValue) {
-            await SyncCacheAsync();
+            
 
             if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate() && !searchText.IsNullOrEmpty()) {
                 dateFrom = null;
@@ -84,8 +84,6 @@ namespace FerPROJ.DBHelper.DBCrud {
             return (result, query.Count());
         }
         public virtual async Task<(IEnumerable<TModel> ModelItems, int TotalCount)> GetViewModelWithSearchAsync(Expression<Func<TEntity, bool>> whereCondition, string searchText, DateTime? dateFrom, DateTime? dateTo, int page, int dataLimit = int.MaxValue) {
-
-            await SyncCacheAsync();
 
             if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate() && !searchText.IsNullOrEmpty()) {
                 dateFrom = null;
@@ -264,7 +262,8 @@ namespace FerPROJ.DBHelper.DBCrud {
                 var entity = model.ToDestination<TEntity>();
 
                 await SaveDataAsync(entity);
-                ClearCacheAsync();
+                await ClearCacheAsync();
+                await UpdateCacheAsync();
                 return true;
             }
             return false;
@@ -294,6 +293,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
                 var entity = model.ToDestination(existingEntity);
                 await ClearCacheAsync();
+                await UpdateCacheAsync();
                 return await UpdateDataAsync(entity);
             }
             return false;
@@ -313,6 +313,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             if (CDialogManager.Ask("Are you sure to delete this data?", "Confirmation")) {
                 await ClearCacheAsync();
+                await UpdateCacheAsync();
                 return await CApiManager.DeleteAsync(GetUrl(ActionTypes.Delete, ("Id", id)));
             }
             return false;
@@ -327,7 +328,8 @@ namespace FerPROJ.DBHelper.DBCrud {
         #endregion
 
         #region Sync Logic
-        public virtual async Task UpdateCacheVersionAsync() {
+        public virtual async Task UpdateCacheAsync() {
+
             CBackgroundTaskManager.RunTaskAndForget(async () => {
 
                 var cacheVersionApiRepository = new CacheVersionApiRepository();
@@ -360,27 +362,6 @@ namespace FerPROJ.DBHelper.DBCrud {
                 CConfigurationManager.CreateOrSetValue(nameof(CacheVersion.VersionNo), serverVersion.ToString(), nameof(CacheVersion));
             });
         }
-        public virtual async Task SyncCacheAsync() {
-
-            CBackgroundTaskManager.RunTaskAndForget(async () => {
-
-                var cacheVersionApiRepository = new CacheVersionApiRepository();
-
-                var latestVersion = await cacheVersionApiRepository.GetAllAsync();
-
-                if (!latestVersion.IsNullOrEmpty()) {
-
-                    var serverVersion = latestVersion.FirstOrDefault();
-
-                    var localVersion = CConfigurationManager.GetValue<int>(nameof(CacheVersion.VersionNo), nameof(CacheVersion));
-
-                    if (serverVersion.VersionNo > localVersion) {
-                        await ClearCacheAsync();
-                    }
-                }
-            });
-
-        }
         #endregion
 
         #region Utilities
@@ -406,7 +387,6 @@ namespace FerPROJ.DBHelper.DBCrud {
             CacheManager.ClearCacheByPrefix(CacheManager.EntityPrefix);
             CacheManager.ClearCacheByPrefix(CacheManager.ListEntityPrefix);
             CacheManager.ClearCacheByPrefix(CacheManager.ListEntityItemPrefix);
-            await UpdateCacheVersionAsync();
         }
         #endregion
     }
@@ -426,7 +406,6 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         #region Base GET for Model Item
         public override async Task<TModel> GetPrepareModelByEntityAsync(TEntity entity) {
-            await SyncCacheAsync();
             return await CacheManager.GetOrCreateCacheAsync(CacheManager.ModelPrefix, entity.GetPropertyValue<string>("Id"), async () => {
                 var model = await base.GetPrepareModelByEntityAsync(entity);
                 model.Items = await GetPrepareModelItemsByParentIdAsync(entity.Id);
@@ -434,7 +413,6 @@ namespace FerPROJ.DBHelper.DBCrud {
             });
         }
         public virtual async Task<List<TModelItem>> GetPrepareModelItemsByParentIdAsync(Guid parentId) {
-            await SyncCacheAsync();
             return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelItemPrefix, parentId, async () => {
 
                 var entities = await GetAllItemsByParentIdAsync(parentId);
