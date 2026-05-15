@@ -337,11 +337,11 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             if (latestVersion.IsNullOrEmpty()) {
 
-                serverVersion = new CacheVersion {
-                    Id = Guid.NewGuid(),
+                var serverVersionModel = new CacheVersionModel {
                     VersionNo = 1,
-                    DateCreated = DateTime.Now,
                 };
+
+                serverVersion = serverVersionModel.ToDestination<CacheVersion>();
 
                 await cacheVersionApiRepository.SaveDataAsync(serverVersion);
             }
@@ -364,11 +364,17 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             var latestVersion = await cacheVersionApiRepository.GetAllAsync(orderBy: c => c.VersionNo, descending: true, take: 1);
 
-            var serverVersion = latestVersion.FirstOrDefault();
+            if (!latestVersion.IsNullOrEmpty()) {
 
-            var localVersion = CConfigurationManager.GetValue<int>(nameof(CacheVersion.VersionNo), nameof(CacheVersion));
+                var serverVersion = latestVersion.FirstOrDefault();
 
-            if (serverVersion.VersionNo > localVersion) {
+                var localVersion = CConfigurationManager.GetValue<int>(nameof(CacheVersion.VersionNo), nameof(CacheVersion));
+
+                if (serverVersion.VersionNo > localVersion) {
+                    await ClearCacheAsync();
+                }
+            }
+            else {
                 await ClearCacheAsync();
             }
         }
