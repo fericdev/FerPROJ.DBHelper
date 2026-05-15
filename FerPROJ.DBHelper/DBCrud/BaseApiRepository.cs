@@ -263,7 +263,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
                 await SaveDataAsync(entity);
                 await ClearCacheAsync();
-                await new CacheVersionApiRepository().ExecuteClearCacheAsync();
+                await new CacheVersionApiRepository().ExecuteUpdateCacheAsync();
                 return true;
             }
             return false;
@@ -293,7 +293,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
                 var entity = model.ToDestination(existingEntity);
                 await ClearCacheAsync();
-                await new CacheVersionApiRepository().ExecuteClearCacheAsync();
+                await new CacheVersionApiRepository().ExecuteUpdateCacheAsync();
                 return await UpdateDataAsync(entity);
             }
             return false;
@@ -313,7 +313,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             if (CDialogManager.Ask("Are you sure to delete this data?", "Confirmation")) {
                 await ClearCacheAsync();
-                await new CacheVersionApiRepository().ExecuteClearCacheAsync();
+                await new CacheVersionApiRepository().ExecuteUpdateCacheAsync();
                 return await CApiManager.DeleteAsync(GetUrl(ActionTypes.Delete, ("Id", id)));
             }
             return false;
