@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.Helper {
     public static class ProgramHelper {
+
+        #region Initialization
         public static bool Initialize<DbContext>(string[] args, Assembly assembly, string systemName) {
             //
             CAssembly.SetAssembly<DbContext>(assembly);
@@ -52,6 +54,7 @@ namespace FerPROJ.DBHelper.Helper {
                 CacheManager.GetCacheLoadTasks("LMS.Repository")
             );
         }
+        #endregion
 
     }
 }
