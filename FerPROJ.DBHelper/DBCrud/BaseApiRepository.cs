@@ -69,8 +69,6 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             query = query.GetAllActiveOnly();
 
-            query = query.Where(c => c.ApplicationId == CAppConstants.APPLLICATION_ID);
-
             query = query.OrderByProperty("DateMarked", false);
 
             var result = await query.SelectListAsync(async c => {

@@ -147,7 +147,8 @@ namespace FerPROJ.DBHelper.DBExtensions {
             if (statusProperty != null) {
                 // Define the predicate to filter active entities
                 Func<T, bool> predicate = x => {
-                    return x.GetPropertyValue<string>("Status") == CAppConstants.ACTIVE_STATUS;
+                    return x.GetPropertyValue<string>("Status") == CAppConstants.ACTIVE_STATUS && 
+                           x.GetPropertyValue<string>("ApplicationId") == CAppConstants.APPLICATION_ID;
                 };
 
                 // Apply the predicate to filter the collection
