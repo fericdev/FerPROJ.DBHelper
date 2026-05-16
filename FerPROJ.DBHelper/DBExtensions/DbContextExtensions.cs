@@ -625,7 +625,6 @@ namespace FerPROJ.DBHelper.DBExtensions {
         }
         public static async Task<TEntity> GetByPredicateAsync<TEntity>(this DbContext context, Expression<Func<TEntity, bool>> predicate) where TEntity : BaseEntity {
             return await context.Set<TEntity>()
-                .Where(c => c.Status == CAppConstants.ACTIVE_STATUS)
                 .Where(predicate.NormalizeExpression())
                 .FirstOrDefaultAsync();
         }
