@@ -253,11 +253,11 @@ namespace FerPROJ.DBHelper.DBCache {
         public static async Task<TResult> GetOrCreateCacheAsync<TResult>(object key, Func<Task<TResult>> createFunc) {
             try {
                 // Try to get the value from cache
-                var cachedValue = _cache.Get(key.ToString());
+                var cachedValue = _cache.Get(key.ToString()).To<TResult>();
 
                 // If found in cache, return it
                 if (cachedValue != null) {
-                    return (TResult)cachedValue;
+                    return cachedValue;
                 }
 
                 // If not in cache, create it using the provided function
