@@ -1,4 +1,5 @@
 ﻿using FerPROJ.DBHelper.DBCache;
+using FerPROJ.DBHelper.Entity;
 using FerPROJ.Design.Class;
 using MySqlX.XDevAPI.Common;
 using System;
@@ -139,21 +140,15 @@ namespace FerPROJ.DBHelper.DBExtensions {
         #endregion
 
         #region Get Active Only
-        public static IEnumerable<T> GetAllActiveOnly<T>(this IEnumerable<T> queryable) {
-            // Get the Status property if it exists
-            var statusProperty = typeof(T).GetProperty("Status");
+        public static IEnumerable<TEntity> GetAllActiveOnly<TEntity>(this IEnumerable<TEntity> queryable) where TEntity : BaseEntity {
 
-            // If Status property exists, filter based on active status
-            if (statusProperty != null) {
-                // Define the predicate to filter active entities
-                Func<T, bool> predicate = x => {
-                    return x.GetPropertyValue<string>("Status") == CAppConstants.ACTIVE_STATUS && 
-                           x.GetPropertyValue<string>("ApplicationId") == CAppConstants.APPLICATION_ID;
-                };
-
-                // Apply the predicate to filter the collection
-                return queryable.Where(predicate);
+            // If the user not admin, filter by application ID
+            if (CAppConstants.USER_ROLE != CBaseEnums.Role.Administrator) {
+                queryable = queryable.Where(x => x.ApplicationId == CAppConstants.APPLICATION_ID);
             }
+
+            // Filter the collection to include only active entities
+            queryable = queryable.Where(x => x.Status == CAppConstants.ACTIVE_STATUS);
 
             // If no Status property, return the original collection unfiltered
             return queryable;
@@ -161,21 +156,15 @@ namespace FerPROJ.DBHelper.DBExtensions {
         #endregion
 
         #region Get InActive Only
-        public static IEnumerable<T> GetAllInActiveOnly<T>(this IEnumerable<T> queryable) {
-            // Get the Status property if it exists
-            var statusProperty = typeof(T).GetProperty("Status");
-
-            // If Status property exists, filter based on active status
-            if (statusProperty != null) {
-                // Define the predicate to filter active entities
-                Func<T, bool> predicate = x => {
-                    return x.GetPropertyValue<string>("Status") == CAppConstants.IN_ACTIVE_STATUS &&
-                           x.GetPropertyValue<string>("ApplicationId") == CAppConstants.APPLICATION_ID;
-                };
-
-                // Apply the predicate to filter the collection
-                return queryable.Where(predicate);
+        public static IEnumerable<TEntity> GetAllInActiveOnly<TEntity>(this IEnumerable<TEntity> queryable) where TEntity : BaseEntity {
+            
+            // If the user not admin, filter by application ID
+            if (CAppConstants.USER_ROLE != CBaseEnums.Role.Administrator) {
+                queryable = queryable.Where(x => x.ApplicationId == CAppConstants.APPLICATION_ID);
             }
+
+            // Filter the collection to include only active entities
+            queryable = queryable.Where(x => x.Status == CAppConstants.IN_ACTIVE_STATUS);
 
             // If no Status property, return the original collection unfiltered
             return queryable;
