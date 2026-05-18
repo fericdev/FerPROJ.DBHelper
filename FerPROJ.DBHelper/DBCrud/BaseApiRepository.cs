@@ -14,6 +14,7 @@ using System.Linq.Expressions;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.DBCrud {
@@ -251,9 +252,20 @@ namespace FerPROJ.DBHelper.DBCrud {
             var result = await GetAllAsync<T>(url);
             return result.FirstOrDefault();
         }
-        public virtual async Task<TReturn> GetRawQueryAsync<TReturn>(string rawQuery) {
+        public virtual async Task<TReturn> GetRawQueryAsync<TReturn>(string rawQuery, string property) {
             var url = GetUrl(ActionTypes.RawQuery, ("query", rawQuery));
-            return await CApiManager.GetAsync<TReturn>(url);
+            var result = await CApiManager.GetAsync<string>(url);
+            using (var doc = JsonDocument.Parse(result)) {
+                var root = doc.RootElement;
+                var rawValue = root
+                    .GetProperty("data")
+                    .EnumerateArray()
+                    .FirstOrDefault()
+                    .GetProperty(property)
+                    .GetString();
+                return rawValue.To<TReturn>();
+            }
+
         }
         #endregion
 
@@ -528,7 +540,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             if (prefix.IsNullOrEmpty()) {
                 prefix = typeof(TEntity).Name.Substring(2, 3).ToUpper();
             }
-            var currentCount = await GetRawQueryAsync<int>($"SELECT COUNT(*) FROM {typeof(TEntity).Name}");
+            var currentCount = await GetRawQueryAsync<string>($"SELECT COUNT(*) AS Total FROM {typeof(TEntity).Name}", "Total");
             return $"{prefix}{currentCount:D4}";
         }
         #endregion
