@@ -330,6 +330,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             var sb = new StringBuilder(_endpoint);
 
             sb.Append($"?action={actionType.ToString().ToLower()}");
+            sb.Append($"&table={Uri.EscapeDataString(typeof(TEntity).Name)}");
 
             foreach (var seg in segments) {
                 if (seg.Value == null) continue;
@@ -480,6 +481,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             var sb = new StringBuilder(_endpointItem);
 
             sb.Append($"?action={actionType.ToString().ToLower()}");
+            sb.Append($"&table={Uri.EscapeDataString(typeof(TEntityItem).Name)}");
 
             foreach (var seg in segments) {
                 if (seg.Value == null) continue;
