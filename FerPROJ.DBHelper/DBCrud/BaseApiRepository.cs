@@ -252,7 +252,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             return result.FirstOrDefault();
         }
         public virtual async Task<TReturn> GetRawQueryAsync<TReturn>(string rawQuery) {
-            var url = GetUrl(ActionTypes.RawQuery, ("rawQuery", rawQuery));
+            var url = GetUrl(ActionTypes.RawQuery, ("query", rawQuery));
             return await CApiManager.GetAsync<TReturn>(url);
         }
         #endregion
