@@ -33,7 +33,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         #region Get Model
         public virtual async Task<TModel> GetPrepareModelByEntityAsync(TEntity entity) {
-            
+
             if (entity.IsNullOrEmpty()) {
                 entity = Activator.CreateInstance<TEntity>();
             }
@@ -41,7 +41,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             return entity.ToDestination<TModel>();
         }
         public virtual async Task<TModel> GetPrepareModelByIdAsync(Guid id) {
-            
+
             var entity = await GetByIdAsync(id);
             return await CacheManager.GetOrCreateCacheAsync(CacheManager.ModelPrefix, id, async () => {
                 return await GetPrepareModelByEntityAsync(entity);
@@ -57,7 +57,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         #region Get View Model
         public virtual async Task<(IEnumerable<TModel> ModelItems, int TotalCount)> GetViewModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int page, int dataLimit = int.MaxValue) {
-            
+
 
             if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate() && !searchText.IsNullOrEmpty()) {
                 dateFrom = null;
@@ -251,6 +251,10 @@ namespace FerPROJ.DBHelper.DBCrud {
             var result = await GetAllAsync<T>(url);
             return result.FirstOrDefault();
         }
+        public virtual async Task<TReturn> GetRawQueryAsync<TReturn>(string rawQuery) {
+            var url = GetUrl(ActionTypes.Get, ("rawQuery", rawQuery));
+            return await CApiManager.GetAsync<TReturn>(url);
+        }
         #endregion
 
         #region CRUD
@@ -333,7 +337,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         #region Validation
         // 🔹 SHARED VALIDATION
-        private bool IsResultSuccess(TModel model, bool validate) {
+        protected bool IsResultSuccess(TModel model, bool validate) {
             return validate ? model.DataValidationResult() : true;
         }
         #endregion
@@ -508,6 +512,55 @@ namespace FerPROJ.DBHelper.DBCrud {
         #endregion
 
     }
+    public abstract class BaseFormItemApiRepository<TModel, TModelItem, TEntity, TEntityItem> : BaseItemApiRepository<TModel, TModelItem, TEntity, TEntityItem>
+        where TModel : BaseFormModel<TModelItem>
+        where TModelItem : BaseModelItem
+        where TEntityItem : BaseEntityItem
+        where TEntity : BaseFormEntity {
+
+        #region CTOR
+        protected BaseFormItemApiRepository(string endpoint, string endpointItem) : base(endpoint, endpointItem) {
+        }
+        #endregion
+
+        #region Generate Form Id
+        public async Task<string> GetGeneratedFormIdAsync(string prefix) {
+            if (prefix.IsNullOrEmpty()) {
+                prefix = typeof(TEntity).Name.Substring(2, 3).ToUpper();
+            }
+            var currentCount = await GetRawQueryAsync<int>($"SELECT COUNT(*) FROM {typeof(TEntity).Name}");
+            return $"{prefix}{currentCount:D4}";
+        }
+        #endregion
+
+        #region Get Form Model
+        public async Task<TModel> GetPrepareModelAsync(TModel model = null, string prefix = null) {
+            if (model.IsNullOrEmpty()) {
+                model = Activator.CreateInstance<TModel>();
+            }
+            model.Id = Guid.NewGuid();
+            model.FormId = await GetGeneratedFormIdAsync(prefix);
+            return model;
+        }
+        #endregion
+
+        #region CRUD
+        public override async Task<bool> UpdateModelAsync(TModel model, bool validate = false) {
+            if (!IsResultSuccess(model, validate)) {
+                return false;
+            }
+            return await base.UpdateModelAsync(model, validate);
+        }
+        public override async Task<bool> SaveModelAsync(TModel model, bool validate = false) {
+            if (!IsResultSuccess(model, validate)) {
+                return false;
+            }
+            return await base.SaveModelAsync(model, validate);
+        }
+        #endregion
+    }
+
+
     public enum ActionTypes {
         Get,
         Save,
