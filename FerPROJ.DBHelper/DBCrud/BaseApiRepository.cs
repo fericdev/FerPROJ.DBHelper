@@ -321,7 +321,7 @@ namespace FerPROJ.DBHelper.DBCrud {
         #region Validation
         // 🔹 SHARED VALIDATION
         private bool IsResultSuccess(TModel model, bool validate) {
-            return model.DataValidationResult();
+            return validate ? model.DataValidationResult() : true;
         }
         #endregion
 
