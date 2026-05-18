@@ -17,7 +17,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.DBCrud {
-    public abstract class BaseApiRepository<TModel, TEntity, TType>
+    public abstract class BaseApiRepository<TModel, TEntity>
         where TModel : BaseModel
         where TEntity : BaseEntity {
         protected readonly string _endpoint;
@@ -25,6 +25,9 @@ namespace FerPROJ.DBHelper.DBCrud {
         #region CTOR
         protected BaseApiRepository(string endpoint) {
             _endpoint = endpoint;
+        }
+        protected BaseApiRepository() {
+            _endpoint = "BaseApiRepository.php";
         }
         #endregion
 
@@ -304,7 +307,7 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
 
         // ✅ DELETE
-        public virtual async Task<bool> DeleteByIdAsync(TType id) {
+        public virtual async Task<bool> DeleteByIdAsync(Guid id) {
             if (id == null) {
                 throw new ArgumentNullException(nameof(id));
             }
@@ -312,9 +315,14 @@ namespace FerPROJ.DBHelper.DBCrud {
             if (CDialogManager.Ask("Are you sure to delete this data?", "Confirmation")) {
                 await ClearCacheAsync();
                 await new CacheVersionApiRepository().ExecuteUpdateCacheAsync();
-                return await CApiManager.DeleteAsync(GetUrl(ActionTypes.Delete, ("Id", id)));
+                return await DeleteDataAsync(id);
             }
             return false;
+        }
+        public virtual async Task<bool> DeleteDataAsync(Guid id) {
+            var entity = await GetByIdAsync(id);
+            entity.Status = CAppConstants.IN_ACTIVE_STATUS;
+            return await UpdateDataAsync(entity);
         }
         #endregion
 
@@ -352,7 +360,7 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         #endregion
     }
-    public abstract class BaseItemApiRepository<TModel, TModelItem, TEntity, TEntityItem> : BaseApiRepository<TModel, TEntity, Guid>
+    public abstract class BaseItemApiRepository<TModel, TModelItem, TEntity, TEntityItem> : BaseApiRepository<TModel, TEntity>
         where TModel : BaseFormModel<TModelItem>
         where TModelItem : BaseModelItem
         where TEntityItem : BaseEntityItem
