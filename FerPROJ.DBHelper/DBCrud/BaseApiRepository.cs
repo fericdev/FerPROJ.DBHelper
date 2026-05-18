@@ -270,6 +270,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             return false;
         }
         public virtual async Task<TEntity> SaveDataAsync(TEntity entity) {
+            entity.Id = Guid.NewGuid();
             var result = await CApiManager.PostAsync<TEntity, object>(GetUrl(ActionTypes.Save), entity);
             if (!result.IsNullOrEmpty()) {
                 return result.ToDestination<TEntity>();
@@ -277,6 +278,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             return default;
         }
         public virtual async Task<T> SaveDataAsync<T>(T entity) where T : BaseEntity {
+            entity.Id = Guid.NewGuid();
             var result = await CApiManager.PostAsync<T, object>(GetUrl(ActionTypes.Save), entity);
             if (!result.IsNullOrEmpty()) {
                 return result.ToDestination<T>();
@@ -446,6 +448,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             if (result) {
                 foreach (var item in model.Items) {
                     var itemEntity = item.ToDestination<TEntityItem>();
+                    itemEntity.Id = Guid.NewGuid();
                     itemEntity.ParentId = model.Id;
                     await SaveItemDataAsync(itemEntity);
                 }
