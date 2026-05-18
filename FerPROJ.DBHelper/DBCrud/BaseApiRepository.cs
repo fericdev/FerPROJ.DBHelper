@@ -261,10 +261,10 @@ namespace FerPROJ.DBHelper.DBCrud {
             }
             if (CDialogManager.Ask("Are you sure to save this data?", "Confirmation")) {
                 var entity = model.ToDestination<TEntity>();
-
                 await SaveDataAsync(entity);
                 await ClearCacheAsync();
                 await new CacheVersionApiRepository().ExecuteUpdateCacheAsync();
+                CDialogManager.Info("Data saved successfully.");
                 return true;
             }
             return false;
@@ -291,11 +291,12 @@ namespace FerPROJ.DBHelper.DBCrud {
             }
             if (CDialogManager.Ask("Are you sure to update this data?", "Confirmation")) {
                 var existingEntity = await GetByIdAsync(model.Id);
-
                 var entity = model.ToDestination(existingEntity);
+                await UpdateDataAsync(entity);
                 await ClearCacheAsync();
                 await new CacheVersionApiRepository().ExecuteUpdateCacheAsync();
-                return await UpdateDataAsync(entity);
+                CDialogManager.Info("Data updated successfully.");
+                return true;
             }
             return false;
         }
@@ -315,7 +316,9 @@ namespace FerPROJ.DBHelper.DBCrud {
             if (CDialogManager.Ask("Are you sure to delete this data?", "Confirmation")) {
                 await ClearCacheAsync();
                 await new CacheVersionApiRepository().ExecuteUpdateCacheAsync();
-                return await DeleteDataAsync(id);
+                await DeleteDataAsync(id);
+                CDialogManager.Info("Data deleted successfully.");
+                return true;
             }
             return false;
         }
