@@ -5,6 +5,7 @@ using FerPROJ.DBHelper.Entity;
 using FerPROJ.DBHelper.Entity.Cache;
 using FerPROJ.Design.BaseModels;
 using FerPROJ.Design.Class;
+using FerPROJ.Design.Controls;
 using FerPROJ.Design.FormModels;
 using Newtonsoft.Json;
 using System;
@@ -266,6 +267,15 @@ namespace FerPROJ.DBHelper.DBCrud {
                 return rawValue.To<TReturn>();
             }
 
+        }
+        #endregion
+
+        #region Load ComboBox
+        public virtual async Task LoadComboBoxAsync(CComboBoxKrypton cmb, string cmbName, string cmbValue, Expression<Func<TEntity, bool>> whereCondition = null) {
+            var listItems = whereCondition != null
+                ? await GetAllAsync(whereCondition)
+                : await GetAllAsync();
+            cmb.FillComboBox(cmbName, cmbValue, listItems);
         }
         #endregion
 
