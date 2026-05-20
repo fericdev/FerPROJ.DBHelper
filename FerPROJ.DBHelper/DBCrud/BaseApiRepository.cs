@@ -400,8 +400,11 @@ namespace FerPROJ.DBHelper.DBCrud {
         protected readonly string _endpointItem;
 
         #region CTOR
-        protected BaseItemApiRepository(string endpoint, string endpointItem) : base(endpoint) {
+        protected BaseItemApiRepository(string endpointItem) {
             _endpointItem = endpointItem;
+        }
+        protected BaseItemApiRepository() {
+            _endpointItem = "BaseApiRepository.php";
         }
         #endregion
 
@@ -541,7 +544,7 @@ namespace FerPROJ.DBHelper.DBCrud {
         where TEntity : BaseFormEntity {
 
         #region CTOR
-        protected BaseFormItemApiRepository(string endpoint, string endpointItem) : base(endpoint, endpointItem) {
+        protected BaseFormItemApiRepository() {
         }
         #endregion
 
