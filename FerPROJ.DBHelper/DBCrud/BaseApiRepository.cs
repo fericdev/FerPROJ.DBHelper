@@ -263,7 +263,8 @@ namespace FerPROJ.DBHelper.DBCrud {
                     .EnumerateArray()
                     .FirstOrDefault()
                     .GetProperty(property)
-                    .GetString();
+                    .GetRawText();
+
                 return rawValue.To<TReturn>();
             }
 
@@ -567,10 +568,10 @@ namespace FerPROJ.DBHelper.DBCrud {
         #region Generate Form Id
         public async Task<string> GetGeneratedFormIdAsync(string prefix) {
             if (prefix.IsNullOrEmpty()) {
-                prefix = typeof(TEntity).Name.Substring(2, 3).ToUpper();
+                prefix = string.Concat(typeof(TEntity).Name.Where(char.IsUpper).Take(2));
             }
             var currentCount = await GetRawQueryAsync<string>($"SELECT COUNT(*) AS Total FROM {typeof(TEntity).Name}", "Total");
-            return $"{prefix}{currentCount:D4}";
+            return $"{prefix}-{currentCount:D4}";
         }
         #endregion
 
@@ -578,9 +579,12 @@ namespace FerPROJ.DBHelper.DBCrud {
         public async Task<TModel> GetPrepareModelAsync(TModel model = null, string prefix = null) {
             if (model.IsNullOrEmpty()) {
                 model = Activator.CreateInstance<TModel>();
+                model.FormId = "DRAFT";
+            }
+            else {
+                model.FormId = await GetGeneratedFormIdAsync(prefix);
             }
             model.Id = Guid.NewGuid();
-            model.FormId = await GetGeneratedFormIdAsync(prefix);
             return model;
         }
         #endregion
@@ -596,6 +600,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             if (!IsResultSuccess(model, validate)) {
                 return false;
             }
+            model = await GetPrepareModelAsync(model);
             return await base.SaveModelAsync(model, validate);
         }
         #endregion
