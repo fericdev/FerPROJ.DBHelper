@@ -271,6 +271,12 @@ namespace FerPROJ.DBHelper.DBCrud {
         #endregion
 
         #region Load ComboBox
+        public virtual async Task LoadComboBoxAsync(CComboBoxKrypton cmb, Expression<Func<TEntity, bool>> whereCondition = null) {
+            var listItems = whereCondition != null
+                ? await GetAllAsync(whereCondition)
+                : await GetAllAsync();
+            cmb.FillComboBox("Name", "Id", listItems);
+        }
         public virtual async Task LoadComboBoxAsync(CComboBoxKrypton cmb, string cmbName, string cmbValue, Expression<Func<TEntity, bool>> whereCondition = null) {
             var listItems = whereCondition != null
                 ? await GetAllAsync(whereCondition)
@@ -435,6 +441,12 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task<TModelItem> GetPrepareModelItemByEntityAsync(TEntityItem entity) {
             return entity.ToDestination<TModelItem>();
+        }
+        public virtual async Task<TModelItem> GetPrepareModelItemByIdAsync(Guid id) {
+            var entity = await GetItemByIdAsync(id);
+            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ModelItemPrefix, id, async () => {
+                return await GetPrepareModelItemByEntityAsync(entity);
+            });
         }
         #endregion
 
