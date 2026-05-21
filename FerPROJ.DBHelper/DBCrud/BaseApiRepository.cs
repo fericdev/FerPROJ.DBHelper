@@ -570,7 +570,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             if (prefix.IsNullOrEmpty()) {
                 prefix = string.Concat(typeof(TEntity).Name.Where(char.IsUpper).Take(2));
             }
-            var currentCount = await GetRawQueryAsync<string>($"SELECT COUNT(*) AS Total FROM {typeof(TEntity).Name}", "Total");
+            var currentCount = await GetRawQueryAsync<int>($"SELECT COUNT(*) AS Total FROM {typeof(TEntity).Name}", "Total");
             return $"{prefix}-{currentCount:D4}";
         }
         #endregion
