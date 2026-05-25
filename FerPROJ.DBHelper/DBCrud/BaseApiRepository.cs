@@ -554,6 +554,55 @@ namespace FerPROJ.DBHelper.DBCrud {
         #endregion
 
     }
+    public abstract class BaseFormApiRepository<TModel, TEntity> : BaseApiRepository<TModel, TEntity>
+        where TModel : BaseFormModel
+        where TEntity : BaseFormEntity {
+
+        #region CTOR
+        protected BaseFormApiRepository() {
+        }
+        #endregion
+
+        #region Generate Form Id
+        public async Task<string> GetGeneratedFormIdAsync(string prefix) {
+            if (prefix.IsNullOrEmpty()) {
+                prefix = string.Concat(typeof(TEntity).Name.Where(char.IsUpper).Take(2));
+            }
+            var currentCount = await GetRawQueryAsync<int>($"SELECT COUNT(*) AS Total FROM {typeof(TEntity).Name}", "Total");
+            return $"{prefix}-{currentCount:D4}";
+        }
+        #endregion
+
+        #region Get Form Model
+        public async Task<TModel> GetPrepareModelAsync(TModel model = null, string prefix = null) {
+            if (model.IsNullOrEmpty()) {
+                model = Activator.CreateInstance<TModel>();
+                model.FormId = "DRAFT";
+            }
+            else {
+                model.FormId = await GetGeneratedFormIdAsync(prefix);
+            }
+            model.Id = Guid.NewGuid();
+            return model;
+        }
+        #endregion
+
+        #region CRUD
+        public override async Task<bool> UpdateModelAsync(TModel model, bool validate = false) {
+            if (!IsResultSuccess(model, validate)) {
+                return false;
+            }
+            return await base.UpdateModelAsync(model, validate);
+        }
+        public override async Task<bool> SaveModelAsync(TModel model, bool validate = false) {
+            if (!IsResultSuccess(model, validate)) {
+                return false;
+            }
+            model = await GetPrepareModelAsync(model);
+            return await base.SaveModelAsync(model, validate);
+        }
+        #endregion
+    }
     public abstract class BaseFormItemApiRepository<TModel, TModelItem, TEntity, TEntityItem> : BaseItemApiRepository<TModel, TModelItem, TEntity, TEntityItem>
         where TModel : BaseFormModel<TModelItem>
         where TModelItem : BaseModelItem
