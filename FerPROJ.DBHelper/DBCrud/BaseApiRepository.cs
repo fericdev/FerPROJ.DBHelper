@@ -481,7 +481,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         #region Base CRUD for Item
         public virtual async Task SaveItemDataAsync(TEntityItem entity) {
-            await CApiManager.PostAsync<TEntityItem, object>(GetItemUrl(ActionTypes.Save), entity);
+            await CApiManager.PostAsync<TEntityItem, TEntityItem>(GetItemUrl(ActionTypes.Save), entity);
         }
         public virtual async Task<bool> UpdateItemDataAsync(TEntityItem entity) {
             return await CApiManager.PostAsync(GetItemUrl(ActionTypes.Update), entity);
@@ -547,6 +547,10 @@ namespace FerPROJ.DBHelper.DBCrud {
                         newItemEntity.Id = Guid.NewGuid();
 
                         newItemEntity.ParentId = model.Id;
+
+                        item.Id = newItemEntity.Id;
+
+                        item.ParentId = newItemEntity.ParentId;
 
                         await SaveItemDataAsync(newItemEntity);
                     }
