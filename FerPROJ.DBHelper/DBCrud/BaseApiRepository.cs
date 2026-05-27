@@ -490,25 +490,72 @@ namespace FerPROJ.DBHelper.DBCrud {
             return await CApiManager.DeleteAsync(GetItemUrl(ActionTypes.Delete, ("Id", id)));
         }
         public override async Task<bool> SaveModelAsync(TModel model, bool validate = false) {
-            var result = await base.SaveModelAsync(model, validate);
-            if (result) {
-                foreach (var item in model.Items) {
-                    var itemEntity = item.ToDestination<TEntityItem>();
-                    itemEntity.Id = Guid.NewGuid();
-                    itemEntity.ParentId = model.Id;
-                    await SaveItemDataAsync(itemEntity);
+            if (!IsResultSuccess(model, validate)) {
+                return false;
+            }
+            if (CDialogManager.Ask("Are you sure to save this data?", "Confirmation")) {
+
+                var entity = model.ToDestination<TEntity>();
+
+                var result = await SaveDataAsync(entity);
+
+                if (!result.IsNullOrEmpty()) {
+                    await ClearCacheAsync();
+
+                    await new CacheVersionApiRepository().ExecuteUpdateCacheAsync();
+
+                    foreach (var item in model.Items) {
+
+                        var itemEntity = item.ToDestination<TEntityItem>();
+
+                        itemEntity.Id = Guid.NewGuid();
+
+                        itemEntity.ParentId = result.Id;
+
+                        await SaveItemDataAsync(itemEntity);
+                    }
+                    CDialogManager.Info("Data saved successfully.");
                 }
-                return result;
             }
             return false;
         }
         public override async Task<bool> UpdateModelAsync(TModel model, bool validate = false) {
-            var result = await base.UpdateModelAsync(model, validate);
-            if (result) {
+            if (!IsResultSuccess(model, validate)) {
+                return false;
+            }
+
+            if (CDialogManager.Ask("Are you sure to update this data?", "Confirmation")) {
+
+                var existingEntity = await GetByIdAsync(model.Id);
+
+                var entity = model.ToDestination(existingEntity);
+
+                await UpdateDataAsync(entity);
+
+                await ClearCacheAsync();
+
+                await new CacheVersionApiRepository().ExecuteUpdateCacheAsync();
+
                 foreach (var item in model.Items) {
-                    var existingEntity = await GetItemByIdAsync(item.Id);
-                    var newEntity = model.ToDestination(existingEntity);
-                    await UpdateItemDataAsync(newEntity);
+
+                    var existingItemEntity = await GetItemByIdAsync(item.Id);
+
+                    if (existingItemEntity.IsNullOrEmpty()) {
+
+                        var newItemEntity = item.ToDestination<TEntityItem>();
+
+                        newItemEntity.Id = Guid.NewGuid();
+
+                        newItemEntity.ParentId = model.Id;
+
+                        await SaveItemDataAsync(newItemEntity);
+                    }
+                    else {
+
+                        var newItemEntity = model.ToDestination(existingItemEntity);
+
+                        await UpdateItemDataAsync(newItemEntity);
+                    }
                 }
                 // Handle deletions
                 var entityItems = new CMappingExtensionList<TModelItem, TEntityItem>().GetMappingResultList(model.Items);
@@ -529,8 +576,10 @@ namespace FerPROJ.DBHelper.DBCrud {
                 foreach (var item in entityItemsForDeletion) {
                     await DeleteItemByIdAsync(item.Id);
                 }
-                return true;
 
+                CDialogManager.Info("Data updated successfully.");
+
+                return true;
             }
             return false;
         }
