@@ -515,6 +515,8 @@ namespace FerPROJ.DBHelper.DBCrud {
                         await SaveItemDataAsync(itemEntity);
                     }
                     CDialogManager.Info("Data saved successfully.");
+
+                    return true;
                 }
             }
             return false;
