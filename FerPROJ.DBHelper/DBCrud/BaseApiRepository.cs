@@ -302,21 +302,13 @@ namespace FerPROJ.DBHelper.DBCrud {
             }
             return false;
         }
-        public virtual async Task<TEntity> SaveDataAsync(TEntity entity) {
+        public virtual async Task SaveDataAsync(TEntity entity) {
             entity.Id = Guid.NewGuid();
-            var result = await CApiManager.PostAsync<TEntity, object>(GetUrl(ActionTypes.Save), entity);
-            if (!result.IsNullOrEmpty()) {
-                return result.ToDestination<TEntity>();
-            }
-            return default;
+            await CApiManager.PostAsync<TEntity, object>(GetUrl(ActionTypes.Save), entity);
         }
-        public virtual async Task<T> SaveDataAsync<T>(T entity) where T : BaseEntity {
+        public virtual async Task SaveDataAsync<T>(T entity) where T : BaseEntity {
             entity.Id = Guid.NewGuid();
-            var result = await CApiManager.PostAsync<T, object>(GetUrl(ActionTypes.Save), entity);
-            if (!result.IsNullOrEmpty()) {
-                return result.ToDestination<T>();
-            }
-            return default;
+            await CApiManager.PostAsync<T, object>(GetUrl(ActionTypes.Save), entity);
         }
 
         // ✅ UPDATE
@@ -481,7 +473,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         #region Base CRUD for Item
         public virtual async Task SaveItemDataAsync(TEntityItem entity) {
-            await CApiManager.PostAsync<TEntityItem, TEntityItem>(GetItemUrl(ActionTypes.Save), entity);
+            await CApiManager.PostAsync<TEntityItem, object>(GetItemUrl(ActionTypes.Save), entity);
         }
         public virtual async Task<bool> UpdateItemDataAsync(TEntityItem entity) {
             return await CApiManager.PostAsync(GetItemUrl(ActionTypes.Update), entity);
@@ -497,27 +489,26 @@ namespace FerPROJ.DBHelper.DBCrud {
 
                 var entity = model.ToDestination<TEntity>();
 
-                var result = await SaveDataAsync(entity);
+                await SaveDataAsync(entity);
 
-                if (!result.IsNullOrEmpty()) {
-                    await ClearCacheAsync();
+                await ClearCacheAsync();
 
-                    await new CacheVersionApiRepository().ExecuteUpdateCacheAsync();
+                await new CacheVersionApiRepository().ExecuteUpdateCacheAsync();
 
-                    foreach (var item in model.Items) {
+                foreach (var item in model.Items) {
 
-                        var itemEntity = item.ToDestination<TEntityItem>();
+                    var itemEntity = item.ToDestination<TEntityItem>();
 
-                        itemEntity.Id = Guid.NewGuid();
+                    itemEntity.Id = Guid.NewGuid();
 
-                        itemEntity.ParentId = result.Id;
+                    itemEntity.ParentId = entity.Id;
 
-                        await SaveItemDataAsync(itemEntity);
-                    }
-                    CDialogManager.Info("Data saved successfully.");
-
-                    return true;
+                    await SaveItemDataAsync(itemEntity);
                 }
+                CDialogManager.Info("Data saved successfully.");
+
+                return true;
+
             }
             return false;
         }
