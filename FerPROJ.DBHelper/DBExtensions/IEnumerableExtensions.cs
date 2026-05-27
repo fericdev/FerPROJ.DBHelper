@@ -142,6 +142,10 @@ namespace FerPROJ.DBHelper.DBExtensions {
         #region Get Active Only
         public static IEnumerable<TEntity> GetAllActiveOnly<TEntity>(this IEnumerable<TEntity> queryable) where TEntity : BaseEntity {
 
+            if (queryable.IsNullOrEmpty()) {
+                return Enumerable.Empty<TEntity>();
+            }
+
             // If the user not admin, filter by application ID
             if (CAppConstants.USER_ROLE != CBaseEnums.Role.Administrator) {
                 queryable = queryable.Where(x => x.ApplicationId == CAppConstants.APPLICATION_ID);
@@ -157,7 +161,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
         #region Get InActive Only
         public static IEnumerable<TEntity> GetAllInActiveOnly<TEntity>(this IEnumerable<TEntity> queryable) where TEntity : BaseEntity {
-            
+
             // If the user not admin, filter by application ID
             if (CAppConstants.USER_ROLE != CBaseEnums.Role.Administrator) {
                 queryable = queryable.Where(x => x.ApplicationId == CAppConstants.APPLICATION_ID);
@@ -214,8 +218,8 @@ namespace FerPROJ.DBHelper.DBExtensions {
             var results = new List<TResult>();
 
             foreach (var item in source.Take(dataLimit)) {
-                
-                var result = await selector(item); 
+
+                var result = await selector(item);
 
                 if (filter(result)) {
 
