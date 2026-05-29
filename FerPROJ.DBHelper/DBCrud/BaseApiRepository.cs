@@ -455,6 +455,34 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             return (result, query.Count());
         }
+        public virtual async Task<IEnumerable<TModelItem>> GetViewModelItemWithSearchAsync(string searchText, int dataLimit = int.MaxValue) {
+
+            var query = await GetAllItemsAsync();
+
+            var result = await query.SelectListAsync(async c => {
+
+                return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelItemPrefix, c.GetPropertyValue<string>("Id"), async () => {
+                    return await GetPrepareModelItemByEntityAsync(c);
+                });
+
+            }, c => c.SearchForText(searchText), dataLimit);
+
+            return result;
+        }
+        public virtual async Task<IEnumerable<TModelItem>> GetViewModelItemWithSearchAsync(Expression<Func<TEntityItem, bool>> whereCondition, string searchText, int dataLimit = int.MaxValue) {
+
+            var query = await GetAllItemsAsync(whereCondition);
+
+            var result = await query.SelectListAsync(async c => {
+
+                return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelItemPrefix, c.GetPropertyValue<string>("Id"), async () => {
+                    return await GetPrepareModelItemByEntityAsync(c);
+                });
+
+            }, c => c.SearchForText(searchText), dataLimit);
+
+            return result;
+        }
         #endregion
 
         #region Base GET for Model Item
