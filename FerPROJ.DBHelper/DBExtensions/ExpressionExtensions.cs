@@ -1,4 +1,6 @@
-﻿using System;
+﻿using FerPROJ.Design.Class;
+using Google.Protobuf.WellKnownTypes;
+using System;
 using System.Linq.Expressions;
 using System.Text;
 
@@ -90,6 +92,41 @@ namespace FerPROJ.DBHelper.DBExtensions {
                     var value = GetValue(node.Arguments[1]);
 
                     _query.Append($"&{GetMemberName(memberExpr)}={value}");
+                    return node;
+                }
+            }
+
+            // Handle IsEquals extension
+            if (node.Method.Name == "IsEquals" && node.Arguments.Count == 2) {
+
+                // c.Type
+                var stringExpr = Visit(node.Arguments[0]); 
+
+                // ledgerAccountType
+                var enumExpr = node.Arguments[1];          
+
+                // Extract enum value (must be constant or captured variable)
+                object enumValue = null;
+
+                if (enumExpr is MemberExpression memberExpr) {
+                    var objectMember = Expression.Convert(memberExpr, typeof(object));
+                    var getterLambda = Expression.Lambda<Func<object>>(objectMember);
+                    enumValue = getterLambda.Compile().Invoke();
+                }
+
+                else if (enumExpr is ConstantExpression constExpr) {
+                    enumValue = constExpr.Value;
+                }
+
+                if (!enumValue.IsNullOrEmpty()) {
+
+                    var memberEnumExpr = node.Arguments[0] as MemberExpression;
+
+                    // Convert enum to string OUTSIDE expression
+                    var enumString = enumValue.ToString();
+
+                    _query.Append($"&{GetMemberName(memberEnumExpr)}={enumString}");
+
                     return node;
                 }
             }

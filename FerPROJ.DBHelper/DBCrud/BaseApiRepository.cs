@@ -422,6 +422,41 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         #endregion
 
+        #region Get View Model Item
+        public virtual async Task<(IEnumerable<TModelItem> ModelItems, int TotalCount)> GetViewModelItemWithSearchAsync(string searchText, int page, int dataLimit = int.MaxValue) {
+
+            var query = await GetAllItemsAsync();
+
+            dataLimit = !searchText.IsNullOrEmpty() ? int.MaxValue : dataLimit;
+
+            var result = await query.SelectListAsync(async c => {
+
+                return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelItemPrefix, c.GetPropertyValue<string>("Id"), async () => {
+                    return await GetPrepareModelItemByEntityAsync(c);
+                });
+
+            }, c => c.SearchForText(searchText), page, dataLimit);
+
+            return (result, query.Count());
+        }
+        public virtual async Task<(IEnumerable<TModelItem> ModelItems, int TotalCount)> GetViewModelItemWithSearchAsync(Expression<Func<TEntityItem, bool>> whereCondition, string searchText, int page, int dataLimit = int.MaxValue) {
+
+            var query = await GetAllItemsAsync(whereCondition);
+
+            dataLimit = !searchText.IsNullOrEmpty() ? int.MaxValue : dataLimit;
+
+            var result = await query.SelectListAsync(async c => {
+
+                return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelItemPrefix, c.GetPropertyValue<string>("Id"), async () => {
+                    return await GetPrepareModelItemByEntityAsync(c);
+                });
+
+            }, c => c.SearchForText(searchText), page, dataLimit);
+
+            return (result, query.Count());
+        }
+        #endregion
+
         #region Base GET for Model Item
         public override async Task<TModel> GetPrepareModelByEntityAsync(TEntity entity) {
             return await CacheManager.GetOrCreateCacheAsync(CacheManager.ModelPrefix, entity.GetPropertyValue<string>("Id"), async () => {
