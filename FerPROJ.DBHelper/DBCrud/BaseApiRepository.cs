@@ -17,6 +17,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace FerPROJ.DBHelper.DBCrud {
     public abstract class BaseApiRepository<TModel, TEntity>
@@ -127,6 +128,60 @@ namespace FerPROJ.DBHelper.DBCrud {
             }, c => c.SearchFor(searchText, dateFrom, dateTo, d => d.DateCreated), page, dataLimit);
 
             return (result, query.Count());
+        }
+        public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int dataLimit = int.MaxValue) {
+
+            if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate() && !searchText.IsNullOrEmpty()) {
+                dateFrom = null;
+                dateTo = null;
+            }
+
+            var query = await GetAllAsync();
+
+            query = query.GetAllActiveOnly();
+
+            query = query.OrderByProperty("DateMarked", false);
+
+            dataLimit = !searchText.IsNullOrEmpty() ||
+                        !dateFrom.IsNullOrEmpty() ||
+                        !dateTo.IsNullOrEmpty() ? int.MaxValue : dataLimit;
+
+            var result = await query.SelectListAsync(async c => {
+
+                return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelPrefix, c.GetPropertyValue<string>("Id"), async () => {
+                    return await GetPrepareModelByEntityAsync(c);
+                });
+
+            }, c => c.SearchFor(searchText, dateFrom, dateTo, d => d.DateCreated), dataLimit);
+
+            return result;
+        }
+        public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(Expression<Func<TEntity, bool>> whereCondition, string searchText, DateTime? dateFrom, DateTime? dateTo, int dataLimit = int.MaxValue) {
+
+            if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate() && !searchText.IsNullOrEmpty()) {
+                dateFrom = null;
+                dateTo = null;
+            }
+
+            var query = await GetAllAsync(whereCondition);
+
+            query = query.GetAllActiveOnly();
+
+            query = query.OrderByProperty("DateMarked", false);
+
+            dataLimit = !searchText.IsNullOrEmpty() ||
+                        !dateFrom.IsNullOrEmpty() ||
+                        !dateTo.IsNullOrEmpty() ? int.MaxValue : dataLimit;
+
+            var result = await query.SelectListAsync(async c => {
+
+                return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelPrefix, c.GetPropertyValue<string>("Id"), async () => {
+                    return await GetPrepareModelByEntityAsync(c);
+                });
+
+            }, c => c.SearchFor(searchText, dateFrom, dateTo, d => d.DateCreated), dataLimit);
+
+            return result;
         }
         #endregion
 
