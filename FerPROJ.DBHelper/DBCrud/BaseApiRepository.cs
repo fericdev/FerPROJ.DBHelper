@@ -807,11 +807,8 @@ namespace FerPROJ.DBHelper.DBCrud {
         public async Task<TModel> GetPrepareModelAsync(TModel model = null, string prefix = null) {
             if (model.IsNullOrEmpty()) {
                 model = Activator.CreateInstance<TModel>();
-                model.FormId = "DRAFT";
             }
-            else {
-                model.FormId = await GetGeneratedFormIdAsync(prefix);
-            }
+            model.FormId = await GetGeneratedFormIdAsync(prefix);
             model.Id = Guid.NewGuid();
             return model;
         }
@@ -828,7 +825,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             if (!IsResultSuccess(model, validate)) {
                 return false;
             }
-            model = await GetPrepareModelAsync(model);
+            model = await GetPrepareModelAsync(model, model.FormId.GetLettersBeforeSeparator('-'));
             return await base.SaveModelAsync(model, validate);
         }
         #endregion
