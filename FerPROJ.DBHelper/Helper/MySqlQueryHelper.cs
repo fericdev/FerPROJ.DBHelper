@@ -59,7 +59,7 @@ namespace FerPROJ.DBHelper.Query {
             if (type == typeof(string)) return "varchar(255)";
             if (type == typeof(DateTime)) return "datetime";
             if (type == typeof(Guid)) return "char(36)";
-            if (type == typeof(byte[])) return "blob";
+            if (type == typeof(byte[])) return "longblob";
 
             return "text"; // fallback
         }

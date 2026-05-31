@@ -424,6 +424,11 @@ namespace FerPROJ.DBHelper.DBCrud {
             entity.Status = CAppConstants.IN_ACTIVE_STATUS;
             return await UpdateDataAsync(entity);
         }
+        public virtual async Task<bool> SavePictureAsync(Guid id, byte[] picture, string propertyName) {
+            var entity = await GetByIdAsync(id);
+            entity.GetPropertyInfo(propertyName).SetValue(entity, picture);
+            return await UpdateDataAsync(entity);
+        }
         #endregion
 
         #region Validation
