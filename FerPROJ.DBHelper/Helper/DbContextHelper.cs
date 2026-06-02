@@ -187,7 +187,7 @@ namespace FerPROJ.DBHelper.Helper {
                 foreach (var prop in properties) {
                     // Determine column details
                     var columnName = prop.Name;
-                    var columnType = GetMySqlColumnType(prop.PropertyType);
+                    var columnType = GetMySqlColumnType(prop);
                     var isNullable = !IsNonNullable(prop.PropertyType);
                     var defaultValue = GetDefaultValue(prop, typeof(TEntity));
 
