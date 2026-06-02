@@ -4,6 +4,7 @@ using FerPROJ.Design.Forms;
 using FerPROJ.Design.Interface;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Data.Entity;
 using System.Data.Entity.Migrations;
 using System.Data.SqlClient;
@@ -159,7 +160,7 @@ namespace FerPROJ.DBHelper.Helper {
                 // Add columns
                 foreach (var prop in properties) {
                     var columnName = prop.Name;
-                    var columnType = GetMySqlColumnType(prop.PropertyType);
+                    var columnType = GetMySqlColumnType(prop);
                     var isNullable = !IsNonNullable(prop.PropertyType);
                     var defaultValue = GetDefaultValue(prop, typeof(TEntity));
 
@@ -214,7 +215,9 @@ namespace FerPROJ.DBHelper.Helper {
             }
         }
 
-        private static string GetMySqlColumnType(Type type) {
+        private static string GetMySqlColumnType(PropertyInfo prop) {
+            var type = prop.PropertyType;
+
             type = Nullable.GetUnderlyingType(type) ?? type;
 
             if (type == typeof(int)) return "INT";
@@ -225,12 +228,24 @@ namespace FerPROJ.DBHelper.Helper {
             if (type == typeof(decimal)) return "DECIMAL(18,2)";
             if (type == typeof(float)) return "FLOAT";
             if (type == typeof(double)) return "DOUBLE";
-            if (type == typeof(string)) return "VARCHAR(255)";
             if (type == typeof(DateTime)) return "DATETIME";
             if (type == typeof(Guid)) return "CHAR(36)";
             if (type == typeof(byte[])) return "BLOB";
-            // add more types if needed
-            throw new NotSupportedException($"Type {type.Name} not supported");
+
+            if (type == typeof(string)) {
+
+                var stringLength = prop.GetCustomAttribute<StringLengthAttribute>();
+
+                if (stringLength != null) {
+                    if (stringLength.MaximumLength == int.MaxValue) {
+                        return "LONGTEXT"; // or TEXT/MEDIUMTEXT depending on your needs
+                    }
+
+                    return $"VARCHAR({stringLength.MaximumLength})";
+                }             
+            }
+
+            return "VARCHAR(255)";
         }
 
         private static bool IsNonNullable(Type type) {
