@@ -358,7 +358,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         #region CRUD
         // ✅ CREATE
-        public virtual async Task<bool> SaveModelAsync(TModel model, bool validate = false) {
+        public virtual async Task<bool> SaveModelAsync(TModel model, bool validate = true) {
             if (!IsResultSuccess(model, validate)) {
                 return false;
             }
@@ -382,7 +382,7 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
 
         // ✅ UPDATE
-        public virtual async Task<bool> UpdateModelAsync(TModel model, bool validate = false) {
+        public virtual async Task<bool> UpdateModelAsync(TModel model, bool validate = true) {
             if (!IsResultSuccess(model, validate)) {
                 return false;
             }
@@ -619,7 +619,7 @@ namespace FerPROJ.DBHelper.DBCrud {
         public virtual async Task<bool> DeleteItemByIdAsync(Guid id) {
             return await CApiManager.DeleteAsync(GetItemUrl(ActionTypes.Delete, ("Id", id)));
         }
-        public override async Task<bool> SaveModelAsync(TModel model, bool validate = false) {
+        public override async Task<bool> SaveModelAsync(TModel model, bool validate = true) {
             if (!IsResultSuccess(model, validate)) {
                 return false;
             }
@@ -650,7 +650,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             }
             return false;
         }
-        public override async Task<bool> UpdateModelAsync(TModel model, bool validate = false) {
+        public override async Task<bool> UpdateModelAsync(TModel model, bool validate = true) {
             if (!IsResultSuccess(model, validate)) {
                 return false;
             }
@@ -772,13 +772,13 @@ namespace FerPROJ.DBHelper.DBCrud {
         #endregion
 
         #region CRUD
-        public override async Task<bool> UpdateModelAsync(TModel model, bool validate = false) {
+        public override async Task<bool> UpdateModelAsync(TModel model, bool validate = true) {
             if (!IsResultSuccess(model, validate)) {
                 return false;
             }
             return await base.UpdateModelAsync(model, validate);
         }
-        public override async Task<bool> SaveModelAsync(TModel model, bool validate = false) {
+        public override async Task<bool> SaveModelAsync(TModel model, bool validate = true) {
             if (!IsResultSuccess(model, validate)) {
                 return false;
             }
@@ -820,13 +820,13 @@ namespace FerPROJ.DBHelper.DBCrud {
         #endregion
 
         #region CRUD
-        public override async Task<bool> UpdateModelAsync(TModel model, bool validate = false) {
+        public override async Task<bool> UpdateModelAsync(TModel model, bool validate = true) {
             if (!IsResultSuccess(model, validate)) {
                 return false;
             }
             return await base.UpdateModelAsync(model, validate);
         }
-        public override async Task<bool> SaveModelAsync(TModel model, bool validate = false) {
+        public override async Task<bool> SaveModelAsync(TModel model, bool validate = true) {
             if (!IsResultSuccess(model, validate)) {
                 return false;
             }
