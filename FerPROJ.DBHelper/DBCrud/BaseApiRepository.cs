@@ -366,7 +366,6 @@ namespace FerPROJ.DBHelper.DBCrud {
                 var entity = model.ToDestination<TEntity>();
                 await SaveDataAsync(entity);
                 await ClearCacheAsync();
-                await new CacheVersionApiRepository().ExecuteUpdateCacheAsync();
                 CDialogManager.Info("Data saved successfully.");
                 return true;
             }
@@ -391,7 +390,6 @@ namespace FerPROJ.DBHelper.DBCrud {
                 var entity = model.ToDestination(existingEntity);
                 await UpdateDataAsync(entity);
                 await ClearCacheAsync();
-                await new CacheVersionApiRepository().ExecuteUpdateCacheAsync();
                 CDialogManager.Info("Data updated successfully.");
                 return true;
             }
@@ -412,7 +410,6 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             if (CDialogManager.Ask("Are you sure to delete this data?", "Confirmation")) {
                 await ClearCacheAsync();
-                await new CacheVersionApiRepository().ExecuteUpdateCacheAsync();
                 await DeleteDataAsync(id);
                 CDialogManager.Info("Data deleted successfully.");
                 return true;
@@ -462,6 +459,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             CacheManager.ClearCacheByPrefix(CacheManager.EntityPrefix);
             CacheManager.ClearCacheByPrefix(CacheManager.ListEntityPrefix);
             CacheManager.ClearCacheByPrefix(CacheManager.ListEntityItemPrefix);
+            await new CacheVersionApiRepository().ExecuteUpdateCacheAsync();
         }
         #endregion
     }
@@ -631,8 +629,6 @@ namespace FerPROJ.DBHelper.DBCrud {
 
                 await ClearCacheAsync();
 
-                await new CacheVersionApiRepository().ExecuteUpdateCacheAsync();
-
                 foreach (var item in model.Items) {
 
                     var itemEntity = item.ToDestination<TEntityItem>();
@@ -664,8 +660,6 @@ namespace FerPROJ.DBHelper.DBCrud {
                 await UpdateDataAsync(entity);
 
                 await ClearCacheAsync();
-
-                await new CacheVersionApiRepository().ExecuteUpdateCacheAsync();
 
                 foreach (var item in model.Items) {
 
