@@ -17,6 +17,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using static FerPROJ.Design.Class.CBaseEnums;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace FerPROJ.DBHelper.DBCrud {
@@ -789,6 +790,51 @@ namespace FerPROJ.DBHelper.DBCrud {
             model = await GetPrepareModelAsync(model);
             return await base.SaveModelAsync(model, validate);
         }
+        public virtual async Task SaveFinalizedDataAsync(TEntity entity) {
+            entity.FinalizeStatus = FinalizeStatusTypes.Completed.ToString();
+            await UpdateDataAsync(entity);
+        }
+        public virtual async Task<bool> SaveFinalizedModelAsync(TModel model, bool validate = true) {
+            if (!IsResultSuccess(model, validate)) {
+                return false;
+            }
+
+            var existingEntity = await GetByIdAsync(model.Id);
+
+            if (existingEntity.IsNullOrEmptyId()) {
+                if (CDialogManager.Ask("Are you sure to save and finalize this data?", "Confirmation")) {
+
+                    var entity = model.ToDestination<TEntity>();
+
+                    await SaveDataAsync(entity);
+
+                    await SaveFinalizedDataAsync(entity);
+
+                    await ClearCacheAsync();
+
+                    await ExecuteAfterSaveAsync(entity);
+
+                    CDialogManager.Info("Data saved successfully.");
+
+                }
+            }
+            else {
+                if (CDialogManager.Ask("Are you sure to update and finalize this data?", "Confirmation")) {
+
+                    var entity = model.ToDestination(existingEntity);
+
+                    await SaveFinalizedDataAsync(entity);
+
+                    await ClearCacheAsync();
+
+                    await ExecuteAfterSaveAsync(entity);
+
+                    CDialogManager.Info("Data updated successfully.");
+                }
+            }
+
+            return true;
+        }
         #endregion
     }
     public abstract class BaseFormItemApiRepository<TModel, TModelItem, TEntity, TEntityItem> : BaseItemApiRepository<TModel, TModelItem, TEntity, TEntityItem>
@@ -836,6 +882,107 @@ namespace FerPROJ.DBHelper.DBCrud {
             }
             model = await GetPrepareModelAsync(model, model.FormId.GetLettersBeforeSeparator('-'));
             return await base.SaveModelAsync(model, validate);
+        }
+        public virtual async Task SaveFinalizedDataAsync(TEntity entity) {
+            entity.FinalizeStatus = FinalizeStatusTypes.Completed.ToString();
+            await UpdateDataAsync(entity);
+        }
+        public virtual async Task<bool> SaveFinalizedModelAsync(TModel model, bool validate = true) {
+            if (!IsResultSuccess(model, validate)) {
+                return false;
+            }
+
+            var existingEntity = await GetByIdAsync(model.Id);
+
+            if (existingEntity.IsNullOrEmptyId()) {
+                if (CDialogManager.Ask("Are you sure to save and finalize this data?", "Confirmation")) {
+
+                    var entity = model.ToDestination<TEntity>();
+
+                    await SaveDataAsync(entity);
+
+                    await SaveFinalizedDataAsync(entity);
+
+                    await ClearCacheAsync();
+
+                    foreach (var item in model.Items) {
+
+                        var itemEntity = item.ToDestination<TEntityItem>();
+
+                        itemEntity.Id = Guid.NewGuid();
+
+                        itemEntity.ParentId = entity.Id;
+
+                        await SaveItemDataAsync(itemEntity);
+                    }
+
+                    await ExecuteAfterSaveAsync(entity);
+
+                    CDialogManager.Info("Data saved successfully.");
+
+                }
+            }
+            else {
+                if (CDialogManager.Ask("Are you sure to update and finalize this data?", "Confirmation")) {
+
+                    var entity = model.ToDestination(existingEntity);
+
+                    await SaveFinalizedDataAsync(entity);
+
+                    await ClearCacheAsync();
+
+                    foreach (var item in model.Items) {
+
+                        var existingItemEntity = await GetItemByIdAsync(item.Id);
+
+                        if (existingItemEntity.IsNullOrEmpty()) {
+
+                            var newItemEntity = item.ToDestination<TEntityItem>();
+
+                            newItemEntity.Id = Guid.NewGuid();
+
+                            newItemEntity.ParentId = model.Id;
+
+                            item.Id = newItemEntity.Id;
+
+                            item.ParentId = newItemEntity.ParentId;
+
+                            await SaveItemDataAsync(newItemEntity);
+                        }
+                        else {
+
+                            var newItemEntity = model.ToDestination(existingItemEntity);
+
+                            await UpdateItemDataAsync(newItemEntity);
+                        }
+                    }
+                    // Handle deletions
+                    var entityItems = new CMappingExtensionList<TModelItem, TEntityItem>().GetMappingResultList(model.Items);
+                    var existingItems = await GetAllItemsByParentIdAsync(model.Id);
+
+                    // Check for incoming ids
+                    var incomingIds = entityItems
+                        .Select(x => x.Id)
+                        .Where(id => !id.IsNullOrEmpty())
+                        .ToHashSet();
+
+                    // Items for removal
+                    var entityItemsForDeletion = existingItems
+                        .Where(item => !incomingIds.Contains(item.Id))
+                        .ToList();
+
+                    // Delete items that are not in the incoming list
+                    foreach (var item in entityItemsForDeletion) {
+                        await DeleteItemByIdAsync(item.Id);
+                    }
+
+                    await ExecuteAfterSaveAsync(entity);
+
+                    CDialogManager.Info("Data updated successfully.");
+                }
+            }
+
+            return true;
         }
         #endregion
     }
