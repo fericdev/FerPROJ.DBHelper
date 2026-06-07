@@ -135,6 +135,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Helper\MySqlQueryHelper.cs" />
+    <Compile Include="Repository\CompanyRepository.cs" />
     <Compile Include="Repository\UserRepository.cs" />
   </ItemGroup>
   <ItemGroup>
