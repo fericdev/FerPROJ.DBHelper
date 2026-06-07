@@ -916,7 +916,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                         await SaveItemDataAsync(itemEntity);
                     }
 
-                    await ExecuteAfterSaveAsync(entity);
+                    await ExecuteAfterFinalizedAsync(entity);
 
                     CDialogManager.Info("Data saved successfully.");
 
@@ -976,13 +976,16 @@ namespace FerPROJ.DBHelper.DBCrud {
                         await DeleteItemByIdAsync(item.Id);
                     }
 
-                    await ExecuteAfterSaveAsync(entity);
+                    await ExecuteAfterFinalizedAsync(entity);
 
                     CDialogManager.Info("Data updated successfully.");
                 }
             }
 
             return true;
+        }
+        public virtual async Task ExecuteAfterFinalizedAsync(TEntity entity) {
+            // Override this method in derived classes to execute additional logic after finalizing the model
         }
         #endregion
     }
