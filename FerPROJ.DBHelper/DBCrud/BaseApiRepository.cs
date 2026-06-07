@@ -366,6 +366,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                 var entity = model.ToDestination<TEntity>();
                 await SaveDataAsync(entity);
                 await ClearCacheAsync();
+                await ExecuteAfterSaveAsync(entity);
                 CDialogManager.Info("Data saved successfully.");
                 return true;
             }
@@ -390,6 +391,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                 var entity = model.ToDestination(existingEntity);
                 await UpdateDataAsync(entity);
                 await ClearCacheAsync();
+                await ExecuteAfterSaveAsync(entity);
                 CDialogManager.Info("Data updated successfully.");
                 return true;
             }
@@ -425,6 +427,9 @@ namespace FerPROJ.DBHelper.DBCrud {
             var entity = await GetByIdAsync(id);
             entity.GetPropertyInfo(propertyName).SetValue(entity, picture);
             return await UpdateDataAsync(entity);
+        }
+        public virtual async Task ExecuteAfterSaveAsync(TEntity entity) {
+            // Override this method in derived classes to execute additional logic after saving the model
         }
         #endregion
 
@@ -639,6 +644,9 @@ namespace FerPROJ.DBHelper.DBCrud {
 
                     await SaveItemDataAsync(itemEntity);
                 }
+
+                await ExecuteAfterSaveAsync(entity);
+
                 CDialogManager.Info("Data saved successfully.");
 
                 return true;
@@ -705,6 +713,8 @@ namespace FerPROJ.DBHelper.DBCrud {
                 foreach (var item in entityItemsForDeletion) {
                     await DeleteItemByIdAsync(item.Id);
                 }
+
+                await ExecuteAfterSaveAsync(entity);
 
                 CDialogManager.Info("Data updated successfully.");
 
