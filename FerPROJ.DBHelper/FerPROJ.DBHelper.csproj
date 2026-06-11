@@ -94,6 +94,12 @@
     <Compile Include="Entity\Cache\CacheVersion.cs" />
     <Compile Include="Entity\Companies\SystemCompany.cs" />
     <Compile Include="Entity\Companies\SystemCompanyMigration.cs" />
+    <Compile Include="Forms\Manage\ManageSystemCompany.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Manage\ManageSystemCompany.Designer.cs">
+      <DependentUpon>ManageSystemCompany.cs</DependentUpon>
+    </Compile>
     <Compile Include="Helper\MySqlHelper.cs" />
     <Compile Include="DBCache\CacheManager.cs" />
     <Compile Include="DBExtensions\DbContextExtensions.cs" />
@@ -135,7 +141,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Helper\MySqlQueryHelper.cs" />
-    <Compile Include="Repository\CompanyRepository.cs" />
+    <Compile Include="Repository\SystemCompanyRepository.cs" />
     <Compile Include="Repository\UserRepository.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -144,6 +150,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Forms\FrmLogin.resx">
       <DependentUpon>FrmLogin.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Manage\ManageSystemCompany.resx">
+      <DependentUpon>ManageSystemCompany.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\Manage\ManageUser.resx">
       <DependentUpon>ManageUser.cs</DependentUpon>
@@ -168,6 +177,7 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+    <None Include="Properties\DataSources\FerPROJ.Design.FormModels.SystemCompanyModel.datasource" />
     <None Include="Properties\DataSources\FerPROJ.Design.Models.UserModel.datasource" />
   </ItemGroup>
   <ItemGroup>

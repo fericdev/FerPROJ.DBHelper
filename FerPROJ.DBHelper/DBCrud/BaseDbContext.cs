@@ -1,4 +1,5 @@
-﻿using FerPROJ.DBHelper.Entity.Users;
+﻿using FerPROJ.DBHelper.Entity.Companies;
+using FerPROJ.DBHelper.Entity.Users;
 using FerPROJ.Design.Class;
 using System;
 using System.Collections.Generic;
@@ -21,5 +22,6 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<SystemCompany> SystemCompanies { get; set; }
     }
 }
