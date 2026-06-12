@@ -1,4 +1,5 @@
-﻿using FerPROJ.DBHelper.Repository;
+﻿using FerPROJ.DBHelper.ApiRepository;
+using FerPROJ.DBHelper.Repository;
 using FerPROJ.Design.Class;
 using FerPROJ.Design.FormModels;
 using System;
@@ -23,17 +24,35 @@ namespace FerPROJ.Design.Forms {
                 case FormMode.Add:
                     break;
                 case FormMode.Update:
-                    model = await new SystemCompanyRepository().ExecuteAsync(c => c.GetPrepareModelByIdAsync(Manage_IdTrack));
+                    if (CAppConstants.API_ENABLED) {
+                        model = await new SystemCompanyApiRepository().GetPrepareModelByIdAsync(Manage_IdTrack);
+                    }
+                    else {
+                        model = await new SystemCompanyRepository().ExecuteAsync(c => c.GetPrepareModelByIdAsync(Manage_IdTrack));
+                    }
                     break;
 
             }
+            model.ApplicationId = CConfigurationManager.GetValue("ApplicationId", "SystemCompanyConfig");
             companyModelBindingSource.DataSource = model;
         }
         protected override async Task<bool> OnSaveDataAsync() {
-            return await new SystemCompanyRepository().ExecuteAsync(c => c.SaveDTOAsync(model));
+            CConfigurationManager.CreateOrSetValue("ApplicationId", model.ApplicationId, "SystemCompanyConfig");
+            if (CAppConstants.API_ENABLED) {
+                return await new SystemCompanyApiRepository().SaveModelAsync(model);
+            }
+            else {
+                return await new SystemCompanyRepository().ExecuteAsync(c => c.SaveDTOAsync(model));
+            }
         }
         protected override async Task<bool> OnUpdateDataAsync() {
-            return await new SystemCompanyRepository().ExecuteAsync(c => c.UpdateDTOAsync(model));
+            CConfigurationManager.CreateOrSetValue("ApplicationId", model.ApplicationId, "SystemCompanyConfig");
+            if (CAppConstants.API_ENABLED) {
+                return await new SystemCompanyApiRepository().UpdateModelAsync(model);
+            }
+            else {
+                return await new SystemCompanyRepository().ExecuteAsync(c => c.UpdateDTOAsync(model));
+            }
         }
 
         private void selectLogoLinkLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
