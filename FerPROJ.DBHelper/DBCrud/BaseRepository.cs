@@ -742,24 +742,17 @@ namespace FerPROJ.DBHelper.DBCrud {
         #endregion
 
         #region Base Finalize Data
-        protected async virtual Task SaveFinalizeDataAsync(TModel model, List<TModelItem> modelItems) {
+        protected virtual async  Task SaveFinalizeDataAsync(TModel model, List<TModelItem> modelItems) {
             model.FinalizeStatus = FinalizeStatusTypes.Completed.ToString();
             await _ts.UpdateModelAndCommitAsync<TModel, TModelItem, TEntity, TEntityItem>(model, modelItems);
         }
 
-        public async Task<bool> SaveFinalizeModelAsync(TModel model, List<TModelItem> modelItems, bool enabledValidation = false, bool confirmation = true, bool returnResult = true) {
+        public virtual async Task<bool> SaveFinalizeModelAsync(TModel model, List<TModelItem> modelItems, bool enabledValidation = false, bool confirmation = true, bool returnResult = true) {
             if (model == null)
                 throw new ArgumentNullException($"{nameof(model)} is null!");
 
-            if (enabledValidation && !model.DataValidation()) {
-                var sb = new StringBuilder();
-                if (!string.IsNullOrEmpty(model.Error))
-                    sb.AppendLine("Error 1: " + model.Error);
-                if (!string.IsNullOrEmpty(model.ErrorMessage))
-                    sb.AppendLine("Error 2: " + model.ErrorMessage);
-                if (model.ErrorMessages.Length > 0)
-                    sb.AppendLine("Error 3: " + model.ErrorMessages.ToString());
-                throw new ArgumentException(sb.ToString());
+            if (enabledValidation) {
+                model.DataValidationResult();
             }
 
             if (!model.Success)
