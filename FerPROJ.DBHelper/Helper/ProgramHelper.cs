@@ -17,7 +17,7 @@ namespace FerPROJ.DBHelper.Helper {
         #region Initialization
         public static bool Initialize<DbContext>(string[] args, Assembly assembly, string systemName) {
             //
-            CAssembly.SetAssembly<DbContext>(assembly);
+            CAssembly.SetAssembly<DbContext>(assembly, systemName);
             CAssembly.RunVersionCheckerAsync().RunTaskAndForget();
 
             // Backup
