@@ -272,19 +272,12 @@ namespace FerPROJ.DBHelper.DBCrud {
             await _ts.SaveDTOAndCommitAsync(myDTO, _duplicateCheck);
         }
 
-        public async Task<bool> SaveDTOAsync(TModel myDTO, bool enabledValidation = false, bool confirmation = true, bool returnResult = true) {
+        public virtual async Task<bool> SaveDTOAsync(TModel myDTO, bool enabledValidation = false, bool confirmation = true, bool returnResult = true) {
             if (myDTO == null)
                 throw new ArgumentNullException($"{nameof(myDTO)} is null!");
 
-            if (enabledValidation && !myDTO.DataValidation()) {
-                var sb = new StringBuilder();
-                if (!string.IsNullOrEmpty(myDTO.Error))
-                    sb.AppendLine("Error 1: " + myDTO.Error);
-                if (!string.IsNullOrEmpty(myDTO.ErrorMessage))
-                    sb.AppendLine("Error 2: " + myDTO.ErrorMessage);
-                if (myDTO.ErrorMessages.Length > 0)
-                    sb.AppendLine("Error 3: " + myDTO.ErrorMessages.ToString());
-                throw new ArgumentException(sb.ToString());
+            if (enabledValidation) {
+                myDTO.DataValidationResult();
             }
 
             if (!myDTO.Success)
