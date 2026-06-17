@@ -1,4 +1,5 @@
-﻿using FerPROJ.Design.Class;
+﻿using FerPROJ.DBHelper.Entity;
+using FerPROJ.Design.Class;
 using Google.Protobuf.WellKnownTypes;
 using System;
 using System.Linq.Expressions;
@@ -7,8 +8,24 @@ using System.Text;
 namespace FerPROJ.DBHelper.DBExtensions {
     public static class ExpressionExtensions {
         public static string ToQuery<T>(this Expression<Func<T, bool>> expression) {
+            // x =>
+            var parameter = expression.Parameters[0];
+
+            // x.Status
+            var statusProperty = Expression.Property(parameter, nameof(BaseEntity.Status));
+
+            // Status.ACTIVE
+            var activeValue = Expression.Constant(CAppConstants.ACTIVE_STATUS);
+
+            // x.Status == Status.ACTIVE
+            var activeExpression = Expression.Equal(statusProperty, activeValue);
+
+            // (original) && x.Status == Status.ACTIVE
+            var body = Expression.AndAlso(expression.Body, activeExpression);
+
             var visitor = new QueryBuilderVisitor();
-            visitor.Visit(expression.Body);
+            visitor.Visit(body);
+
             return visitor.GetQuery();
         }
     }
