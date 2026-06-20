@@ -8,23 +8,30 @@ using System.Text;
 namespace FerPROJ.DBHelper.DBExtensions {
     public static class ExpressionExtensions {
         public static string ToQuery<T>(this Expression<Func<T, bool>> expression) {
-            // x =>
-            var parameter = expression.Parameters[0];
-
-            // x.Status
-            var statusProperty = Expression.Property(parameter, nameof(BaseEntity.Status));
-
-            // Status.ACTIVE
-            var activeValue = Expression.Constant(CAppConstants.ACTIVE_STATUS);
-
-            // x.Status == Status.ACTIVE
-            var activeExpression = Expression.Equal(statusProperty, activeValue);
-
-            // (original) && x.Status == Status.ACTIVE
-            var body = Expression.AndAlso(expression.Body, activeExpression);
 
             var visitor = new QueryBuilderVisitor();
-            visitor.Visit(body);
+
+            if (typeof(BaseEntity).IsAssignableFrom(typeof(T))) {
+                // x =>
+                var parameter = expression.Parameters[0];
+                // x.Status
+                var statusProperty = Expression.Property(parameter, nameof(BaseEntity.Status));
+
+                // Status.ACTIVE
+                var activeValue = Expression.Constant(CAppConstants.ACTIVE_STATUS);
+
+                // x.Status == Status.ACTIVE
+                var activeExpression = Expression.Equal(statusProperty, activeValue);
+
+                // (original) && x.Status == Status.ACTIVE
+                var body = Expression.AndAlso(expression.Body, activeExpression);
+
+                visitor.Visit(body);
+
+                return visitor.GetQuery();
+            }
+
+            visitor.Visit(expression.Body);
 
             return visitor.GetQuery();
         }
