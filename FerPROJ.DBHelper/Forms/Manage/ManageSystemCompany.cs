@@ -33,11 +33,9 @@ namespace FerPROJ.Design.Forms {
                     break;
 
             }
-            model.ApplicationId = CConfigurationManager.GetValue("ApplicationId", "SystemCompanyConfig");
             companyModelBindingSource.DataSource = model;
         }
         protected override async Task<bool> OnSaveDataAsync() {
-            CConfigurationManager.CreateOrSetValue("ApplicationId", model.ApplicationId, "SystemCompanyConfig");
             if (CAppConstants.API_ENABLED) {
                 return await new SystemCompanyApiRepository().SaveModelAsync(model);
             }
@@ -46,7 +44,6 @@ namespace FerPROJ.Design.Forms {
             }
         }
         protected override async Task<bool> OnUpdateDataAsync() {
-            CConfigurationManager.CreateOrSetValue("ApplicationId", model.ApplicationId, "SystemCompanyConfig");
             if (CAppConstants.API_ENABLED) {
                 return await new SystemCompanyApiRepository().UpdateModelAsync(model);
             }

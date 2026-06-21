@@ -425,6 +425,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             return await UpdateDataAsync(entity);
         }
         public virtual async Task<bool> SavePictureAsync(Guid id, byte[] picture, string propertyName) {
+            await ClearCacheAsync();
             var entity = await GetByIdAsync(id);
             entity.GetPropertyInfo(propertyName).SetValue(entity, picture);
             return await UpdateDataAsync(entity);
@@ -747,9 +748,16 @@ namespace FerPROJ.DBHelper.DBCrud {
         where TModel : BaseFormModel
         where TEntity : BaseFormEntity {
 
+        protected readonly bool _autoGenerateFormId = true;
+
         #region CTOR
         protected BaseFormApiRepository() {
         }
+
+        protected BaseFormApiRepository(bool autoGenerateFormId) {
+            _autoGenerateFormId = autoGenerateFormId;
+        }
+
         #endregion
 
         #region Generate Form Id
@@ -768,9 +776,10 @@ namespace FerPROJ.DBHelper.DBCrud {
                 model = Activator.CreateInstance<TModel>();
                 model.FormId = "DRAFT";
             }
-            else {
+            else if (_autoGenerateFormId) {
                 model.FormId = await GetGeneratedFormIdAsync(prefix);
             }
+
             model.Id = Guid.NewGuid();
             return model;
         }
