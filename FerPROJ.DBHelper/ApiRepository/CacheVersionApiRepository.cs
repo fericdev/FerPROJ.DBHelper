@@ -33,7 +33,7 @@ namespace FerPROJ.DBHelper.ApiRepository {
                     }
                 }
 
-            }, 30);
+            }, 1);
         }
 
         public async Task ExecuteUpdateCacheAsync() {
