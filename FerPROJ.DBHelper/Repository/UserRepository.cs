@@ -32,6 +32,7 @@ namespace FerPROJ.DBHelper.Repository {
             CAppConstants.USERNAME = entity.UserName;
             CAppConstants.USER_ID = entity.Id;
             CAppConstants.NAME = entity.Name;
+            CAppConstants.USER_ROLE = entity.UserRole.ToEnum<CBaseEnums.Role>();
             CAppConstants.APPLICATION_ID = CConfigurationManager.GetValue("ApplicationId", "SystemCompanyConfig");
 
             return true;
