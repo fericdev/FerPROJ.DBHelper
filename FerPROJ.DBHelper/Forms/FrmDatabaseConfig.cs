@@ -33,7 +33,6 @@ namespace FerPROJ.DBHelper.Forms {
             usernameCustomTextBox.Text = CConfigurationManager.GetValue("Uid", "DatabaseConfig");
             passwordCustomTextBox.Text = CConfigurationManager.GetValue("Pwd", "DatabaseConfig");
             hostnameCustomTextBox.Text = CConfigurationManager.GetValue("Server", "DatabaseConfig");
-            applicationIdCTextBox.Text = CConfigurationManager.GetValue("ApplicationId", "DatabaseConfig");
             cbSSL.Checked = CConfigurationManager.GetValue("SslMode", "DatabaseConfig") == "None";
         }
         private void UpdateConfigurationFile() {
@@ -42,7 +41,6 @@ namespace FerPROJ.DBHelper.Forms {
             CConfigurationManager.CreateOrSetValue("Uid", usernameCustomTextBox.Text, "DatabaseConfig");
             CConfigurationManager.CreateOrSetValue("Pwd", passwordCustomTextBox.Text, "DatabaseConfig");
             CConfigurationManager.CreateOrSetValue("Server", hostnameCustomTextBox.Text, "DatabaseConfig");
-            CConfigurationManager.CreateOrSetValue("ApplicationId", applicationIdCTextBox.Text, "DatabaseConfig");
             CConfigurationManager.CreateOrSetValue("SslMode", cbSSL.Checked ? "None" : "Preferred", "DatabaseConfig");
             CDialogManager.Info("Database Configuration Updated Successfully!", "Info");
         }

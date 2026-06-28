@@ -47,15 +47,13 @@ namespace FerPROJ.DBHelper.Forms
             this.customLabelDesc3 = new FerPROJ.Design.Controls.CLabelDesc();
             this.customLabelDesc2 = new FerPROJ.Design.Controls.CLabelDesc();
             this.customLabelDesc1 = new FerPROJ.Design.Controls.CLabelDesc();
-            this.applicationIdCTextBox = new FerPROJ.Design.Controls.CTextBox();
-            this.applicationIdCLabelDesc = new FerPROJ.Design.Controls.CLabelDesc();
             ((System.ComponentModel.ISupportInitialize)(this.baseKryptonPanel)).BeginInit();
             this.customPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // baseKryptonPanel
             // 
-            this.baseKryptonPanel.Size = new System.Drawing.Size(377, 501);
+            this.baseKryptonPanel.Size = new System.Drawing.Size(377, 430);
             // 
             // customPanel1
             // 
@@ -63,8 +61,6 @@ namespace FerPROJ.DBHelper.Forms
             this.customPanel1.BorderFocusColor = System.Drawing.Color.HotPink;
             this.customPanel1.BorderRadius = 0;
             this.customPanel1.BorderSize = 2;
-            this.customPanel1.Controls.Add(this.applicationIdCTextBox);
-            this.customPanel1.Controls.Add(this.applicationIdCLabelDesc);
             this.customPanel1.Controls.Add(this.cButtonRunMigration);
             this.customPanel1.Controls.Add(this.cbSSL);
             this.customPanel1.Controls.Add(this.saveConfigCustomButton);
@@ -81,7 +77,7 @@ namespace FerPROJ.DBHelper.Forms
             this.customPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.customPanel1.Location = new System.Drawing.Point(5, 5);
             this.customPanel1.Name = "customPanel1";
-            this.customPanel1.Size = new System.Drawing.Size(377, 501);
+            this.customPanel1.Size = new System.Drawing.Size(377, 430);
             this.customPanel1.TabIndex = 0;
             this.customPanel1.UnderlinedStyle = false;
             // 
@@ -97,7 +93,7 @@ namespace FerPROJ.DBHelper.Forms
             this.cButtonRunMigration.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.cButtonRunMigration.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F);
             this.cButtonRunMigration.ForeColor = System.Drawing.Color.White;
-            this.cButtonRunMigration.Location = new System.Drawing.Point(204, 439);
+            this.cButtonRunMigration.Location = new System.Drawing.Point(204, 374);
             this.cButtonRunMigration.Name = "cButtonRunMigration";
             this.cButtonRunMigration.Size = new System.Drawing.Size(147, 40);
             this.cButtonRunMigration.TabIndex = 7;
@@ -129,7 +125,7 @@ namespace FerPROJ.DBHelper.Forms
             this.saveConfigCustomButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.saveConfigCustomButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F);
             this.saveConfigCustomButton.ForeColor = System.Drawing.Color.White;
-            this.saveConfigCustomButton.Location = new System.Drawing.Point(41, 439);
+            this.saveConfigCustomButton.Location = new System.Drawing.Point(41, 374);
             this.saveConfigCustomButton.Name = "saveConfigCustomButton";
             this.saveConfigCustomButton.Size = new System.Drawing.Size(147, 40);
             this.saveConfigCustomButton.TabIndex = 5;
@@ -308,45 +304,11 @@ namespace FerPROJ.DBHelper.Forms
             this.customLabelDesc1.TabIndex = 0;
             this.customLabelDesc1.Text = "Hostname:";
             // 
-            // applicationIdCTextBox
-            // 
-            this.applicationIdCTextBox.BackColor = System.Drawing.SystemColors.Window;
-            this.applicationIdCTextBox.BorderColor = System.Drawing.Color.DarkGray;
-            this.applicationIdCTextBox.BorderFocusColor = System.Drawing.Color.HotPink;
-            this.applicationIdCTextBox.BorderRadius = 15;
-            this.applicationIdCTextBox.BorderSize = 2;
-            this.applicationIdCTextBox.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.5F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.applicationIdCTextBox.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
-            this.applicationIdCTextBox.Location = new System.Drawing.Point(43, 399);
-            this.applicationIdCTextBox.Margin = new System.Windows.Forms.Padding(4);
-            this.applicationIdCTextBox.Multiline = false;
-            this.applicationIdCTextBox.Name = "applicationIdCTextBox";
-            this.applicationIdCTextBox.OnFocus = false;
-            this.applicationIdCTextBox.Padding = new System.Windows.Forms.Padding(10, 7, 10, 7);
-            this.applicationIdCTextBox.PasswordChar = false;
-            this.applicationIdCTextBox.PlaceholderColor = System.Drawing.Color.DarkGray;
-            this.applicationIdCTextBox.PlaceholderText = "";
-            this.applicationIdCTextBox.Size = new System.Drawing.Size(310, 31);
-            this.applicationIdCTextBox.TabIndex = 8;
-            this.applicationIdCTextBox.TextProperty = "";
-            this.applicationIdCTextBox.Texts = "";
-            this.applicationIdCTextBox.UnderlinedStyle = false;
-            // 
-            // applicationIdCLabelDesc
-            // 
-            this.applicationIdCLabelDesc.AutoSize = true;
-            this.applicationIdCLabelDesc.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
-            this.applicationIdCLabelDesc.Location = new System.Drawing.Point(38, 377);
-            this.applicationIdCLabelDesc.Name = "applicationIdCLabelDesc";
-            this.applicationIdCLabelDesc.Size = new System.Drawing.Size(96, 17);
-            this.applicationIdCLabelDesc.TabIndex = 9;
-            this.applicationIdCLabelDesc.Text = "Application Id:";
-            // 
             // FrmDatabaseConfig
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(387, 511);
+            this.ClientSize = new System.Drawing.Size(387, 440);
             this.Controls.Add(this.customPanel1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -386,7 +348,5 @@ namespace FerPROJ.DBHelper.Forms
         private CLabelDesc customLabelDesc1;
         private System.Windows.Forms.CheckBox cbSSL;
         private CButton cButtonRunMigration;
-        private CTextBox applicationIdCTextBox;
-        private CLabelDesc applicationIdCLabelDesc;
     }
 }
