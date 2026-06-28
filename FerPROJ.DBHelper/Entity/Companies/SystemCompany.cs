@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FerPROJ.DBHelper.Query;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -13,5 +14,7 @@ namespace FerPROJ.DBHelper.Entity.Companies {
         public string CompanyContactNo { get; set; }
         public string CompanyAddress { get; set; }
         public bool CompanyEnabled { get; set; }
+        [ColumnType("mediumblob")]
+        public byte[] CompanyLogo { get; set; }
     }
 }

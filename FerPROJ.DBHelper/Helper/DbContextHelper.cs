@@ -230,7 +230,7 @@ namespace FerPROJ.DBHelper.Helper {
             if (type == typeof(double)) return "DOUBLE";
             if (type == typeof(DateTime)) return "DATETIME";
             if (type == typeof(Guid)) return "CHAR(36)";
-            if (type == typeof(byte[])) return "BLOB";
+            if (type == typeof(byte[])) return "LONGBLOB";
 
             if (type == typeof(string)) {
 
