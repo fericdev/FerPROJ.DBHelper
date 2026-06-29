@@ -42,6 +42,10 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             var modelList = new List<TModel>();
 
+            if (entities.IsNullOrEmpty()) {
+                return modelList;
+            }
+
             foreach (var entity in entities) {
 
                 var model = await GetPrepareModelByEntityAsync(entity);
