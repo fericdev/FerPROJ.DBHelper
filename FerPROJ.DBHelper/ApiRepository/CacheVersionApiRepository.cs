@@ -27,7 +27,7 @@ namespace FerPROJ.DBHelper.ApiRepository {
 
                     if (serverVersion.VersionNo > localVersion) {
 
-                        await ClearCacheAsync();
+                        await ClearCacheAsync(false);
 
                         CConfigurationManager.CreateOrSetValue(nameof(CacheVersion.VersionNo), serverVersion.VersionNo.ToString(), nameof(CacheVersion));
                     }

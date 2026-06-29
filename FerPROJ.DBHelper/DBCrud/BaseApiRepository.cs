@@ -461,7 +461,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             return sb.ToString();
         }
-        protected async Task ClearCacheAsync() {
+        protected async Task ClearCacheAsync(bool updateCacheVersion = true) {
             CacheManager.ClearCacheByPrefix(CacheManager.ModelPrefix);
             CacheManager.ClearCacheByPrefix(CacheManager.ListModelPrefix);
             CacheManager.ClearCacheByPrefix(CacheManager.ModelItemPrefix);
@@ -470,7 +470,9 @@ namespace FerPROJ.DBHelper.DBCrud {
             CacheManager.ClearCacheByPrefix(CacheManager.EntityPrefix);
             CacheManager.ClearCacheByPrefix(CacheManager.ListEntityPrefix);
             CacheManager.ClearCacheByPrefix(CacheManager.ListEntityItemPrefix);
-            await new CacheVersionApiRepository().ExecuteUpdateCacheAsync();
+            if (updateCacheVersion) {
+                await new CacheVersionApiRepository().ExecuteUpdateCacheAsync();
+            }
         }
         #endregion
     }
