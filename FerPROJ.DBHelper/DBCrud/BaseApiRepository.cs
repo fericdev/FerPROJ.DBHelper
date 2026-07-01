@@ -377,6 +377,20 @@ namespace FerPROJ.DBHelper.DBCrud {
             }
             return false;
         }
+        public virtual async Task<(bool, Guid)> SaveModelAndReturnIdAsync(TModel model, bool validate = true) {
+            if (!IsResultSuccess(model, validate)) {
+                return (false, Guid.Empty);
+            }
+            if (CDialogManager.Ask("Are you sure to save this data?", "Confirmation")) {
+                var entity = model.ToDestination<TEntity>();
+                await SaveDataAsync(entity);
+                await ClearCacheAsync();
+                await ExecuteAfterSaveAsync(entity);
+                CDialogManager.Info("Data saved successfully.");
+                return (true, entity.Id);
+            }
+            return (false, Guid.Empty);
+        }
         public virtual async Task SaveDataAsync(TEntity entity) {
             entity.Id = Guid.NewGuid();
             await CApiManager.PostAsync<TEntity, object>(GetUrl(ActionTypes.Save), entity);
