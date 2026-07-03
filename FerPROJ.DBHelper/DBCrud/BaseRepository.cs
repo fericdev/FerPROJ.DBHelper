@@ -237,17 +237,27 @@ namespace FerPROJ.DBHelper.DBCrud {
         #endregion
 
         #region Base Load Methods
-        public virtual async Task LoadComboBoxAsync(CComboBoxKrypton cmb, string cmbName, string cmbValue, Expression<Func<TEntity, bool>> whereCondition = null) {
+        public virtual async Task LoadComboBoxAsync(CComboBoxKrypton cmb, string cmbName, string cmbValue, Expression<Func<TEntity, bool>> whereCondition = null, Func<IEnumerable<TEntity>, IOrderedEnumerable<TEntity>> orderBy = null) {
             var listItems = whereCondition != null
                 ? await _ts.GetAllAsync(whereCondition)
                 : await _ts.GetAllAsync<TEntity>();
+
+            if (orderBy != null) {
+                listItems = orderBy(listItems);
+            }
+
             cmb.FillComboBox(cmbName, cmbValue, listItems);
         }
 
-        public virtual async Task LoadComboBoxAsync(CComboBoxKrypton cmb, Func<TEntity, string> cmbName, string cmbValue, Expression<Func<TEntity, bool>> whereCondition = null) {
+        public virtual async Task LoadComboBoxAsync(CComboBoxKrypton cmb, Func<TEntity, string> cmbName, string cmbValue, Expression<Func<TEntity, bool>> whereCondition = null, Func<IEnumerable<TEntity>, IOrderedEnumerable<TEntity>> orderBy = null) {
             var listItems = whereCondition != null
                 ? await _ts.GetAllAsync(whereCondition)
                 : await _ts.GetAllAsync<TEntity>();
+
+            if (orderBy != null) {
+                listItems = orderBy(listItems);
+            }
+
             cmb.FillComboBox(cmbName, cmbValue, listItems);
         }
 
