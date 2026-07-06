@@ -101,6 +101,16 @@ namespace FerPROJ.DBHelper.DBExtensions {
             return base.VisitUnary(node);
         }
 
+        protected override Expression VisitMember(MemberExpression node) {
+            // Handles: c => c.Undeclared
+            if (node.Type == typeof(bool)) {
+                _query.Append($"&{GetMemberName(node)}=true");
+                return node;
+            }
+
+            return base.VisitMember(node);
+        }
+
         protected override Expression VisitMethodCall(MethodCallExpression node) {
             // Handles: x.Equals(value)
             if (node.Method.Name == "Equals") {
@@ -197,11 +207,18 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
         private object GetValue(Expression expression) {
             if (expression is ConstantExpression constant)
-                return constant.Value;
+                return NormalizeValue(constant.Value);
 
             var lambda = Expression.Lambda(expression);
             var compiled = lambda.Compile();
-            return compiled.DynamicInvoke();
+            return NormalizeValue(compiled.DynamicInvoke());
+        }
+
+        private object NormalizeValue(object value) {
+            if (value is bool b)
+                return b.ToString().ToLowerInvariant();
+
+            return value;
         }
     }
 }
