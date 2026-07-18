@@ -114,6 +114,26 @@ namespace FerPROJ.DBHelper.DBCrud {
         protected virtual async Task<IEnumerable<TEntity>> GetAllWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int dataLimit = int.MaxValue) {
             return await _ts.GetAllWithSearchAsync<TEntity>(searchText, dateFrom, dateTo, dataLimit);
         }
+        public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(string searchText, bool activeOnly, DateTime? dateFrom, DateTime? dateTo, int dataLimit = int.MaxValue) {
+            
+            var query = await _ts.GetAllWithSearchAsync<TEntity>(searchText, dateFrom, dateTo, dataLimit, true, activeOnly);
+
+            if (activeOnly) {
+                query = query.GetAllActiveOnly();
+            }
+
+            query = query.OrderByProperty("DateMarked", false);
+
+            var result = await query.SelectListAsync(async c => {
+
+                return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelPrefix, c.GetPropertyValue<string>("Id"), async () => {
+                    return await GetPrepareModelByEntityAsync(c);
+                });
+
+            }, c => c.SearchForText(searchText), int.MaxValue);
+
+            return result;
+        }
         public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int dataLimit = int.MaxValue) {
 
             if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate() && !searchText.IsNullOrEmpty()) {

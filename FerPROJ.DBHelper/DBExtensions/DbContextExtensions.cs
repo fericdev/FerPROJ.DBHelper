@@ -295,7 +295,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
         }
         // DTO
         public static async Task SaveDTOAsync<TSource, TEntity>(this DbContext context, TSource myDTO) where TSource : BaseModel where TEntity : class {
-            
+
             myDTO.Id = Guid.NewGuid();
             myDTO.DateCreated = DateTime.Now;
             myDTO.CreatedBy = CAppConstants.USERNAME;
@@ -726,11 +726,11 @@ namespace FerPROJ.DBHelper.DBExtensions {
             // If no property filter is provided or the property does not exist, return all entities
             return await context.GetAllAsync(whereCondition);
         }
-        public static async Task<IEnumerable<TEntity>> GetAllWithSearchAsync<TEntity>(this DbContext context, string searchText, DateTime? dateFrom, DateTime? dateTo, int dataLimit = 100, bool isCached = true) where TEntity : class {
+        public static async Task<IEnumerable<TEntity>> GetAllWithSearchAsync<TEntity>(this DbContext context, string searchText, DateTime? dateFrom, DateTime? dateTo, int dataLimit = 100, bool isCached = true, bool activeOnly = true) where TEntity : class {
 
             var cachedData = await CacheManager.GetAllEnumerableCacheAsync<TEntity>();
 
-            if (!cachedData.IsNullOrEmpty() && isCached) {
+            if (!cachedData.IsNullOrEmpty() && isCached && activeOnly) {
 
                 var result = cachedData.SearchDateRange(dateFrom, dateTo);
 
