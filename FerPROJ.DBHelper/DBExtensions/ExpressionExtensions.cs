@@ -91,6 +91,38 @@ namespace FerPROJ.DBHelper.DBExtensions {
                     return node;
                 }
 
+                if (node.Operand is MethodCallExpression callIsEquals &&
+                    callIsEquals.Method.Name == "IsEquals" && callIsEquals.Arguments.Count == 2) {
+
+                    var member = callIsEquals.Arguments[0] as MemberExpression;
+                    var enumExpr = callIsEquals.Arguments[1];
+
+                    // Extract enum value (must be constant or captured variable)
+                    object enumValue = null;
+
+                    if (enumExpr is MemberExpression memberExprIsEquals) {
+                        var objectMember = Expression.Convert(memberExprIsEquals, typeof(object));
+                        var getterLambda = Expression.Lambda<Func<object>>(objectMember);
+                        enumValue = getterLambda.Compile().Invoke();
+                    }
+
+                    else if (enumExpr is ConstantExpression constExpr) {
+                        enumValue = constExpr.Value;
+                    }
+
+                    if (!enumValue.IsNullOrEmpty()) {
+
+                        var memberEnumExpr = callIsEquals.Arguments[0] as MemberExpression;
+
+                        // Convert enum to string OUTSIDE expression
+                        var enumString = enumValue.ToString();
+
+                        _query.Append($"&{GetMemberName(memberEnumExpr)}!={enumString}");
+
+                        return node;
+                    }
+                }
+
                 // Case: !boolFlag
                 if (node.Operand is MemberExpression memberExpr) {
                     _query.Append($"&{GetMemberName(memberExpr)}=false");
