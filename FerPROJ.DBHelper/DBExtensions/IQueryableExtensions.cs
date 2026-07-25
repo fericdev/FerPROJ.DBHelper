@@ -17,7 +17,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
     public static class IQueryableExtensions {
 
         #region Search By Date
-        public static IQueryable<T> SearchDateRange<T>(this IQueryable<T> queryable, DateTime? dateFrom, DateTime? dateTo, string dateProperty = "") {
+        public static IQueryable<T> SearchDateRange<T>(this IQueryable<T> queryable, DateTime? dateFrom, DateTime? dateTo, string dateProperty = "DateMarked") {
             if (!dateFrom.HasValue && !dateTo.HasValue) {
                 return queryable; // Return original collection if both dates are null
             }
