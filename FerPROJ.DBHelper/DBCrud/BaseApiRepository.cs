@@ -313,19 +313,20 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         // ✅ GET BY ID
         public virtual async Task<TEntity> GetByIdAsync(Guid id) {
-            var result = await GetAllAsync(GetUrl(ActionTypes.Get, ("Id", id)));
+            var url = GetUrl(ActionTypes.Get, ("Id", id));
+            var result = await CApiManager.GetAsync<List<TEntity>>(url);
             return result.FirstOrDefault();
         }
 
         // ✅ SEARCH
         public virtual async Task<TEntity> GetByPredicateAsync(Expression<Func<TEntity, bool>> predicate) {
             var url = GetUrl(ActionTypes.Get) + predicate.ToQuery();
-            var result = await GetAllAsync(url);
+            var result = await CApiManager.GetAsync<List<TEntity>>(url);
             return result.FirstOrDefault();
         }
         public virtual async Task<T> GetByPredicateAsync<T>(Expression<Func<T, bool>> predicate) where T : BaseEntity {
             var url = GetUrl(ActionTypes.Get) + predicate.ToQuery();
-            var result = await GetAllAsync<T>(url);
+            var result = await CApiManager.GetAsync<List<T>>(url);
             return result.FirstOrDefault();
         }
         public virtual async Task<TReturn> GetRawQueryAsync<TReturn>(string rawQuery, string property) {

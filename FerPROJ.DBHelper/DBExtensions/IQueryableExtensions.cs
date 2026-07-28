@@ -61,8 +61,6 @@ namespace FerPROJ.DBHelper.DBExtensions {
             Expression greaterThanOrEqual = null;
             Expression lessThanOrEqual = null;
 
-            dateFrom = dateFrom.HasValue && dateFrom.Value.Date == DateTime.Today ? null : dateFrom;
-
             // Handle non-nullable DateTime properties
             if (property.Type == typeof(DateTime)) {
                 if (dateFrom.HasValue) {
