@@ -87,7 +87,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
                     var member = call.Object as MemberExpression;
                     var value = GetValue(call.Arguments[0]);
 
-                    _query.Append($"&{GetMemberName(member)}!={value}");
+                    _query.Append($"&{GetMemberName(member)}[not]={value}");
                     return node;
                 }
 
@@ -117,7 +117,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
                         // Convert enum to string OUTSIDE expression
                         var enumString = enumValue.ToString();
 
-                        _query.Append($"&{GetMemberName(memberEnumExpr)}!={enumString}");
+                        _query.Append($"&{GetMemberName(memberEnumExpr)}[not]={enumString}");
 
                         return node;
                     }
