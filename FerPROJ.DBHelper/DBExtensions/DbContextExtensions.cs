@@ -757,23 +757,6 @@ namespace FerPROJ.DBHelper.DBExtensions {
         }
         public static async Task<IEnumerable<TEntity>> GetAllWithSearchAsync<TEntity>(this DbContext context, string searchText, DateTime? dateFrom, DateTime? dateTo, bool activeOnly, int dataLimit) where TEntity : BaseEntity {
 
-            var cachedData = await CacheManager.GetAllEnumerableCacheAsync<TEntity>(activeOnly);
-
-            if (!cachedData.IsNullOrEmpty()) {
-
-                var result = cachedData.SearchDateRange(dateFrom, dateTo);
-
-                result = result.SearchText(searchText);
-
-                if (result != null) {
-
-                    result = result.Take(dataLimit);
-
-                    return result.ToList();
-
-                }
-            }
-
             var query = context.Set<TEntity>().AsQueryable();
 
             if (activeOnly) {
