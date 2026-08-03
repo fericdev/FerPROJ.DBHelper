@@ -1,5 +1,6 @@
 ﻿using FerPROJ.DBHelper.DBCrud;
 using FerPROJ.DBHelper.DBExtensions;
+using FerPROJ.DBHelper.Entity;
 using FerPROJ.Design.BaseModels;
 using FerPROJ.Design.Class;
 using FerPROJ.Design.Forms;
@@ -232,8 +233,28 @@ namespace FerPROJ.DBHelper.DBCache {
 
             return result;
         }
+        public async static Task<List<TEntity>> GetAllListCacheAsync<TEntity>(bool activeOnly) where TEntity : BaseEntity {
+
+            string key = typeof(TEntity).Name;
+
+            var result = await Task.FromResult(_cache.Get(key) as List<TEntity>);
+
+            if (result.IsNullOrEmpty()) {
+                return new List<TEntity>();
+            }
+
+            if (activeOnly) {
+                result = result.Where(c => c.Status == CAppConstants.ACTIVE_STATUS).ToList();
+            }
+
+            return result;
+        }
         public async static Task<IEnumerable<TEntity>> GetAllEnumerableCacheAsync<TEntity>() where TEntity : class {
             var result = await GetAllListCacheAsync<TEntity>();
+            return result?.AsEnumerable();
+        }
+        public async static Task<IEnumerable<TEntity>> GetAllEnumerableCacheAsync<TEntity>(bool activeOnly) where TEntity : BaseEntity {
+            var result = await GetAllListCacheAsync<TEntity>(activeOnly);
             return result?.AsEnumerable();
         }
         public async static Task<IQueryable<TEntity>> GetAllQueryableCacheAsync<TEntity>() where TEntity : class {

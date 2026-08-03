@@ -726,11 +726,11 @@ namespace FerPROJ.DBHelper.DBExtensions {
             // If no property filter is provided or the property does not exist, return all entities
             return await context.GetAllAsync(whereCondition);
         }
-        public static async Task<IEnumerable<TEntity>> GetAllWithSearchAsync<TEntity>(this DbContext context, string searchText, DateTime? dateFrom, DateTime? dateTo, int dataLimit = 100, bool isCached = true, bool activeOnly = true) where TEntity : class {
+        public static async Task<IEnumerable<TEntity>> GetAllWithSearchAsync<TEntity>(this DbContext context, string searchText, DateTime? dateFrom, DateTime? dateTo, int dataLimit = 100, bool isCached = true) where TEntity : class {
 
             var cachedData = await CacheManager.GetAllEnumerableCacheAsync<TEntity>();
 
-            if (!cachedData.IsNullOrEmpty() && isCached && activeOnly) {
+            if (!cachedData.IsNullOrEmpty() && isCached) {
 
                 var result = cachedData.SearchDateRange(dateFrom, dateTo);
 
@@ -746,6 +746,39 @@ namespace FerPROJ.DBHelper.DBExtensions {
             }
 
             var query = context.Set<TEntity>().AsQueryable();
+
+            query = query.SearchDateRange(dateFrom, dateTo);
+
+            query = query.SearchText(searchText);
+
+            query = query.Take(dataLimit);
+
+            return await query.ToListAsync();
+        }
+        public static async Task<IEnumerable<TEntity>> GetAllWithSearchAsync<TEntity>(this DbContext context, string searchText, DateTime? dateFrom, DateTime? dateTo, bool activeOnly, int dataLimit) where TEntity : BaseEntity {
+
+            var cachedData = await CacheManager.GetAllEnumerableCacheAsync<TEntity>(activeOnly);
+
+            if (!cachedData.IsNullOrEmpty()) {
+
+                var result = cachedData.SearchDateRange(dateFrom, dateTo);
+
+                result = result.SearchText(searchText);
+
+                if (result != null) {
+
+                    result = result.Take(dataLimit);
+
+                    return result.ToList();
+
+                }
+            }
+
+            var query = context.Set<TEntity>().AsQueryable();
+
+            if (activeOnly) {
+                query = query.Where(c => c.Status == CAppConstants.ACTIVE_STATUS);
+            }
 
             query = query.SearchDateRange(dateFrom, dateTo);
 
