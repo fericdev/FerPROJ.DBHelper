@@ -55,6 +55,25 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             return modelList;
         }
+        public virtual async Task<IEnumerable<TModel>> GetAllPrepareModelAsync(Expression<Func<TEntity, bool>> whereCondition) {
+
+            var entities = await GetAllAsync(whereCondition);
+
+            var modelList = new List<TModel>();
+
+            if (entities.IsNullOrEmpty()) {
+                return modelList;
+            }
+
+            foreach (var entity in entities) {
+
+                var model = await GetPrepareModelByEntityAsync(entity);
+
+                modelList.Add(model);
+            }
+
+            return modelList;
+        }
         public virtual async Task<TModel> GetPrepareModelByEntityAsync(TEntity entity) {
 
             if (entity.IsNullOrEmpty()) {
