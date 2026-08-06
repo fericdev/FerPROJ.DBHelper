@@ -93,7 +93,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                         !dateFrom.IsNullOrEmpty() ||
                         !dateTo.IsNullOrEmpty() ? int.MaxValue : dataLimit;
 
-            query = query.GetAllActiveOnly();
+            query = query.GetAllActiveOnly(true);
 
             query = query.OrderByProperty("DateMarked", false);
 
@@ -116,7 +116,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             var query = await GetAllAsync(whereCondition);
 
-            query = query.GetAllActiveOnly();
+            query = query.GetAllActiveOnly(true);
 
             query = query.OrderByProperty("DateMarked", false);
 
@@ -143,7 +143,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             var query = await GetAllAsync();
 
-            query = query.GetAllActiveOnly();
+            query = query.GetAllActiveOnly(true);
 
             query = query.OrderByProperty("DateMarked", false);
 
@@ -170,7 +170,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             var query = await GetAllAsync(whereCondition);
 
-            query = query.GetAllActiveOnly();
+            query = query.GetAllActiveOnly(true);
 
             query = query.OrderByProperty("DateMarked", false);
 
