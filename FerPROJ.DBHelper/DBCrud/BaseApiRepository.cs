@@ -353,14 +353,33 @@ namespace FerPROJ.DBHelper.DBCrud {
             var result = await CApiManager.GetAsync<string>(url);
             using (var doc = JsonDocument.Parse(result)) {
                 var root = doc.RootElement;
-                var rawValue = root
-                    .GetProperty("data")
-                    .EnumerateArray()
-                    .FirstOrDefault()
-                    .GetProperty(property)
-                    .GetRawText();
 
-                return rawValue.To<TReturn>();
+                var row = root.GetProperty("data").EnumerateArray().FirstOrDefault();
+
+                if (row.ValueKind == JsonValueKind.Undefined)
+                    return default;
+
+                if (!row.TryGetProperty(property, out var rawValue))
+                    return default;
+
+                switch (rawValue.ValueKind) {
+                    case JsonValueKind.Null:
+                    case JsonValueKind.Undefined:
+                        return default;
+
+                    case JsonValueKind.String:
+                        return rawValue.GetString().To<TReturn>();
+
+                    case JsonValueKind.Number:
+                        return rawValue.GetRawText().To<TReturn>();
+
+                    case JsonValueKind.True:
+                    case JsonValueKind.False:
+                        return rawValue.GetBoolean().To<TReturn>();
+
+                    default:
+                        return rawValue.To<TReturn>();
+                }
             }
 
         }
