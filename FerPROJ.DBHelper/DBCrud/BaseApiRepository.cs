@@ -360,6 +360,10 @@ namespace FerPROJ.DBHelper.DBCrud {
         // ✅ GET BY ID
         public virtual async Task<TEntity> GetByIdAsync(Guid id) {
             var url = GetUrl(ActionTypes.Get, ("Id", id));
+            var cacheResult = await GetAllAsync(url);
+            if (!cacheResult.IsNullOrEmpty()) {
+                return cacheResult.FirstOrDefault();
+            }
             var result = await CApiManager.GetAsync<List<TEntity>>(url);
             return result.FirstOrDefault();
         }
@@ -367,11 +371,19 @@ namespace FerPROJ.DBHelper.DBCrud {
         // ✅ SEARCH
         public virtual async Task<TEntity> GetByPredicateAsync(Expression<Func<TEntity, bool>> predicate) {
             var url = GetUrl(ActionTypes.Get) + predicate.ToQuery();
+            var cacheResult = await GetAllAsync(url);
+            if (!cacheResult.IsNullOrEmpty()) {
+                return cacheResult.FirstOrDefault();
+            }
             var result = await CApiManager.GetAsync<List<TEntity>>(url);
             return result.FirstOrDefault();
         }
         public virtual async Task<T> GetByPredicateAsync<T>(Expression<Func<T, bool>> predicate) where T : BaseEntity {
             var url = GetUrl(ActionTypes.Get) + predicate.ToQuery();
+            var cacheResult = await GetAllAsync<T>(url);
+            if (!cacheResult.IsNullOrEmpty()) {
+                return cacheResult.FirstOrDefault();
+            }
             var result = await CApiManager.GetAsync<List<T>>(url);
             return result.FirstOrDefault();
         }
