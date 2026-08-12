@@ -116,7 +116,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             query = query.OrderByProperty("DateMarked", false);
 
-            var result = await query.SelectListAsync(async c => {
+            var result = await query.SelectListParallelAsync(async c => {
 
                 return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelPrefix, c.GetPropertyValue<string>("Id"), async () => {
                     return await GetPrepareModelByEntityAsync(c);
@@ -143,7 +143,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                         !dateFrom.IsNullOrEmpty() ||
                         !dateTo.IsNullOrEmpty() ? int.MaxValue : dataLimit;
 
-            var result = await query.SelectListAsync(async c => {
+            var result = await query.SelectListParallelAsync(async c => {
 
                 return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelPrefix, c.GetPropertyValue<string>("Id"), async () => {
                     return await GetPrepareModelByEntityAsync(c);
@@ -170,7 +170,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                         !dateFrom.IsNullOrEmpty() ||
                         !dateTo.IsNullOrEmpty() ? int.MaxValue : dataLimit;
 
-            var result = await query.SelectListAsync(async c => {
+            var result = await query.SelectListParallelAsync(async c => {
 
                 return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelPrefix, c.GetPropertyValue<string>("Id"), async () => {
                     return await GetPrepareModelByEntityAsync(c);
@@ -197,7 +197,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                         !dateFrom.IsNullOrEmpty() ||
                         !dateTo.IsNullOrEmpty() ? int.MaxValue : dataLimit;
 
-            var result = await query.SelectListAsync(async c => {
+            var result = await query.SelectListParallelAsync(async c => {
 
                 return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelPrefix, c.GetPropertyValue<string>("Id"), async () => {
                     return await GetPrepareModelByEntityAsync(c);
@@ -224,7 +224,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                         !dateFrom.IsNullOrEmpty() ||
                         !dateTo.IsNullOrEmpty() ? int.MaxValue : dataLimit;
 
-            var result = await query.SelectListAsync(async c => {
+            var result = await query.SelectListParallelAsync(async c => {
 
                 return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelPrefix, c.GetPropertyValue<string>("Id"), async () => {
                     return await GetPrepareModelByEntityAsync(c);
