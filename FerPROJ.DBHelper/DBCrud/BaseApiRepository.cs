@@ -546,7 +546,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             sb.Append($"&table={Uri.EscapeDataString(typeof(TEntity).Name)}");
 
             if (!CAppConstants.APPLICATION_ID.IsNullOrEmpty()) {
-                sb.Append($"&applicationId={Uri.EscapeDataString(CAppConstants.APPLICATION_ID)}");
+                sb.Append($"&ApplicationId={Uri.EscapeDataString(CAppConstants.APPLICATION_ID)}");
             }
 
             foreach (var seg in segments) {

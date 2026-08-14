@@ -51,27 +51,27 @@ namespace FerPROJ.DBHelper.DBExtensions {
                     break;
 
                 case ExpressionType.Equal:
-                    AppendComparison(node, "=");
+                    AppendComparison(node, "");
                     break;
 
                 case ExpressionType.NotEqual:
-                    AppendComparison(node, "!=");
+                    AppendComparison(node, "[not]");
                     break;
 
                 case ExpressionType.GreaterThan:
-                    AppendComparison(node, ">");
+                    AppendComparison(node, "[gt]");
                     break;
 
                 case ExpressionType.GreaterThanOrEqual:
-                    AppendComparison(node, ">=");
+                    AppendComparison(node, "[gte]");
                     break;
 
                 case ExpressionType.LessThan:
-                    AppendComparison(node, "<");
+                    AppendComparison(node, "[lt]");
                     break;
 
                 case ExpressionType.LessThanOrEqual:
-                    AppendComparison(node, "<=");
+                    AppendComparison(node, "[lte]");
                     break;
             }
 
@@ -212,7 +212,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             if (leftMember == null)
                 return;
 
-            _query.Append($"&{leftMember.Member.Name}{op}{rightValue}");
+            _query.Append($"&{leftMember.Member.Name}{op}={rightValue}");
         }
 
         private MemberExpression ExtractMember(Expression expression) {
