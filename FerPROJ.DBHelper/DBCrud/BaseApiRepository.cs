@@ -566,6 +566,9 @@ namespace FerPROJ.DBHelper.DBCrud {
         protected BaseItemApiRepository(string endpointItem) {
             _endpointItem = endpointItem;
         }
+        protected BaseItemApiRepository(bool filterByApplicationId) : base(filterByApplicationId) {
+            _endpointItem = "BaseApiRepository.php";
+        }
         protected BaseItemApiRepository() {
             _endpointItem = "BaseApiRepository.php";
         }
