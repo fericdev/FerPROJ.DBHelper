@@ -25,13 +25,22 @@ namespace FerPROJ.DBHelper.DBCrud {
         where TModel : BaseModel
         where TEntity : BaseEntity {
         protected readonly string _endpoint;
+        protected readonly bool _filterByApplicationId;
 
         #region CTOR
         protected BaseApiRepository(string endpoint) {
             _endpoint = endpoint;
+            _filterByApplicationId = true;
         }
+
+        protected BaseApiRepository(bool filterByApplicationId) {
+            _endpoint = "BaseApiRepository.php";
+            _filterByApplicationId = filterByApplicationId;
+        }
+
         protected BaseApiRepository() {
             _endpoint = "BaseApiRepository.php";
+            _filterByApplicationId = true;
         }
         #endregion
 
@@ -112,7 +121,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                         !dateFrom.IsNullOrEmpty() ||
                         !dateTo.IsNullOrEmpty() ? int.MaxValue : dataLimit;
 
-            query = query.GetAllActiveOnly(true);
+            query = query.GetAllActiveOnly();
 
             query = query.OrderByProperty("DateMarked", false);
 
@@ -135,7 +144,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             var query = await GetAllAsync(whereCondition);
 
-            query = query.GetAllActiveOnly(true);
+            query = query.GetAllActiveOnly();
 
             query = query.OrderByProperty("DateMarked", false);
 
@@ -162,34 +171,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             var query = await GetAllAsync();
 
-            query = query.GetAllActiveOnly(true);
-
-            query = query.OrderByProperty("DateMarked", false);
-
-            dataLimit = !searchText.IsNullOrEmpty() ||
-                        !dateFrom.IsNullOrEmpty() ||
-                        !dateTo.IsNullOrEmpty() ? int.MaxValue : dataLimit;
-
-            var result = await query.SelectListParallelAsync(async c => {
-
-                return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListModelPrefix, c.GetPropertyValue<string>("Id"), async () => {
-                    return await GetPrepareModelByEntityAsync(c);
-                });
-
-            }, c => c.SearchFor(searchText, dateFrom, dateTo, d => d.DateCreated), dataLimit);
-
-            return result;
-        }
-        public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(bool filterByApplicationId, string searchText, DateTime? dateFrom, DateTime? dateTo, int dataLimit = int.MaxValue) {
-
-            if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate() && !searchText.IsNullOrEmpty()) {
-                dateFrom = null;
-                dateTo = null;
-            }
-
-            var query = await GetAllAsync();
-
-            query = query.GetAllActiveOnly(filterByApplicationId);
+            query = query.GetAllActiveOnly();
 
             query = query.OrderByProperty("DateMarked", false);
 
@@ -216,7 +198,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             var query = await GetAllAsync(whereCondition);
 
-            query = query.GetAllActiveOnly(true);
+            query = query.GetAllActiveOnly();
 
             query = query.OrderByProperty("DateMarked", false);
 
@@ -545,7 +527,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             sb.Append($"?action={actionType.ToString().ToLower()}");
             sb.Append($"&table={Uri.EscapeDataString(typeof(TEntity).Name)}");
 
-            if (!CAppConstants.APPLICATION_ID.IsNullOrEmpty()) {
+            if (!CAppConstants.APPLICATION_ID.IsNullOrEmpty() && _filterByApplicationId) {
                 sb.Append($"&ApplicationId={Uri.EscapeDataString(CAppConstants.APPLICATION_ID)}");
             }
 

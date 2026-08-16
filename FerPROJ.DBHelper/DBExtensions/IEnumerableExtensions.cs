@@ -140,16 +140,12 @@ namespace FerPROJ.DBHelper.DBExtensions {
         #endregion
 
         #region Get Active Only
-        public static IEnumerable<TEntity> GetAllActiveOnly<TEntity>(this IEnumerable<TEntity> queryable, bool filterByApplicationId = false) where TEntity : BaseEntity {
+        public static IEnumerable<TEntity> GetAllActiveOnly<TEntity>(this IEnumerable<TEntity> queryable) where TEntity : BaseEntity {
 
             if (queryable.IsNullOrEmpty()) {
                 return Enumerable.Empty<TEntity>();
             }
-
-            if (filterByApplicationId) {
-                queryable = queryable.Where(x => x.ApplicationId == CAppConstants.APPLICATION_ID);
-            }
-            
+          
             // Filter the collection to include only active entities
             queryable = queryable.Where(x => x.Status == CAppConstants.ACTIVE_STATUS);
 
