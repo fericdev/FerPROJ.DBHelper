@@ -841,7 +841,7 @@ namespace FerPROJ.DBHelper.DBCrud {
         protected BaseFormApiRepository() {
         }
 
-        protected BaseFormApiRepository(bool autoGenerateFormId) {
+        protected BaseFormApiRepository(bool autoGenerateFormId, bool filterByApplicationId = true) : base (filterByApplicationId) {
             _autoGenerateFormId = autoGenerateFormId;
         }
 
