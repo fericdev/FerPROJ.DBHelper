@@ -212,7 +212,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
             if (leftMember == null)
                 return;
 
-            _query.Append($"&{leftMember.Member.Name}{op}={rightValue}");
+            _query.Append($"&{leftMember.Member.Name}{op}={Uri.EscapeDataString(rightValue?.ToString() ?? "")}");
         }
 
         private MemberExpression ExtractMember(Expression expression) {
@@ -238,8 +238,9 @@ namespace FerPROJ.DBHelper.DBExtensions {
         }
 
         private object GetValue(Expression expression) {
-            if (expression is ConstantExpression constant)
+            if (expression is ConstantExpression constant) {
                 return NormalizeValue(constant.Value);
+            }
 
             var lambda = Expression.Lambda(expression);
             var compiled = lambda.Compile();
@@ -247,8 +248,13 @@ namespace FerPROJ.DBHelper.DBExtensions {
         }
 
         private object NormalizeValue(object value) {
-            if (value is bool b)
+            if (value is bool b) {
                 return b.ToString().ToLowerInvariant();
+            }
+
+            if (value is DateTime dateTime) {
+                return dateTime.ToString("yyyy-MM-dd HH:mm:ss");
+            }
 
             return value;
         }
