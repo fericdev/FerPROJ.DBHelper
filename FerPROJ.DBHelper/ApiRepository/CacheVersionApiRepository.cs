@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.ApiRepository {
     public class CacheVersionApiRepository : BaseApiRepository<CacheVersionModel, CacheVersion> {
-        public CacheVersionApiRepository() {
+        public CacheVersionApiRepository() : base (false) {
         }
 
         public async Task ExecuteClearCacheAsync() {

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace FerPROJ.DBHelper.ApiRepository {
     public class SystemCompanyApiRepository : BaseApiRepository<SystemCompanyModel, SystemCompany> {
-        public SystemCompanyApiRepository() {
+        public SystemCompanyApiRepository() : base (false) {
             
         }
         public async Task<SystemCompanyModel> GetActiveSystemCompanyAsync() {
