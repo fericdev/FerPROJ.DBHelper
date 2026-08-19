@@ -232,6 +232,10 @@ namespace FerPROJ.DBHelper.DBExtensions {
             int page,
             int dataLimit) {
 
+            if (source.IsNullOrEmpty()) {
+                return Enumerable.Empty<TResult>();
+            }
+
             page = Math.Max(page, 1);
 
             int skip = (page - 1) * dataLimit;
@@ -262,6 +266,10 @@ namespace FerPROJ.DBHelper.DBExtensions {
             int page,
             int dataLimit) {
 
+            if (source.IsNullOrEmpty()) {
+                return Enumerable.Empty<TResult>();
+            }
+
             page = Math.Max(page, 1);
 
             int skip = (page - 1) * dataLimit;
@@ -281,6 +289,10 @@ namespace FerPROJ.DBHelper.DBExtensions {
             Func<TResult, bool> filter,
             int dataLimit) {
 
+            if (source.IsNullOrEmpty()) {
+                return Enumerable.Empty<TResult>();
+            }
+
             var tasks = source
                 .Take(dataLimit)
                 .Select(selector);
@@ -288,6 +300,18 @@ namespace FerPROJ.DBHelper.DBExtensions {
             var results = await Task.WhenAll(tasks);
 
             return results.Where(filter);
+        }
+        public static async Task<IEnumerable<TResult>> SelectListParallelAsync<TEntity, TResult>(
+            this IEnumerable<TEntity> source,
+            Func<TEntity, Task<TResult>> selector) {
+
+            if (source.IsNullOrEmpty()) {
+                return Enumerable.Empty<TResult>();
+            }
+
+            var tasks = source.Select(selector);
+
+            return await Task.WhenAll(tasks);
         }
         #endregion
 

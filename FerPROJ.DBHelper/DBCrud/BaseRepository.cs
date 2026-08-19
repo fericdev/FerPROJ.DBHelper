@@ -583,16 +583,11 @@ namespace FerPROJ.DBHelper.DBCrud {
 
                 var entities = await GetAllItemsByParentIdAsync(parentId);
 
-                var modelItems = new List<TModelItem>();
+                var modelItems = await entities.SelectListParallelAsync(async c => {
+                    return await GetPrepareModelItemByEntityAsync(c);
+                });
 
-                foreach (var entity in entities) {
-
-                    var modelItem = await GetPrepareModelItemByEntityAsync(entity);
-
-                    modelItems.Add(modelItem);
-                }
-
-                return modelItems;
+                return modelItems.ToList();
             });
         }
         public virtual async Task<TModelItem> GetPrepareModelItemByEntityAsync(TEntityItem entity) {
