@@ -275,33 +275,21 @@ namespace FerPROJ.DBHelper.DBCache {
         public static async Task<TResult> GetOrCreateCacheAsync<TResult>(object key, Func<Task<TResult>> createFunc) {
             try {
                 // Try to get the value from cache
-                var cachedValue = _cache.Get(key.ToString()).To<TResult>();
+                var cachedValue = _cache.Get(key.ToString());
 
                 // If found in cache, return it
-                if (cachedValue != null) {
-                    if (cachedValue is ICollection collection) {
-                        // Only return cached collection if it has items
-                        if (collection.Count > 0) {
-                            return cachedValue;
-                        }
-                    }
-                    else if (cachedValue is IEnumerable enumerable && !(cachedValue is string)) {
-                        // Only return cached collection if it has items
-                        if (enumerable.GetEnumerator().MoveNext()) {
-                            return cachedValue;
-                        }
-                    }
-                    else {
-                        // Normal object/class -> return cached value
-                        return cachedValue;
-                    }
+                if (!cachedValue.IsNullOrEmpty()) {
+                    return cachedValue.To<TResult>();
                 }
 
                 // If not in cache, create it using the provided function
                 var newValue = await createFunc();
 
-                // Store the new value in cache
-                SetCache(key.ToString(), newValue);
+                // Check if new value is not null
+                if (!newValue.IsNullOrEmpty()) {
+                    // Store the new value in cache
+                    SetCache(key.ToString(), newValue);
+                }
 
                 return newValue;
             }
