@@ -320,8 +320,9 @@ namespace FerPROJ.DBHelper.DBCrud {
 
         // ✅ GET ALL
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync() {
-            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListEntityPrefix, typeof(TEntity).Name, async () => {
-                return await CApiManager.GetAsync<List<TEntity>>(GetUrl(ActionTypes.Get));
+            var url = GetUrl(ActionTypes.Get);
+            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListEntityPrefix, typeof(TEntity).Name + url, async () => {
+                return await CApiManager.GetAsync<List<TEntity>>(url);
             });
         }
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(string url) {
