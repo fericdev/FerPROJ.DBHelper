@@ -613,12 +613,12 @@ namespace FerPROJ.DBHelper.DBCrud {
         #endregion
 
         #region Base SAVE for Item
-        protected async virtual Task SaveDataAsync(TModel model, List<TModelItem> modelItems) {
+        protected virtual async Task SaveDataAsync(TModel model, List<TModelItem> modelItems) {
             model.Id = Guid.NewGuid();
             await _ts.SaveModelAndCommitAsync<TModel, TModelItem, TEntity, TEntityItem>(model, modelItems);
         }
 
-        public async Task<bool> SaveModelAsync(TModel model, List<TModelItem> modelItems, bool enabledValidation = false, bool confirmation = true, bool returnResult = true) {
+        public virtual async Task<bool> SaveModelAsync(TModel model, List<TModelItem> modelItems, bool enabledValidation = false, bool confirmation = true, bool returnResult = true) {
             if (model == null)
                 throw new ArgumentNullException($"{nameof(model)} is null!");
 
@@ -685,11 +685,11 @@ namespace FerPROJ.DBHelper.DBCrud {
         #endregion
 
         #region Base UPDATE for Item
-        protected async virtual Task UpdateDataAsync(TModel model, List<TModelItem> modelItems) {
+        protected virtual async Task UpdateDataAsync(TModel model, List<TModelItem> modelItems) {
             await _ts.UpdateModelAndCommitAsync<TModel, TModelItem, TEntity, TEntityItem>(model, modelItems);
         }
 
-        public async Task<bool> UpdateModelAsync(TModel model, List<TModelItem> modelItems, bool enabledValidation = false, bool confirmation = true, bool returnResult = true) {
+        public virtual async Task<bool> UpdateModelAsync(TModel model, List<TModelItem> modelItems, bool enabledValidation = false, bool confirmation = true, bool returnResult = true) {
             if (model == null)
                 throw new ArgumentNullException($"{nameof(model)} is null!");
 
