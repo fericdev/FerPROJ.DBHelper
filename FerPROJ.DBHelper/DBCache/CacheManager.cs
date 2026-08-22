@@ -5,6 +5,7 @@ using FerPROJ.Design.BaseModels;
 using FerPROJ.Design.Class;
 using FerPROJ.Design.Forms;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Entity;
@@ -278,7 +279,22 @@ namespace FerPROJ.DBHelper.DBCache {
 
                 // If found in cache, return it
                 if (cachedValue != null) {
-                    return cachedValue;
+                    if (cachedValue is ICollection collection) {
+                        // Only return cached collection if it has items
+                        if (collection.Count > 0) {
+                            return cachedValue;
+                        }
+                    }
+                    else if (cachedValue is IEnumerable enumerable && !(cachedValue is string)) {
+                        // Only return cached collection if it has items
+                        if (enumerable.GetEnumerator().MoveNext()) {
+                            return cachedValue;
+                        }
+                    }
+                    else {
+                        // Normal object/class -> return cached value
+                        return cachedValue;
+                    }
                 }
 
                 // If not in cache, create it using the provided function
