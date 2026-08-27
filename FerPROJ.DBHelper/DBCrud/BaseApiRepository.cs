@@ -49,18 +49,9 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             var entities = await GetAllAsync();
 
-            var modelList = new List<TModel>();
-
-            if (entities.IsNullOrEmpty()) {
-                return modelList;
-            }
-
-            foreach (var entity in entities) {
-
-                var model = await GetPrepareModelByEntityAsync(entity);
-
-                modelList.Add(model);
-            }
+            var modelList = await entities.SelectListParallelAsync(async entity => {
+                return await GetPrepareModelByEntityAsync(entity);
+            });
 
             return modelList;
         }
@@ -68,18 +59,9 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             var entities = await GetAllAsync(whereCondition);
 
-            var modelList = new List<TModel>();
-
-            if (entities.IsNullOrEmpty()) {
-                return modelList;
-            }
-
-            foreach (var entity in entities) {
-
-                var model = await GetPrepareModelByEntityAsync(entity);
-
-                modelList.Add(model);
-            }
+            var modelList = await entities.SelectListParallelAsync(async entity => {
+                return await GetPrepareModelByEntityAsync(entity);
+            });
 
             return modelList;
         }
