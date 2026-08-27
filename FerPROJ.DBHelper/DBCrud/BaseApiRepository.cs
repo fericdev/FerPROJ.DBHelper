@@ -18,7 +18,6 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using static FerPROJ.Design.Class.CBaseEnums;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace FerPROJ.DBHelper.DBCrud {
     public abstract class BaseApiRepository<TModel, TEntity>
