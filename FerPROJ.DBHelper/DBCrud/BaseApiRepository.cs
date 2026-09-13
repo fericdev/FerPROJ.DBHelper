@@ -10,6 +10,7 @@ using FerPROJ.Design.FormModels;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Drawing.Printing;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http;
@@ -300,21 +301,50 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
 
         // ✅ GET ALL
+        private async Task<IEnumerable<T>> GetAllPagedAsync<T>(string url) where T : BaseEntity {
+
+            // Initialize
+            var results = new List<T>();
+            var skip = 0;
+            var pageSize = 100;
+
+            // Always use a stable order when paging
+            url = url.AddQueryParameter("orderBy", "Id");
+            
+            // Loop through pages until no more results are returned
+            while (true) {
+
+                var pagedUrl = url
+                    .AddQueryParameter("take", pageSize)
+                    .AddQueryParameter("skip", skip);
+
+                var items = await CacheManager.GetOrCreateCacheAsync(CacheManager.ListEntityPrefix, typeof(T).Name + pagedUrl, async () => {
+                    return await CApiManager.GetAsync<List<T>>(pagedUrl);
+                });
+
+                if (items.IsNullOrEmpty()) {
+                    break;
+                }
+
+                results.AddRange(items);
+
+                if (items.Count < pageSize) {
+                    break;
+                }
+
+                skip += pageSize;
+            }
+
+            return results;
+        }
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync() {
-            var url = GetUrl(ActionTypes.Get);
-            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListEntityPrefix, typeof(TEntity).Name + url, async () => {
-                return await CApiManager.GetAsync<List<TEntity>>(url);
-            });
+            return await GetAllAsync(GetUrl(ActionTypes.Get));
         }
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(string url) {
-            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListEntityPrefix, typeof(TEntity).Name + url, async () => {
-                return await CApiManager.GetAsync<List<TEntity>>(url);
-            });
+            return await GetAllPagedAsync<TEntity>(url);
         }
         public virtual async Task<IEnumerable<T>> GetAllAsync<T>(string url) where T : BaseEntity {
-            return await CacheManager.GetOrCreateCacheAsync(CacheManager.ListEntityPrefix, typeof(T).Name + url, async () => {
-                return await CApiManager.GetAsync<List<T>>(url);
-            });
+            return await GetAllPagedAsync<T>(url);
         }
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> predicate) {
             var url = GetUrl(ActionTypes.Get) + predicate.ToQuery();
@@ -486,7 +516,7 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task<bool> SavePictureAsync(Guid id, byte[] picture, string propertyName) {
             var entity = await GetByIdAsync(id);
-            if (entity.IsNullOrEmptyId()){
+            if (entity.IsNullOrEmptyId()) {
                 return true;
             }
             await ClearCacheAsync();
@@ -820,7 +850,7 @@ namespace FerPROJ.DBHelper.DBCrud {
         protected BaseFormApiRepository() {
         }
 
-        protected BaseFormApiRepository(bool autoGenerateFormId, bool filterByApplicationId = true) : base (filterByApplicationId) {
+        protected BaseFormApiRepository(bool autoGenerateFormId, bool filterByApplicationId = true) : base(filterByApplicationId) {
             _autoGenerateFormId = autoGenerateFormId;
         }
 

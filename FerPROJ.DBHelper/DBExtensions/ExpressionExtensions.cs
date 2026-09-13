@@ -2,6 +2,7 @@
 using FerPROJ.Design.Class;
 using Google.Protobuf.WellKnownTypes;
 using System;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
@@ -34,6 +35,38 @@ namespace FerPROJ.DBHelper.DBExtensions {
             visitor.Visit(expression.Body);
 
             return visitor.GetQuery();
+        }
+        public static string AddQueryParameter(this string url, string key, object value) {
+
+            if (url.IsNullOrEmpty()) {
+                return url;
+            }
+
+            var queryIndex = url.IndexOf('?');
+
+            if (queryIndex >= 0) {
+                var query = url.Substring(queryIndex + 1);
+                var parameters = query.Split('&');
+
+                foreach (var parameter in parameters) {
+                    var parts = parameter.Split(new[] { '=' }, 2);
+                    var parameterKey = parts[0];
+
+                    if (string.Equals(parameterKey, key, StringComparison.OrdinalIgnoreCase)) {
+                        return url;
+                    }
+                }
+            }
+
+            var separator = url.Contains("?") ? "&" : "?";
+
+            return string.Format(
+                "{0}{1}{2}={3}",
+                url,
+                separator,
+                key,
+                Uri.EscapeDataString(value.ToString())
+            );
         }
     }
 
