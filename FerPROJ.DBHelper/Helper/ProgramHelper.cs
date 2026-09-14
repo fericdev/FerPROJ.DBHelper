@@ -22,12 +22,8 @@ namespace FerPROJ.DBHelper.Helper {
 
             // Backup
             DbContextHelper.BackupDatabaseAsync(false).RunTask();
-
-            // Check if any arguments were passed to avoid "Index out of range"
-            if (args.GetIndexValue<bool>()) {
-                DbContextHelper.RunDatabaseMigrationAsync().RunTaskAndForget();
-            }
-
+            DbContextHelper.RunDatabaseMigrationAsync().RunTaskAndForget();
+            
             try {
                 var isLoggedIn = false;
                 if (CConfigurationManager.IsLoginSkipped()) {

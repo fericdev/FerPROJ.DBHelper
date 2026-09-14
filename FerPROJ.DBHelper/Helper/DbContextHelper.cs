@@ -76,6 +76,10 @@ namespace FerPROJ.DBHelper.Helper {
 
         #region Run Database Migration
         public static async Task RunDatabaseMigrationAsync() {
+            if (CConfigurationManager.GetValue("Version") == CAssembly.SystemVersion) {
+                return; // No migration needed if versions match
+            }
+
             await FrmSplasherLoading.ShowSplashAsync();
 
             FrmSplasherLoading.SetLoadingText(0);
@@ -126,11 +130,15 @@ namespace FerPROJ.DBHelper.Helper {
                         await task; // wait for async method
                     }
                 }
-                FrmSplasherLoading.SetLoadingText(100);
-                FrmSplasherLoading.CloseSplash();
             }
 
-            CDialogManager.Info("Database migration has been successfully executed.");
+            CConfigurationManager.CreateOrSetValue("Version", CAssembly.SystemVersion);
+            CDialogManager.Custom(
+                "Please reopen the application \nand check what's new! Thank you...",
+                "Database has been successfully updated", MessageBoxIcon.Information, true);
+            //
+            FrmSplasherLoading.SetLoadingText(100);
+            FrmSplasherLoading.CloseSplash();
         }
         #endregion
 
