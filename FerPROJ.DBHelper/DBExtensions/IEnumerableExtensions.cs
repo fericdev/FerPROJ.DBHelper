@@ -303,6 +303,21 @@ namespace FerPROJ.DBHelper.DBExtensions {
         }
         public static async Task<IEnumerable<TResult>> SelectListParallelAsync<TEntity, TResult>(
             this IEnumerable<TEntity> source,
+            Func<TEntity, Task<TResult>> selector,
+            Func<TResult, bool> filter) {
+
+            if (source.IsNullOrEmpty()) {
+                return Enumerable.Empty<TResult>();
+            }
+
+            var tasks = source.Select(selector);
+
+            var results = await Task.WhenAll(tasks);
+
+            return results.Where(filter);
+        }
+        public static async Task<IEnumerable<TResult>> SelectListParallelAsync<TEntity, TResult>(
+            this IEnumerable<TEntity> source,
             Func<TEntity, Task<TResult>> selector) {
 
             if (source.IsNullOrEmpty()) {

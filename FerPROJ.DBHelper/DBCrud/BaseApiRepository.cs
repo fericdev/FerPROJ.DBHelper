@@ -97,11 +97,13 @@ namespace FerPROJ.DBHelper.DBCrud {
                 dateTo = null;
             }
 
-            var query = await GetAllAsync();
-
             dataLimit = !searchText.IsNullOrEmpty() ||
                         !dateFrom.IsNullOrEmpty() ||
                         !dateTo.IsNullOrEmpty() ? int.MaxValue : dataLimit;
+
+            var query = await GetAllAsync(page, dataLimit);
+
+            var queryCount = await GetDataCountAsync();
 
             query = query.GetAllActiveOnly();
 
@@ -113,9 +115,9 @@ namespace FerPROJ.DBHelper.DBCrud {
                     return await GetPrepareModelByEntityAsync(c);
                 });
 
-            }, c => c.SearchForText(searchText), page, dataLimit);
+            }, c => c.SearchForText(searchText));
 
-            return (result, query.Count());
+            return (result, queryCount);
         }
         public virtual async Task<(IEnumerable<TModel> ModelItems, int TotalCount)> GetViewModelWithSearchAsync(Expression<Func<TEntity, bool>> whereCondition, string searchText, DateTime? dateFrom, DateTime? dateTo, int page, int dataLimit = int.MaxValue) {
 
@@ -124,15 +126,17 @@ namespace FerPROJ.DBHelper.DBCrud {
                 dateTo = null;
             }
 
-            var query = await GetAllAsync(whereCondition);
+            dataLimit = !searchText.IsNullOrEmpty() ||
+                !dateFrom.IsNullOrEmpty() ||
+                !dateTo.IsNullOrEmpty() ? int.MaxValue : dataLimit;
+
+            var query = await GetAllAsync(whereCondition, page, dataLimit);
+
+            var queryCount = await GetDataCountAsync();
 
             query = query.GetAllActiveOnly();
 
             query = query.OrderByProperty("DateMarked", false);
-
-            dataLimit = !searchText.IsNullOrEmpty() ||
-                        !dateFrom.IsNullOrEmpty() ||
-                        !dateTo.IsNullOrEmpty() ? int.MaxValue : dataLimit;
 
             var result = await query.SelectListParallelAsync(async c => {
 
@@ -140,9 +144,9 @@ namespace FerPROJ.DBHelper.DBCrud {
                     return await GetPrepareModelByEntityAsync(c);
                 });
 
-            }, c => c.SearchFor(searchText, dateFrom, dateTo, d => d.DateCreated), page, dataLimit);
+            }, c => c.SearchFor(searchText, dateFrom, dateTo, d => d.DateCreated));
 
-            return (result, query.Count());
+            return (result, queryCount);
         }
         public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int dataLimit = int.MaxValue) {
 
@@ -310,7 +314,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             // Always use a stable order when paging
             url = url.AddQueryParameter("orderBy", "Id");
-            
+
             // Loop through pages until no more results are returned
             while (true) {
 
@@ -337,8 +341,27 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             return results;
         }
+        // ✅ GET ALL
+        private async Task<IEnumerable<T>> GetAllPagedAsync<T>(string url, int page, int pageSize) where T : BaseEntity {
+
+            var skip = (page - 1) * pageSize;
+
+            var pagedUrl = url
+                .AddQueryParameter("orderBy", "Id")
+                .AddQueryParameter("take", pageSize)
+                .AddQueryParameter("skip", skip);
+
+            var items = await CacheManager.GetOrCreateCacheAsync(CacheManager.ListEntityPrefix, typeof(T).Name + pagedUrl, async () => {
+                return await CApiManager.GetAsync<List<T>>(pagedUrl);
+            });
+
+            return items;
+        }
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync() {
             return await GetAllAsync(GetUrl(ActionTypes.Get));
+        }
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(int page, int pageSize) {
+            return await GetAllPagedAsync<TEntity>(GetUrl(ActionTypes.Get), page, pageSize);
         }
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(string url) {
             return await GetAllPagedAsync<TEntity>(url);
@@ -349,6 +372,10 @@ namespace FerPROJ.DBHelper.DBCrud {
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> predicate) {
             var url = GetUrl(ActionTypes.Get) + predicate.ToQuery();
             return await GetAllAsync(url);
+        }
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> predicate, int page, int pageSize) {
+            var url = GetUrl(ActionTypes.Get) + predicate.ToQuery();
+            return await GetAllPagedAsync<TEntity>(url, page, pageSize);
         }
 
         // ✅ GET BY ID
@@ -415,6 +442,16 @@ namespace FerPROJ.DBHelper.DBCrud {
                 }
             }
 
+        }
+        public async Task<int> GetDataCountAsync() {
+
+            var query = $"SELECT COUNT(*) AS TotalCount FROM `{typeof(TEntity).Name}` WHERE 1=1";
+
+            if (!CAppConstants.APPLICATION_ID.IsNullOrEmpty() && _filterByApplicationId) {
+                query += $" AND `ApplicationId` = '{CAppConstants.APPLICATION_ID}'";
+            }
+
+            return await GetRawQueryAsync<int>(query, "TotalCount");
         }
         #endregion
 
