@@ -516,7 +516,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                 var entity = model.ToDestination<TEntity>();
                 await SaveDataAsync(entity);
                 await ClearCacheAsync();
-                await ExecuteAfterSaveAsync(entity);
+                await ExecuteAfterSaveAsync(entity, model);
                 CDialogManager.Info("Data saved successfully.");
                 return true;
             }
@@ -530,7 +530,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                 var entity = model.ToDestination<TEntity>();
                 await SaveDataAsync(entity);
                 await ClearCacheAsync();
-                await ExecuteAfterSaveAsync(entity);
+                await ExecuteAfterSaveAsync(entity, model);
                 CDialogManager.Info("Data saved successfully.");
                 return (true, entity.Id);
             }
@@ -555,7 +555,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                 var entity = model.ToDestination(existingEntity);
                 await UpdateDataAsync(entity);
                 await ClearCacheAsync();
-                await ExecuteAfterUpdateAsync(entity);
+                await ExecuteAfterUpdateAsync(entity, model);
                 CDialogManager.Info("Data updated successfully.");
                 return true;
             }
@@ -596,10 +596,10 @@ namespace FerPROJ.DBHelper.DBCrud {
             entity.GetPropertyInfo(propertyName).SetValue(entity, picture);
             return await UpdateDataAsync(entity);
         }
-        public virtual async Task ExecuteAfterSaveAsync(TEntity entity) {
+        public virtual async Task ExecuteAfterSaveAsync(TEntity entity, TModel model) {
             // Override this method in derived classes to execute additional logic after saving the model
         }
-        public virtual async Task ExecuteAfterUpdateAsync(TEntity entity) {
+        public virtual async Task ExecuteAfterUpdateAsync(TEntity entity, TModel model) {
             // Override this method in derived classes to execute additional logic after updating the model
         }
         #endregion
@@ -816,7 +816,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                     await SaveItemDataAsync(itemEntity);
                 }
 
-                await ExecuteAfterSaveAsync(entity);
+                await ExecuteAfterSaveAsync(entity, model);
 
                 CDialogManager.Info("Data saved successfully.");
 
@@ -885,7 +885,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                     await DeleteItemByIdAsync(item.Id);
                 }
 
-                await ExecuteAfterUpdateAsync(entity);
+                await ExecuteAfterUpdateAsync(entity, model);
 
                 CDialogManager.Info("Data updated successfully.");
 
