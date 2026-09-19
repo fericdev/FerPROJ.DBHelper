@@ -344,18 +344,54 @@ namespace FerPROJ.DBHelper.DBCrud {
         // ✅ GET ALL
         private async Task<IEnumerable<T>> GetAllPagedAsync<T>(string url, int page, int pageSize) where T : BaseEntity {
 
-            var skip = (page - 1) * pageSize;
+            if (page <= 0) {
+                page = 1;
+            }
 
-            var pagedUrl = url
-                .AddQueryParameter("orderBy", "Id")
-                .AddQueryParameter("take", pageSize)
-                .AddQueryParameter("skip", skip);
+            if (pageSize <= 0) {
+                return Enumerable.Empty<T>();
+            }
 
-            var items = await CacheManager.GetOrCreateCacheAsync(CacheManager.ListEntityPrefix, typeof(T).Name + pagedUrl, async () => {
-                return await CApiManager.GetAsync<List<T>>(pagedUrl);
-            });
+            // Initialize
+            var results = new List<T>();
+            var skip = (long)(page - 1) * pageSize;
+            var remaining = (long)pageSize;
 
-            return items;
+            // Always use a stable order when paging
+            url = url.AddQueryParameter("orderBy", "Id");
+
+            // Retrieve records in batches of 100
+            while (remaining > 0) {
+
+                // Limit each API request to a maximum of 100 records
+                var take = (int)Math.Min(100, remaining);
+
+                var pagedUrl = url
+                    .AddQueryParameter("take", take)
+                    .AddQueryParameter("skip", skip);
+
+                var items = await CacheManager.GetOrCreateCacheAsync(CacheManager.ListEntityPrefix, typeof(T).Name + pagedUrl,
+                    async () => {
+                        return await CApiManager.GetAsync<List<T>>(pagedUrl);
+                    });
+
+                // Stop if there are no more records
+                if (items.IsNullOrEmpty()) {
+                    break;
+                }
+
+                results.AddRange(items);
+
+                // Stop if the API returned less than the requested amount
+                if (items.Count < take) {
+                    break;
+                }
+
+                skip += items.Count;
+                remaining -= items.Count;
+            }
+
+            return results;
         }
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync() {
             return await GetAllAsync(GetUrl(ActionTypes.Get));
