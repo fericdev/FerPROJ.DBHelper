@@ -115,7 +115,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                     return await GetPrepareModelByEntityAsync(c);
                 });
 
-            }, c => c.SearchForText(searchText));
+            }, c => c.SearchFor(searchText, dateFrom, dateTo, d => d.DateCreated));
 
             return (result, queryCount);
         }

@@ -183,6 +183,37 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 ? source.OrderBy(x => property.GetValue(x))
                 : source.OrderByDescending(x => property.GetValue(x));
         }
+        public static IEnumerable<T> OrderByCurrentMonth<T>(this IEnumerable<T> source, string propertyName) {
+
+            if (source == null)
+                throw new ArgumentNullException(nameof(source));
+
+            if (string.IsNullOrWhiteSpace(propertyName))
+                throw new ArgumentException("Property name cannot be empty.", nameof(propertyName));
+
+            var property = typeof(T).GetProperty(propertyName);
+
+            if (property == null)
+                throw new ArgumentException(
+                    $"Property '{propertyName}' was not found on type '{typeof(T).Name}'.",
+                    nameof(propertyName));
+
+            var currentDate = DateTime.Today;
+
+            return source
+                .Select((item, index) => new {
+                    Item = item,
+                    Index = index,
+                    Date = property.GetValue(item) as DateTime?
+                })
+                .OrderBy(x => x.Date?.Month == currentDate.Month &&
+                              x.Date?.Year == currentDate.Year ? 0 : 1)
+                .ThenBy(x => x.Date?.Month == currentDate.Month &&
+                             x.Date?.Year == currentDate.Year
+                    ? x.Date.Value.Day
+                    : x.Index)
+                .Select(x => x.Item);
+        }
         #endregion
 
         #region Select 
