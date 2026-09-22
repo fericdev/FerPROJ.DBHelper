@@ -91,7 +91,6 @@ namespace FerPROJ.DBHelper.DBCrud {
         #region Get View Model
         public virtual async Task<(IEnumerable<TModel> ModelItems, int TotalCount)> GetViewModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int page, int dataLimit = int.MaxValue) {
 
-
             if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate() && !searchText.IsNullOrEmpty()) {
                 dateFrom = null;
                 dateTo = null;
@@ -101,7 +100,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                         !dateFrom.IsNullOrEmpty() ||
                         !dateTo.IsNullOrEmpty() ? int.MaxValue : dataLimit;
 
-            var query = await GetAllAsync(page, dataLimit);
+            var query = await GetAllAsync(dateFrom, dateTo, "DateCreated", page, dataLimit);
 
             var queryCount = await GetDataCountAsync();
 
@@ -115,7 +114,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                     return await GetPrepareModelByEntityAsync(c);
                 });
 
-            }, c => c.SearchFor(searchText, dateFrom, dateTo, d => d.DateCreated));
+            }, c => c.SearchForText(searchText));
 
             return (result, queryCount);
         }
@@ -130,7 +129,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                 !dateFrom.IsNullOrEmpty() ||
                 !dateTo.IsNullOrEmpty() ? int.MaxValue : dataLimit;
 
-            var query = await GetAllAsync(whereCondition, page, dataLimit);
+            var query = await GetAllAsync(whereCondition, dateFrom, dateTo, "DateCreated", page, dataLimit);
 
             var queryCount = await GetDataCountAsync();
 
@@ -144,7 +143,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                     return await GetPrepareModelByEntityAsync(c);
                 });
 
-            }, c => c.SearchFor(searchText, dateFrom, dateTo, d => d.DateCreated));
+            }, c => c.SearchForText(searchText));
 
             return (result, queryCount);
         }
@@ -155,7 +154,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                 dateTo = null;
             }
 
-            var query = await GetAllAsync();
+            var query = await GetAllAsync(dateFrom, dateTo, "DateCreated", 1, int.MaxValue);
 
             query = query.GetAllActiveOnly();
 
@@ -171,7 +170,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                     return await GetPrepareModelByEntityAsync(c);
                 });
 
-            }, c => c.SearchFor(searchText, dateFrom, dateTo, d => d.DateCreated), dataLimit);
+            }, c => c.SearchForText(searchText), dataLimit);
 
             return result;
         }
@@ -182,7 +181,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                 dateTo = null;
             }
 
-            var query = await GetAllAsync(whereCondition);
+            var query = await GetAllAsync(whereCondition, dateFrom, dateTo, "DateCreated", 1, int.MaxValue);
 
             query = query.GetAllActiveOnly();
 
@@ -198,7 +197,7 @@ namespace FerPROJ.DBHelper.DBCrud {
                     return await GetPrepareModelByEntityAsync(c);
                 });
 
-            }, c => c.SearchFor(searchText, dateFrom, dateTo, d => d.DateCreated), dataLimit);
+            }, c => c.SearchForText(searchText), dataLimit);
 
             return result;
         }
