@@ -70,12 +70,8 @@ namespace FerPROJ.DBHelper.DBExtensions {
         }
         public static string AddDateRangeQueryParameter<TEntity>(this string url, DateTime? dateFrom, DateTime? dateTo, string datePropertyName) {
 
-            if (dateFrom.IsNullOrEmpty()) {
-                dateFrom = DateTime.Now;
-            }
-
-            if (dateTo.IsNullOrEmpty()) {
-                dateTo = DateTime.Now;
+            if (dateFrom.IsNullOrEmpty() || dateTo.IsNullOrEmpty()) {
+                return url;
             }
 
             var parameter = Expression.Parameter(typeof(TEntity), "x");
