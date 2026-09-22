@@ -68,6 +68,43 @@ namespace FerPROJ.DBHelper.DBExtensions {
                 Uri.EscapeDataString(value.ToString())
             );
         }
+        public static string AddDateRangeQueryParameter<TEntity>(this string url, DateTime? dateFrom, DateTime? dateTo, string datePropertyName) {
+
+            if (dateFrom.IsNullOrEmpty()) {
+                dateFrom = DateTime.Now;
+            }
+
+            if (dateTo.IsNullOrEmpty()) {
+                dateTo = DateTime.Now;
+            }
+
+            var parameter = Expression.Parameter(typeof(TEntity), "x");
+
+            var property = Expression.Property(parameter, datePropertyName);
+
+            var dateFromConstant = Expression.Constant(dateFrom, property.Type);
+
+            var dateToConstant = Expression.Constant(dateTo.Value.AddDays(1), property.Type);
+
+            var greaterThanOrEqual = Expression.GreaterThanOrEqual(
+                property,
+                dateFromConstant
+            );
+
+            var lessThan = Expression.LessThan(
+                property,
+                dateToConstant
+            );
+
+            var body = Expression.AndAlso(
+                greaterThanOrEqual,
+                lessThan
+            );
+
+            var predicateResult = Expression.Lambda<Func<TEntity, bool>>(body, parameter);
+
+            return url + predicateResult.ToQuery();
+        }
     }
 
     public class QueryBuilderVisitor : ExpressionVisitor {

@@ -399,6 +399,10 @@ namespace FerPROJ.DBHelper.DBCrud {
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(int page, int pageSize) {
             return await GetAllPagedAsync<TEntity>(GetUrl(ActionTypes.Get), page, pageSize);
         }
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(DateTime? dateFrom, DateTime? dateTo, string datePropertyName, int page, int pageSize) {
+            var url = GetUrl(ActionTypes.Get).AddDateRangeQueryParameter<TEntity>(dateFrom, dateTo, datePropertyName);
+            return await GetAllPagedAsync<TEntity>(url, page, pageSize);
+        }
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(string url) {
             return await GetAllPagedAsync<TEntity>(url);
         }
@@ -411,6 +415,10 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> predicate, int page, int pageSize) {
             var url = GetUrl(ActionTypes.Get) + predicate.ToQuery();
+            return await GetAllPagedAsync<TEntity>(url, page, pageSize);
+        }
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> predicate, DateTime? dateFrom, DateTime? dateTo, string datePropertyName, int page, int pageSize) {
+            var url = GetUrl(ActionTypes.Get).AddDateRangeQueryParameter<TEntity>(dateFrom, dateTo, datePropertyName) + predicate.ToQuery();
             return await GetAllPagedAsync<TEntity>(url, page, pageSize);
         }
 
