@@ -343,6 +343,7 @@ namespace FerPROJ.DBHelper.DBExtensions {
 
             // Set common properties for each item
             foreach (var item in modelItems) {
+                item.Id = Guid.NewGuid();
                 item.ParentId = model.Id;
             }
 
