@@ -402,6 +402,24 @@ namespace FerPROJ.DBHelper.DBCrud {
             var url = GetUrl(ActionTypes.Get).AddDateRangeQueryParameter<TEntity>(dateFrom, dateTo, datePropertyName);
             return await GetAllPagedAsync<TEntity>(url, page, pageSize);
         }
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(List<(string searchProperty, string searchValue)> searchCriteria, DateTime? dateFrom, DateTime? dateTo, string datePropertyName, int page, int pageSize) {
+            
+            var url = GetUrl(ActionTypes.Get).AddDateRangeQueryParameter<TEntity>(dateFrom, dateTo, datePropertyName);
+            var index = 0;
+
+            foreach (var (searchProperty, searchValue) in searchCriteria) {
+                if (searchProperty.IsNullOrEmpty() || searchValue.IsNullOrEmpty()) {
+                    continue;
+                }
+
+                url = url.AddQueryParameter($"searchProperty[{index}]", searchProperty)
+                         .AddQueryParameter($"searchValue[{index}]", searchValue);
+
+                index++;
+            }
+
+            return await GetAllPagedAsync<TEntity>(url, page, pageSize);
+        }
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(string url) {
             return await GetAllPagedAsync<TEntity>(url);
         }
@@ -418,6 +436,24 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>> predicate, DateTime? dateFrom, DateTime? dateTo, string datePropertyName, int page, int pageSize) {
             var url = GetUrl(ActionTypes.Get).AddDateRangeQueryParameter<TEntity>(dateFrom, dateTo, datePropertyName) + predicate.ToQuery();
+            return await GetAllPagedAsync<TEntity>(url, page, pageSize);
+        }
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(List<(string searchProperty, string searchValue)> searchCriteria, Expression<Func<TEntity, bool>> predicate, DateTime? dateFrom, DateTime? dateTo, string datePropertyName, int page, int pageSize) {
+            
+            var url = GetUrl(ActionTypes.Get).AddDateRangeQueryParameter<TEntity>(dateFrom, dateTo, datePropertyName) + predicate.ToQuery();
+            var index = 0;
+
+            foreach (var (searchProperty, searchValue) in searchCriteria) {
+                if (searchProperty.IsNullOrEmpty() || searchValue.IsNullOrEmpty()) {
+                    continue;
+                }
+
+                url = url.AddQueryParameter($"searchProperty[{index}]", searchProperty)
+                         .AddQueryParameter($"searchValue[{index}]", searchValue);
+
+                index++;
+            }
+
             return await GetAllPagedAsync<TEntity>(url, page, pageSize);
         }
 
