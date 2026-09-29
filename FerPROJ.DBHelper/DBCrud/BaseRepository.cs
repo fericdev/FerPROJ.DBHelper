@@ -132,7 +132,7 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int dataLimit = int.MaxValue) {
 
-            if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate() && !searchText.IsNullOrEmpty()) {
+            if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate()) {
                 dateFrom = null;
                 dateTo = null;
             }
@@ -155,7 +155,7 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task<IEnumerable<TModel>> GetViewModelWithSearchAsync(Expression<Func<TEntity, bool>> whereCondition, string searchText, DateTime? dateFrom, DateTime? dateTo, int dataLimit = int.MaxValue) {
 
-            if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate() && !searchText.IsNullOrEmpty()) {
+            if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate()) {
                 dateFrom = null;
                 dateTo = null;
             }
@@ -178,7 +178,7 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task<(IEnumerable<TModel> ModelItems, int TotalCount)> GetViewModelWithSearchAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, int page, int dataLimit = int.MaxValue) {
 
-            if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate() && !searchText.IsNullOrEmpty()) {
+            if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate()) {
                 dateFrom = null;
                 dateTo = null;
             }
@@ -205,7 +205,7 @@ namespace FerPROJ.DBHelper.DBCrud {
         }
         public virtual async Task<(IEnumerable<TModel> ModelItems, int TotalCount)> GetViewModelWithSearchAsync(Expression<Func<TEntity, bool>> whereCondition, string searchText, DateTime? dateFrom, DateTime? dateTo, int page, int dataLimit = int.MaxValue) {
 
-            if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate() && !searchText.IsNullOrEmpty()) {
+            if (dateFrom.IsCurrentDate() && dateTo.IsCurrentDate()) {
                 dateFrom = null;
                 dateTo = null;
             }
