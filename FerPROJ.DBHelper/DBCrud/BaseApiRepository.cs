@@ -408,12 +408,35 @@ namespace FerPROJ.DBHelper.DBCrud {
             var index = 0;
 
             foreach (var (searchProperty, searchValue) in searchCriteria) {
+
                 if (searchProperty.IsNullOrEmpty() || searchValue.IsNullOrEmpty()) {
                     continue;
                 }
 
                 url = url.AddQueryParameter($"searchProperty[{index}]", searchProperty)
                          .AddQueryParameter($"searchValue[{index}]", searchValue);
+
+                index++;
+            }
+
+            return await GetAllPagedAsync<TEntity>(url, page, pageSize);
+        }
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(string searchText, DateTime? dateFrom, DateTime? dateTo, string datePropertyName, int page, int pageSize) {
+
+            var url = GetUrl(ActionTypes.Get).AddDateRangeQueryParameter<TEntity>(dateFrom, dateTo, datePropertyName);
+
+            var index = 0;
+
+            foreach (var searchProp in typeof(TEntity).GetProperties()) {
+
+                if (searchProp.PropertyType != typeof(string)) {
+                    continue;
+                }
+
+                var searchProperty = searchProp.Name;
+
+                url = url.AddQueryParameter($"searchProperty[{index}]", searchProperty)
+                         .AddQueryParameter($"searchValue[{index}]", searchText);
 
                 index++;
             }
@@ -441,15 +464,39 @@ namespace FerPROJ.DBHelper.DBCrud {
         public virtual async Task<IEnumerable<TEntity>> GetAllAsync(List<(string searchProperty, string searchValue)> searchCriteria, Expression<Func<TEntity, bool>> predicate, DateTime? dateFrom, DateTime? dateTo, string datePropertyName, int page, int pageSize) {
             
             var url = GetUrl(ActionTypes.Get).AddDateRangeQueryParameter<TEntity>(dateFrom, dateTo, datePropertyName) + predicate.ToQuery();
+            
             var index = 0;
 
             foreach (var (searchProperty, searchValue) in searchCriteria) {
+
                 if (searchProperty.IsNullOrEmpty() || searchValue.IsNullOrEmpty()) {
                     continue;
                 }
 
                 url = url.AddQueryParameter($"searchProperty[{index}]", searchProperty)
                          .AddQueryParameter($"searchValue[{index}]", searchValue);
+
+                index++;
+            }
+
+            return await GetAllPagedAsync<TEntity>(url, page, pageSize);
+        }
+        public virtual async Task<IEnumerable<TEntity>> GetAllAsync(string searchText, Expression<Func<TEntity, bool>> predicate, DateTime? dateFrom, DateTime? dateTo, string datePropertyName, int page, int pageSize) {
+
+            var url = GetUrl(ActionTypes.Get).AddDateRangeQueryParameter<TEntity>(dateFrom, dateTo, datePropertyName) + predicate.ToQuery();
+
+            var index = 0;
+
+            foreach (var searchProp in typeof(TEntity).GetProperties()) {
+
+                if (searchProp.PropertyType != typeof(string)) {
+                    continue;
+                }
+
+                var searchProperty = searchProp.Name;
+
+                url = url.AddQueryParameter($"searchProperty[{index}]", searchProperty)
+                         .AddQueryParameter($"searchValue[{index}]", searchText);
 
                 index++;
             }
