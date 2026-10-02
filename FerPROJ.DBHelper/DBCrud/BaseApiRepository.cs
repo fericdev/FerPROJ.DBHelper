@@ -429,7 +429,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             foreach (var searchProp in typeof(TEntity).GetProperties()) {
 
-                if (searchProp.PropertyType != typeof(string)) {
+                if (searchProp.PropertyType != typeof(string) || searchText.IsNullOrEmpty()) {
                     continue;
                 }
 
@@ -489,7 +489,7 @@ namespace FerPROJ.DBHelper.DBCrud {
 
             foreach (var searchProp in typeof(TEntity).GetProperties()) {
 
-                if (searchProp.PropertyType != typeof(string)) {
+                if (searchProp.PropertyType != typeof(string) || searchText.IsNullOrEmpty()) {
                     continue;
                 }
 
