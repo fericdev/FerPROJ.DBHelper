@@ -1104,7 +1104,7 @@ namespace FerPROJ.DBHelper.DBCrud {
             if (!IsResultSuccess(model, validate)) {
                 return false;
             }
-            model = await GetPrepareModelAsync(model, model.FormId.GetLettersBeforeSeparator('-'));
+            model = await GetPrepareModelAsync(model, model.FormId.GetValueBeforeSeparator<string>('-'));
             return await base.SaveModelAsync(model, validate);
         }
         public virtual async Task SaveFinalizedDataAsync(TEntity entity) {
