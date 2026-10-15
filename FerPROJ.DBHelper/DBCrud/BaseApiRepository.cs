@@ -569,6 +569,16 @@ namespace FerPROJ.DBHelper.DBCrud {
             }
 
         }
+        public virtual async Task<TReturn> GetRawQueryAsync<TReturn>(string rawQuery) {
+            var url = GetUrl(ActionTypes.RawQuery, ("query", rawQuery));
+            var result = await CApiManager.GetAsync<string>(url);
+            using (var doc = JsonDocument.Parse(result)) {
+
+                var data = doc.RootElement.GetProperty("data");
+
+                return data.GetRawText().ToFromJson<TReturn>();
+            }
+        }
         public async Task<int> GetDataCountAsync() {
 
             var query = $"SELECT COUNT(*) AS TotalCount FROM `{typeof(TEntity).Name}` WHERE 1=1";
